@@ -169,35 +169,26 @@ export const Payments = () => {
                     border: '1px solid var(--outline-variant)'
                   }}
                 >
-                  <div className="responsive-grid responsive-grid-3" style={{ marginBottom: 'var(--space-md)' }}>
+                  <div className="flex justify-between items-start" style={{ marginBottom: 'var(--space-md)' }}>
                     <div>
-                      <div className="body-sm text-muted">Work Date</div>
-                      <div className="font-semibold">{formatDate(log.date)}</div>
+                      <div className="font-semibold" style={{ fontSize: '16px' }}>{log.client}</div>
+                      <div className="body-sm text-muted">Work on {formatDate(log.date)}</div>
                     </div>
-                    <div>
-                      <div className="body-sm text-muted">Client / Project</div>
-                      <div>
-                        <div className="font-semibold">{log.client}</div>
-                      </div>
-                    </div>
-                    <div className="mobile-left" style={{textAlign: 'right'}}>
-                      <div className="body-sm text-muted">Status</div>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 'var(--space-md)' }} className="mobile-justify-start">
-                        <Badge status={log.status} />
-                        <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                          <button 
-                            onClick={() => handleEditWorkEntry(log)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: 0 }}
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteWorkEntry(log._id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: 0 }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
+                    <div className="flex flex-col items-end gap-xs">
+                      <Badge status={log.status} />
+                      <div className="flex gap-xs" style={{ marginTop: '4px' }}>
+                        <button 
+                          onClick={() => handleEditWorkEntry(log)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteWorkEntry(log._id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -259,7 +250,7 @@ export const Payments = () => {
             <div className="activity-list" style={{display: 'flex', flexDirection: 'column', gap: 'var(--space-md)'}}>
               {Object.entries(groupLogsByMonth(paidLogs)).map(([monthYear, logs]) => (
                 <div key={monthYear}>
-                  <div className="flex justify-between items-center" style={{ marginBottom: 'var(--space-xs)', padding: '0 var(--space-xs)' }}>
+                  <div className="flex flex-wrap justify-between items-center gap-xs" style={{ marginBottom: 'var(--space-xs)', padding: '0 var(--space-xs)' }}>
                     <span className="text-muted body-sm font-semibold" style={{ textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>
                       {monthYear}
                     </span>
