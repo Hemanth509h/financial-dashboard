@@ -225,78 +225,53 @@ export const Payments = () => {
                 const isPartiallyPaid = log.amountPaid > 0;
                 
                 return (
-                  <Card key={log._id} style={{ padding: '0', overflow: 'hidden', borderLeft: `4px solid ${isPartiallyPaid ? 'var(--primary)' : 'var(--warning)'}` }}>
-                    <div style={{ padding: 'var(--space-sm)' }}>
-                      <div className="flex justify-between items-start" style={{ marginBottom: 'var(--space-md)' }}>
-                        <div>
-                          <div className="font-semibold" style={{ fontSize: '16px' }}>{log.client}</div>
-                          <div className="body-sm text-muted" style={{ fontSize: '11px' }}>{formatDate(log.date)}</div>
-                        </div>
-                        <div className="flex flex-col items-end gap-xs">
-                          <Badge status={log.status} />
-                          <div className="flex gap-xs" style={{ marginTop: '4px' }}>
-                            <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--on-surface-variant)', cursor: 'pointer' }}>
-                              <Edit2 size={14} />
-                            </button>
-                            <button onClick={() => handleDeleteWorkEntry(log._id)} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--error)', cursor: 'pointer' }}>
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
+                  <Card key={log._id} style={{ padding: 'var(--space-sm)', overflow: 'hidden', borderLeft: `4px solid ${isPartiallyPaid ? 'var(--primary)' : 'var(--warning)'}` }}>
+                    <div className="flex justify-between items-start" style={{ marginBottom: '10px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div className="font-semibold" style={{ fontSize: '15px', lineHeight: '1.2' }}>{log.client}</div>
+                        <div className="body-sm text-muted" style={{ fontSize: '11px' }}>{formatDate(log.date)}</div>
                       </div>
-
-                      <div className="payment-stats-grid" style={{ 
-                        backgroundColor: 'var(--surface-container-low)', 
-                        padding: 'var(--space-sm)', 
-                        borderRadius: 'var(--radius-md)',
-                        marginBottom: 'var(--space-md)'
-                      }}>
-                        <div>
-                          <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Amount</div>
-                          <div className="font-semibold" style={{ fontSize: '13px' }}>{formatCurrency(log.amount)}</div>
+                      <div className="flex flex-col items-end gap-xs">
+                        <div className="flex gap-xs">
+                          <button 
+                            onClick={() => handleOpenPaymentModal(log)} 
+                            title="Record Payment"
+                            style={{ background: 'var(--primary)', border: 'none', padding: '6px', borderRadius: '6px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <CreditCard size={14} />
+                          </button>
+                          <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--on-surface-variant)', cursor: 'pointer' }}>
+                            <Edit2 size={14} />
+                          </button>
+                          <button onClick={() => handleDeleteWorkEntry(log._id)} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--error)', cursor: 'pointer' }}>
+                            <Trash2 size={14} />
+                          </button>
                         </div>
-                        <div>
-                          <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Received</div>
-                          <div className="font-semibold" style={{ fontSize: '13px', color: isPartiallyPaid ? 'var(--primary)' : 'inherit' }}>{formatCurrency(log.amountPaid || 0)}</div>
-                        </div>
-                        <div>
-                          <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Balance</div>
-                          <div className="font-semibold" style={{ fontSize: '13px', color: 'var(--error)' }}>{formatCurrency(remaining)}</div>
-                        </div>
+                        <Badge status={log.status} />
                       </div>
-
-                      {isPartiallyPaid && (
-                        <div style={{ marginBottom: 'var(--space-md)' }}>
-                          <div className="flex justify-between items-center" style={{ marginBottom: '4px' }}>
-                            <span style={{ fontSize: '11px', color: 'var(--on-surface-variant)' }}>Collected {Math.round((log.amountPaid / log.amount) * 100)}%</span>
-                          </div>
-                          <div style={{ width: '100%', height: '4px', backgroundColor: 'var(--surface-container-high)', borderRadius: '2px' }}>
-                            <div style={{ width: `${(log.amountPaid / log.amount) * 100}%`, height: '100%', backgroundColor: 'var(--primary)', borderRadius: '2px' }}></div>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                    <button 
-                      onClick={() => handleOpenPaymentModal(log)}
-                      style={{ 
-                        width: '100%', 
-                        padding: '10px', 
-                        border: 'none', 
-                        borderTop: '1px solid var(--outline-variant)',
-                        backgroundColor: 'white',
-                        color: 'var(--primary)',
-                        fontWeight: '600',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <CreditCard size={14} />
-                      Record Payment
-                    </button>
+
+                    <div className="payment-stats-grid" style={{ 
+                      backgroundColor: 'var(--surface-container-low)', 
+                      padding: '8px', 
+                      borderRadius: 'var(--radius-sm)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Amount</div>
+                        <div className="font-semibold" style={{ fontSize: '13px' }}>{formatCurrency(log.amount)}</div>
+                      </div>
+                      <div style={{ flex: 1, textAlign: 'center', borderLeft: '1px solid var(--outline-variant)', borderRight: '1px solid var(--outline-variant)' }}>
+                        <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Recv.</div>
+                        <div className="font-semibold" style={{ fontSize: '13px', color: isPartiallyPaid ? 'var(--primary)' : 'inherit' }}>{formatCurrency(log.amountPaid || 0)}</div>
+                      </div>
+                      <div style={{ flex: 1, textAlign: 'right' }}>
+                        <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Bal.</div>
+                        <div className="font-semibold" style={{ fontSize: '13px', color: 'var(--error)' }}>{formatCurrency(remaining)}</div>
+                      </div>
+                    </div>
                   </Card>
                 )
               })
@@ -317,23 +292,21 @@ export const Payments = () => {
                     <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary)' }}>{formatCurrency(monthLogs.reduce((sum, l) => sum + (l.amountPaid || l.amount), 0))}</div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                    {monthLogs.map((log) => (
                       <Card key={log._id} style={{ padding: 'var(--space-sm)' }}>
                         <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-semibold">{log.client}</div>
-                            <div className="body-sm text-muted">Paid on {log.datePaid ? formatDate(log.datePaid) : formatDate(log.date)}</div>
+                          <div style={{ flex: 1 }}>
+                            <div className="font-semibold" style={{ fontSize: '15px' }}>{log.client}</div>
+                            <div className="body-sm text-muted" style={{ fontSize: '11px' }}>Paid {log.datePaid ? formatDate(log.datePaid) : formatDate(log.date)}</div>
                           </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <div className="font-semibold" style={{ color: 'var(--success)' }}>{formatCurrency(log.amountPaid || log.amount)}</div>
-                            <div className="flex gap-xs" style={{ marginTop: '4px', justifyContent: 'flex-end' }}>
+                          <div className="flex flex-col items-end gap-xs">
+                            <div className="font-semibold" style={{ color: 'var(--success)', fontSize: '14px' }}>{formatCurrency(log.amountPaid || log.amount)}</div>
+                            <div className="flex gap-xs">
                               <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer' }}><Edit2 size={12} /></button>
                               <button onClick={() => handleDeleteWorkEntry(log._id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}><Trash2 size={12} /></button>
                             </div>
                           </div>
                         </div>
                       </Card>
-                    ))}
                   </div>
                 </div>
               ))
