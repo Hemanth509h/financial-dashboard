@@ -27,7 +27,7 @@ export const SidebarLayout = () => {
             <div className="logo-icon"></div>
             <div>
               <h2 className="text-primary">GigFinance</h2>
-              <span className="text-muted body-sm" style={{textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.05em'}}>Worker Portal</span>
+              <span className="text-muted body-sm" style={{textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.05em'}}>Worker Portal v3.1</span>
             </div>
           </div>
         </div>
