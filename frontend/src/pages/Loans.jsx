@@ -6,7 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { LoanForm } from '../components/forms/LoanForm';
 import { RepaymentForm } from '../components/forms/RepaymentForm';
 import { api } from '../api';
-import { Edit2, Trash2, Plus } from 'lucide-react';
+import { Edit2, Trash2, Plus, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Loans = () => {
@@ -20,6 +20,38 @@ export const Loans = () => {
   const [expandedLoan, setExpandedLoan] = useState(null);
   const [repayments, setRepayments] = useState({});
   const [loadingRepayments, setLoadingRepayments] = useState({});
+
+  const handleExport = () => {
+    if (loans.length === 0) {
+      toast.error('No loans to export.');
+      return;
+    }
+    const headers = ['Lender', 'Total Amount', 'Amount Paid', 'Remaining', 'Start Date', 'Status'];
+    const csvData = loans.map(loan => [
+      `"${loan.lenderName.replace(/"/g, '""')}"`,
+      loan.totalAmount,
+      loan.amountPaid,
+      loan.totalAmount - loan.amountPaid,
+      `"${new Date(loan.startDate).toLocaleDateString()}"`,
+      loan.status
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'loans_summary.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Loans exported successfully!');
+  };
 
   const toggleExpandLoan = async (loanId) => {
     if (expandedLoan === loanId) {
@@ -156,13 +188,24 @@ export const Loans = () => {
     return new Date(dateString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  const groupRepaymentsByMonth = (repaymentList) => {
+  const groupRepaymentsByMonthAndWeek = (repaymentList) => {
     if (!repaymentList) return {};
-    return repaymentList.reduce((groups, rep) => {
+    
+    // Sort repayments latest first
+    const sortedRepayments = [...repaymentList].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return sortedRepayments.reduce((groups, rep) => {
       const date = new Date(rep.date);
       const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-      if (!groups[monthYear]) groups[monthYear] = [];
-      groups[monthYear].push(rep);
+      
+      // Calculate week of month
+      const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      const weekNum = Math.ceil((date.getDate() + startOfMonth.getDay()) / 7);
+      const weekLabel = `Week ${weekNum}`;
+
+      if (!groups[monthYear]) groups[monthYear] = {};
+      if (!groups[monthYear][weekLabel]) groups[monthYear][weekLabel] = [];
+      groups[monthYear][weekLabel].push(rep);
       return groups;
     }, {});
   };
@@ -174,7 +217,12 @@ export const Loans = () => {
           <h1 style={{marginBottom: 'var(--space-xs)'}}>Loan Management</h1>
           <p className="text-muted">Overview of your active liabilities and repayment progress.</p>
         </div>
-        <Button onClick={() => setShowLoanModal(true)}>+ Add New Loan</Button>
+        <div className="flex gap-sm">
+          <Button variant="secondary" onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Download size={18} /> Export CSV
+          </Button>
+          <Button onClick={() => setShowLoanModal(true)}>+ Add New Loan</Button>
+        </div>
       </header>
       
       <div className="content">
@@ -271,45 +319,54 @@ export const Loans = () => {
                       <div className="skeleton skeleton-text" style={{height: '40px'}}></div>
                     ) : repayments[loan._id] && repayments[loan._id].length > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                        {Object.entries(groupRepaymentsByMonth(repayments[loan._id])).map(([monthYear, reps]) => (
-                          <div key={monthYear}>
+                        {Object.entries(groupRepaymentsByMonthAndWeek(repayments[loan._id])).sort((a, b) => new Date(b[0]) - new Date(a[0])).map(([monthYear, weeks]) => (
+                          <div key={monthYear} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                             <div className="flex justify-between items-center" style={{ marginBottom: 'var(--space-xs)' }}>
-                              <span className="text-muted body-sm font-semibold" style={{ textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>
+                              <span className="text-muted body-sm font-bold" style={{ textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>
                                 {monthYear}
                               </span>
-                              <span className="text-primary body-sm font-semibold">
-                                {formatCurrency(reps.reduce((sum, r) => sum + r.amount, 0))}
-                              </span>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                              {reps.map(rep => (
-                                <div key={rep._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-sm)', backgroundColor: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
-                                  <div style={{ flex: 1 }}>
-                                    <div className="font-semibold" style={{ color: rep.status === 'Success' ? 'var(--success)' : 'inherit' }}>
-                                      {formatCurrency(rep.amount)}
-                                    </div>
-                                    <div className="text-muted body-sm">{formatDate(rep.date)}</div>
-                                  </div>
-                                  <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-                                    <Badge status={rep.status || 'Success'} />
-                                    <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                                      <button 
-                                        onClick={() => handleEditRepayment(loan, rep)}
-                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: 0 }}
-                                      >
-                                        <Edit2 size={16} />
-                                      </button>
-                                      <button 
-                                        onClick={() => handleDeleteRepayment(loan._id, rep._id)}
-                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: 0 }}
-                                      >
-                                        <Trash2 size={16} />
-                                      </button>
-                                    </div>
-                                  </div>
+
+                            {Object.entries(weeks).sort((a, b) => b[0].localeCompare(a[0])).map(([weekLabel, weekReps]) => (
+                              <div key={weekLabel}>
+                                <div className="flex justify-between items-center" style={{ marginBottom: 'var(--space-sm)', padding: '0 4px', borderLeft: '3px solid var(--primary)', paddingLeft: 'var(--space-sm)' }}>
+                                  <span className="font-semibold body-sm text-primary">{weekLabel}</span>
+                                  <span className="text-muted body-sm">
+                                    Weekly: {formatCurrency(weekReps.reduce((sum, r) => sum + r.amount, 0))}
+                                  </span>
                                 </div>
-                              ))}
-                            </div>
+                                
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+                                  {weekReps.map(rep => (
+                                    <div key={rep._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-sm)', backgroundColor: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
+                                      <div style={{ flex: 1 }}>
+                                        <div className="font-semibold" style={{ color: rep.status === 'Success' ? 'var(--success)' : 'inherit' }}>
+                                          {formatCurrency(rep.amount)}
+                                        </div>
+                                        <div className="text-muted body-sm">{formatDate(rep.date)}</div>
+                                      </div>
+                                      <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+                                        <Badge status={rep.status || 'Success'} />
+                                        <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                                          <button 
+                                            onClick={() => handleEditRepayment(loan, rep)}
+                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: 0 }}
+                                          >
+                                            <Edit2 size={16} />
+                                          </button>
+                                          <button 
+                                            onClick={() => handleDeleteRepayment(loan._id, rep._id)}
+                                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: 0 }}
+                                          >
+                                            <Trash2 size={16} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         ))}
                       </div>

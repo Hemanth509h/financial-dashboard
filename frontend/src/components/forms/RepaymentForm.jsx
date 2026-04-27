@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/Button';
+import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import './Form.css';
 
 export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
@@ -14,6 +15,7 @@ export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
 
   const oldAmount = initialData ? parseFloat(initialData.amount) : 0;
   const remainingBalance = loan ? loan.totalAmount - (loan.amountPaid || 0) + oldAmount : 0;
+  const isFullRepayment = formData.amount && parseFloat(formData.amount) >= remainingBalance;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,7 +36,7 @@ export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
     if (parseFloat(formData.amount) > remainingBalance) {
       newErrors.amount = `Cannot exceed remaining balance of ₹${remainingBalance}`;
     }
-    if (!formData.date) newErrors.date = 'Payment date is required';
+    if (!formData.date) newErrors.date = 'Repayment date is required';
     return newErrors;
   };
 
@@ -84,11 +86,33 @@ export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
           value={formData.amount}
           onChange={handleChange}
         />
-        {errors.amount && <span className="error">{errors.amount}</span>}
+        {errors.amount && (
+          <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', borderLeft: '4px solid var(--error)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <AlertCircle size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>{errors.amount}</span>
+          </div>
+        )}
+        
+        {/* Repayment Status Alert */}
+        {formData.amount && parseFloat(formData.amount) > 0 && !errors.amount && (
+          isFullRepayment ? (
+            <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#16a34a', borderLeft: '4px solid var(--success)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <CheckCircle2 size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+              <span><strong>Full Repayment:</strong> This will mark the loan as fully repaid.</span>
+            </div>
+          ) : (
+            <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(255, 193, 7, 0.1)', color: '#b28900', borderLeft: '4px solid var(--warning)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <Info size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+              <div>
+                <strong>Partial Repayment:</strong> You are repaying ₹{parseFloat(formData.amount).toLocaleString()} of ₹{remainingBalance.toLocaleString()}. 
+              </div>
+            </div>
+          )
+        )}
       </div>
 
       <div className="form-group">
-        <label htmlFor="date">Payment Date *</label>
+        <label htmlFor="date">Repayment Date *</label>
         <input
           type="date"
           id="date"
@@ -96,7 +120,12 @@ export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
           value={formData.date}
           onChange={handleChange}
         />
-        {errors.date && <span className="error">{errors.date}</span>}
+        {errors.date && (
+          <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', borderLeft: '4px solid var(--error)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <AlertCircle size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>{errors.date}</span>
+          </div>
+        )}
       </div>
 
       <div className="form-group">

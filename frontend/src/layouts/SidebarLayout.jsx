@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, Wallet, Building2, HelpCircle, Menu, MoreHorizontal, X } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Wallet, Building2, HelpCircle, Menu, MoreHorizontal, X, Settings } from 'lucide-react';
 import './SidebarLayout.css';
 
 export const SidebarLayout = () => {
@@ -11,6 +11,11 @@ export const SidebarLayout = () => {
     { name: 'Work Log', path: '/work-log', icon: CalendarDays },
     { name: 'Payments', path: '/payments', icon: Wallet },
     { name: 'Loans', path: '/loans', icon: Building2 },
+  ];
+
+  const footerItems = [
+    { name: 'Settings', path: '/settings', icon: Settings },
+    { name: 'Support', path: '#', icon: HelpCircle },
   ];
 
   return (
@@ -52,12 +57,25 @@ export const SidebarLayout = () => {
         <div className="sidebar-footer">
           <nav className="sidebar-nav">
             <ul>
-              <li>
-                <a href="#" className="nav-link text-muted">
-                  <HelpCircle size={20} />
-                  Support
-                </a>
-              </li>
+              {footerItems.map((item) => (
+                <li key={item.name}>
+                  {item.path.startsWith('#') ? (
+                    <a href={item.path} className="nav-link text-muted">
+                      <item.icon size={20} />
+                      {item.name}
+                    </a>
+                  ) : (
+                    <NavLink 
+                      to={item.path} 
+                      onClick={() => setIsMobileOpen(false)}
+                      className={({ isActive }) => `nav-link ${isActive ? 'active' : ''} text-muted`}
+                    >
+                      <item.icon size={20} />
+                      {item.name}
+                    </NavLink>
+                  )}
+                </li>
+              ))}
             </ul>
           </nav>
         </div>

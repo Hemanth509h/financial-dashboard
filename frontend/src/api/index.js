@@ -5,6 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || '/api';
 export const api = {
   // Dashboard
   getDashboardSummary: () => axios.get(`${API_URL}/dashboard/summary`),
+  getAnalytics: () => axios.get(`${API_URL}/dashboard/analytics`),
   
   // Work Logs
   getWorkLogs: () => axios.get(`${API_URL}/work-logs`),

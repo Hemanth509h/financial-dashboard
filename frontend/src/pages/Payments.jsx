@@ -123,16 +123,27 @@ export const Payments = () => {
     }
   };
 
-  const groupLogsByMonth = (logList) => {
+  const groupLogsByMonthAndWeek = (logList) => {
     if (!logList || !Array.isArray(logList)) return {};
-    return logList.reduce((groups, log) => {
+    
+    // Sort logs latest first
+    const sortedLogs = [...logList].sort((a, b) => new Date(b.datePaid || b.date) - new Date(a.datePaid || a.date));
+
+    return sortedLogs.reduce((groups, log) => {
       if (!log || !log.date) return groups;
       try {
         const date = new Date(log.date);
         if (isNaN(date.getTime())) return groups;
         const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-        if (!groups[monthYear]) groups[monthYear] = [];
-        groups[monthYear].push(log);
+        
+        // Calculate week of month
+        const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        const weekNum = Math.ceil((date.getDate() + startOfMonth.getDay()) / 7);
+        const weekLabel = `Week ${weekNum}`;
+
+        if (!groups[monthYear]) groups[monthYear] = {};
+        if (!groups[monthYear][weekLabel]) groups[monthYear][weekLabel] = [];
+        groups[monthYear][weekLabel].push(log);
       } catch (e) {}
       return groups;
     }, {});
@@ -292,29 +303,41 @@ export const Payments = () => {
                 <p className="text-muted">No payment history yet.</p>
               </Card>
             ) : (
-              Object.entries(groupLogsByMonth(paidLogs)).map(([monthYear, monthLogs]) => (
-                <div key={monthYear}>
+              Object.entries(groupLogsByMonthAndWeek(paidLogs)).sort((a, b) => new Date(b[0]) - new Date(a[0])).map(([monthYear, weeks]) => (
+                <div key={monthYear} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
                   <div className="flex justify-between items-end" style={{ marginBottom: 'var(--space-md)', padding: '0 4px' }}>
                     <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', letterSpacing: '0.05em' }}>{monthYear}</h3>
-                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary)' }}>{formatCurrency(monthLogs.reduce((sum, l) => sum + (l.amountPaid || l.amount), 0))}</div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                      <Card key={log._id} style={{ padding: 'var(--space-sm)' }}>
-                        <div className="flex justify-between items-center">
-                          <div style={{ flex: 1 }}>
-                            <div className="font-semibold" style={{ fontSize: '15px' }}>{log.client}</div>
-                            <div className="body-sm text-muted" style={{ fontSize: '11px' }}>Paid {log.datePaid ? formatDate(log.datePaid) : formatDate(log.date)}</div>
-                          </div>
-                          <div className="flex flex-col items-end gap-xs">
-                            <div className="font-semibold" style={{ color: 'var(--success)', fontSize: '14px' }}>{formatCurrency(log.amountPaid || log.amount)}</div>
-                            <div className="flex gap-xs">
-                              <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer' }}><Edit2 size={12} /></button>
-                              <button onClick={() => handleDeleteWorkEntry(log._id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}><Trash2 size={12} /></button>
+                  
+                  {Object.entries(weeks).sort((a, b) => b[0].localeCompare(a[0])).map(([weekLabel, weekLogs]) => (
+                    <div key={weekLabel}>
+                      <div className="flex justify-between items-center" style={{ marginBottom: 'var(--space-sm)', padding: '0 4px', borderLeft: '3px solid var(--success)', paddingLeft: 'var(--space-sm)' }}>
+                        <span className="font-semibold body-sm text-success">{weekLabel}</span>
+                        <span className="text-muted body-sm">
+                          Weekly Received: {formatCurrency(weekLogs.reduce((sum, l) => sum + (l.amountPaid || l.amount), 0))}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+                        {weekLogs.map(log => (
+                          <Card key={log._id} style={{ padding: 'var(--space-sm)' }}>
+                            <div className="flex justify-between items-center">
+                              <div style={{ flex: 1 }}>
+                                <div className="font-semibold" style={{ fontSize: '15px' }}>{log.client}</div>
+                                <div className="body-sm text-muted" style={{ fontSize: '11px' }}>Paid {log.datePaid ? formatDate(log.datePaid) : formatDate(log.date)}</div>
+                              </div>
+                              <div className="flex flex-col items-end gap-xs">
+                                <div className="font-semibold" style={{ color: 'var(--success)', fontSize: '14px' }}>{formatCurrency(log.amountPaid || log.amount)}</div>
+                                <div className="flex gap-xs">
+                                  <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer' }}><Edit2 size={12} /></button>
+                                  <button onClick={() => handleDeleteWorkEntry(log._id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}><Trash2 size={12} /></button>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </Card>
-                  </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ))
             )}

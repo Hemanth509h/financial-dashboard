@@ -86,4 +86,57 @@ router.get('/summary', async (req, res) => {
   }
 });
 
+router.get('/analytics', async (req, res) => {
+  try {
+    const months = [];
+    const now = new Date();
+    
+    // Get last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        name: d.toLocaleString('default', { month: 'short' }),
+        start: new Date(d.getFullYear(), d.getMonth(), 1),
+        end: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999)
+      });
+    }
+
+    const analyticsData = await Promise.all(months.map(async (m) => {
+      // Earnings: amountPaid from WorkEntries paid in this month
+      const entries = await WorkEntry.find({
+        status: { $in: ['Paid', 'Partially Paid'] },
+        datePaid: { $gte: m.start, $lte: m.end }
+      });
+
+      let earnings = 0;
+      entries.forEach(entry => {
+        // If it was paid in this month, we count the amountPaid
+        // This is a simplification; in a real app we'd track individual payments
+        earnings += (entry.amountPaid || 0);
+      });
+
+      // Repayments: Repayments in this month
+      const repayments = await Repayment.find({
+        date: { $gte: m.start, $lte: m.end }
+      });
+      const repaymentTotal = repayments.reduce((sum, r) => {
+        if (!r.status || r.status === 'Success') {
+          return sum + r.amount;
+        }
+        return sum;
+      }, 0);
+
+      return {
+        month: m.name,
+        earnings,
+        repayments: repaymentTotal
+      };
+    }));
+
+    res.json(analyticsData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

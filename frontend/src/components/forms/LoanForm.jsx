@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/Button';
+import { AlertCircle } from 'lucide-react';
 import './Form.css';
 
 export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
@@ -25,9 +26,13 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.lenderName) newErrors.lenderName = 'Lender name is required';
-    if (!formData.totalAmount || formData.totalAmount <= 0) newErrors.totalAmount = 'Amount must be greater than 0';
-    if (!formData.startDate) newErrors.startDate = 'Start date is required';
+    if (!formData.lenderName || formData.lenderName.trim() === '') {
+      newErrors.lenderName = 'Lender name is required';
+    }
+    if (!formData.totalAmount || parseFloat(formData.totalAmount) <= 0) {
+      newErrors.totalAmount = 'Loan amount must be greater than ₹0';
+    }
+    if (!formData.startDate) newErrors.startDate = 'Loan start date is required';
     return newErrors;
   };
 
@@ -56,7 +61,12 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
           value={formData.lenderName}
           onChange={handleChange}
         />
-        {errors.lenderName && <span className="error">{errors.lenderName}</span>}
+        {errors.lenderName && (
+          <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', borderLeft: '4px solid var(--error)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <AlertCircle size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>{errors.lenderName}</span>
+          </div>
+        )}
       </div>
 
       <div className="form-group">
@@ -71,7 +81,12 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
           value={formData.totalAmount}
           onChange={handleChange}
         />
-        {errors.totalAmount && <span className="error">{errors.totalAmount}</span>}
+        {errors.totalAmount && (
+          <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', borderLeft: '4px solid var(--error)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <AlertCircle size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>{errors.totalAmount}</span>
+          </div>
+        )}
       </div>
 
       <div className="form-group">
@@ -83,7 +98,12 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
           value={formData.startDate}
           onChange={handleChange}
         />
-        {errors.startDate && <span className="error">{errors.startDate}</span>}
+        {errors.startDate && (
+          <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', borderLeft: '4px solid var(--error)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <AlertCircle size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>{errors.startDate}</span>
+          </div>
+        )}
       </div>
 
       <div className="form-group">

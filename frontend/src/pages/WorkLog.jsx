@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const WorkLog = () => {
@@ -14,6 +14,37 @@ export const WorkLog = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0].substring(0, 7));
+
+  const handleExport = () => {
+    if (filteredLogs.length === 0) {
+      toast.error('No logs to export for this month.');
+      return;
+    }
+    const headers = ['Date', 'Client', 'Amount', 'Amount Paid', 'Status'];
+    const csvData = filteredLogs.map(log => [
+      `"${new Date(log.date).toLocaleDateString()}"`,
+      `"${log.client.replace(/"/g, '""')}"`,
+      log.amount,
+      log.amountPaid || 0,
+      log.status
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `work_logs_${selectedMonth}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('CSV exported successfully!');
+  };
 
   const fetchLogs = async () => {
     try {
@@ -95,13 +126,25 @@ export const WorkLog = () => {
     return date.toLocaleString('default', { month: 'long' });
   };
 
-  const groupLogsByMonth = (logList) => {
+  const groupLogsByMonthAndWeek = (logList) => {
     if (!logList) return {};
-    return logList.reduce((groups, log) => {
+    
+    // Sort logs latest first
+    const sortedLogs = [...logList].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return sortedLogs.reduce((groups, log) => {
       const date = new Date(log.date);
       const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-      if (!groups[monthYear]) groups[monthYear] = [];
-      groups[monthYear].push(log);
+      
+      // Calculate week of month
+      const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      const weekNum = Math.ceil((date.getDate() + startOfMonth.getDay()) / 7);
+      const weekLabel = `Week ${weekNum}`;
+
+      if (!groups[monthYear]) groups[monthYear] = {};
+      if (!groups[monthYear][weekLabel]) groups[monthYear][weekLabel] = [];
+      
+      groups[monthYear][weekLabel].push(log);
       return groups;
     }, {});
   };
@@ -113,7 +156,12 @@ export const WorkLog = () => {
           <h1 style={{marginBottom: 'var(--space-xs)'}}>Monthly Productivity</h1>
           <p className="text-muted">Showing all work records</p>
         </div>
-        <Button onClick={() => setShowModal(true)}>+ Add Work Day</Button>
+        <div className="flex gap-sm">
+          <Button variant="secondary" onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Download size={18} /> Export CSV
+          </Button>
+          <Button onClick={() => setShowModal(true)}>+ Add Work Day</Button>
+        </div>
       </header>
 
       <div className="content">
@@ -163,56 +211,70 @@ export const WorkLog = () => {
             ) : filteredLogs.length === 0 ? (
               <p className="text-muted" style={{padding: 'var(--space-md) 0'}}>No work logs found for this month.</p>
             ) : (
-              Object.entries(groupLogsByMonth(filteredLogs)).map(([monthYear, logs]) => (
-                <div key={monthYear}>
-                  <div className="flex justify-between items-center" style={{ marginBottom: 'var(--space-sm)', padding: '0 var(--space-xs)' }}>
-                    <span className="text-muted body-sm font-semibold" style={{ textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>
+              Object.entries(groupLogsByMonthAndWeek(filteredLogs)).sort((a, b) => {
+                // Assuming format "Month Year" like "October 2026"
+                // For "filteredLogs" it's usually within one month anyway, 
+                // but good to have for robustness.
+                return new Date(b[0]) - new Date(a[0]);
+              }).map(([monthYear, weeks]) => (
+                <div key={monthYear} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+                  <div className="flex justify-between items-center" style={{ padding: '0 var(--space-xs)' }}>
+                    <span className="text-muted body-sm font-bold" style={{ textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>
                       {monthYear}
                     </span>
-                    <span className="text-primary body-sm font-semibold">
-                      Month Total: {formatCurrency(logs.reduce((sum, log) => sum + log.amount, 0))}
-                    </span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                    {logs.map((log) => (
-                      <div key={log._id} className="activity-item" style={{padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)'}}>
-                        <div className="responsive-grid" style={{ gridTemplateColumns: 'auto 1fr auto', gap: 'var(--space-md)', alignItems: 'center' }}>
-                          <div style={{width: '48px', height: '48px', backgroundColor: 'white', color: 'var(--primary)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, border: '1px solid var(--outline-variant)'}}>
-                            <span style={{fontSize: '10px', textTransform: 'uppercase'}}>{new Date(log.date).toLocaleString('default', { month: 'short' })}</span>
-                            <span>{new Date(log.date).getDate()}</span>
-                          </div>
-                          
-                          <div style={{ overflow: 'hidden' }}>
-                            <div className="font-semibold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.client}</div>
-                            <div className="body-sm text-muted">{formatCurrency(log.amount)}</div>
-                          </div>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                            <Badge status={log.status} />
-                            {log.amountPaid > 0 && log.amountPaid < log.amount && (
-                              <div className="body-sm text-success font-semibold" style={{fontSize: '11px'}}>
-                                Paid: {formatCurrency(log.amountPaid)}
+                  
+                  {Object.entries(weeks).sort((a, b) => b[0].localeCompare(a[0])).map(([weekLabel, weekLogs]) => (
+                    <div key={weekLabel}>
+                      <div className="flex justify-between items-center" style={{ marginBottom: 'var(--space-sm)', padding: '0 var(--space-xs)', borderLeft: '3px solid var(--primary)', paddingLeft: 'var(--space-sm)' }}>
+                        <span className="font-semibold body-sm text-primary">{weekLabel}</span>
+                        <span className="text-muted body-sm">
+                          Weekly Total: {formatCurrency(weekLogs.reduce((sum, log) => sum + log.amount, 0))}
+                        </span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+                        {weekLogs.map((log) => (
+                          <div key={log._id} className="activity-item" style={{padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)'}}>
+                            <div className="responsive-grid" style={{ gridTemplateColumns: 'auto 1fr auto', gap: 'var(--space-md)', alignItems: 'center' }}>
+                              <div style={{width: '48px', height: '48px', backgroundColor: 'white', color: 'var(--primary)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, border: '1px solid var(--outline-variant)'}}>
+                                <span style={{fontSize: '10px', textTransform: 'uppercase'}}>{new Date(log.date).toLocaleString('default', { month: 'short' })}</span>
+                                <span>{new Date(log.date).getDate()}</span>
                               </div>
-                            )}
-                            <div style={{ display: 'flex', gap: 'var(--space-xs)', marginTop: '4px' }}>
-                              <button 
-                                onClick={() => handleEdit(log)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleDelete(log._id)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}
-                              >
-                                <Trash2 size={16} />
-                              </button>
+                              
+                              <div style={{ overflow: 'hidden' }}>
+                                <div className="font-semibold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.client}</div>
+                                <div className="body-sm text-muted">{formatCurrency(log.amount)}</div>
+                              </div>
+
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                <Badge status={log.status} />
+                                {log.amountPaid > 0 && log.amountPaid < log.amount && (
+                                  <div className="body-sm text-success font-semibold" style={{fontSize: '11px'}}>
+                                    Paid: {formatCurrency(log.amountPaid)}
+                                  </div>
+                                )}
+                                <div style={{ display: 'flex', gap: 'var(--space-xs)', marginTop: '4px' }}>
+                                  <button 
+                                    onClick={() => handleEdit(log)}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}
+                                  >
+                                    <Edit2 size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDelete(log._id)}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               ))
             )}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/Button';
+import { AlertCircle } from 'lucide-react';
 import './Form.css';
 
 export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
@@ -25,9 +26,11 @@ export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.date) newErrors.date = 'Date is required';
+    if (!formData.date) newErrors.date = 'Work date is required';
     if (!formData.client) newErrors.client = 'Client/Project name is required';
-    if (!formData.amount || formData.amount <= 0) newErrors.amount = 'Amount must be greater than 0';
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      newErrors.amount = 'Amount must be greater than ₹0';
+    }
     return newErrors;
   };
 
@@ -60,7 +63,12 @@ export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
           value={formData.date}
           onChange={handleChange}
         />
-        {errors.date && <span className="error">{errors.date}</span>}
+        {errors.date && (
+          <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', borderLeft: '4px solid var(--error)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <AlertCircle size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>{errors.date}</span>
+          </div>
+        )}
       </div>
 
       <div className="form-group">
@@ -96,7 +104,12 @@ export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
             </button>
           ))}
         </div>
-        {errors.client && <span className="error" style={{ marginTop: '4px', display: 'block' }}>{errors.client}</span>}
+        {errors.client && (
+          <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', borderLeft: '4px solid var(--error)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <AlertCircle size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>{errors.client}</span>
+          </div>
+        )}
       </div>
 
 
@@ -113,7 +126,12 @@ export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
           value={formData.amount}
           onChange={handleChange}
         />
-        {errors.amount && <span className="error">{errors.amount}</span>}
+        {errors.amount && (
+          <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-sm)', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)', borderLeft: '4px solid var(--error)', borderRadius: 'var(--radius-sm)', fontSize: '13px', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <AlertCircle size={14} style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>{errors.amount}</span>
+          </div>
+        )}
       </div>
 
       <div className="form-group">
