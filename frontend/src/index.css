@@ -75,6 +75,39 @@
   --sidebar-width: 280px;
 }
 
+[data-theme='dark'] {
+  --surface: rgba(30, 41, 59, 0.7);
+  --surface-dim: #0f172a;
+  --surface-bright: #1e293b;
+  --surface-container-lowest: #0f172a;
+  --surface-container-low: rgba(30, 41, 59, 0.8);
+  --surface-container: rgba(15, 23, 42, 0.8);
+  --surface-container-high: #334155;
+  --surface-container-highest: #475569;
+  
+  --on-surface: #f8fafc;
+  --on-surface-variant: #94a3b8;
+  --inverse-surface: #f8fafc;
+  --inverse-on-surface: #0f172a;
+  
+  --outline: #475569;
+  --outline-variant: #334155;
+  
+  --background: #020617;
+  --on-background: #f8fafc;
+
+  --secondary-container: #1e293b;
+  --on-secondary-container: #cbd5e1;
+  
+  /* Status Colors Dark */
+  --status-paid-bg: rgba(16, 185, 129, 0.2);
+  --status-paid-text: #34d399;
+  --status-pending-bg: rgba(245, 158, 11, 0.2);
+  --status-pending-text: #fbbf24;
+  --status-unpaid-bg: rgba(239, 68, 68, 0.2);
+  --status-unpaid-text: #f87171;
+}
+
 html, body {
   overflow-x: hidden;
   position: relative;
@@ -92,15 +125,25 @@ body {
   background-color: var(--background);
   /* Subtle mesh gradient background */
   background-image: 
-    radial-gradient(at 0% 0%, hsla(160, 100%, 94%, 1) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(210, 100%, 96%, 1) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(160, 100%, 96%, 1) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(210, 100%, 94%, 1) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, hsla(160, 100%, 94%, 0.4) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(210, 100%, 96%, 0.4) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(160, 100%, 96%, 0.4) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(210, 100%, 94%, 0.4) 0px, transparent 50%);
+  
   background-attachment: fixed;
   color: var(--on-surface);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme='dark'] body {
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(160, 100%, 10%, 0.4) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(210, 100%, 15%, 0.4) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(160, 100%, 12%, 0.4) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(210, 100%, 10%, 0.4) 0px, transparent 50%);
 }
 
 h1 { font-size: 32px; font-weight: 700; line-height: 40px; letter-spacing: -0.03em; color: var(--on-surface); }
@@ -249,4 +292,85 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
     margin-bottom: 0;
     padding-bottom: 0;
   }
+}
+
+/* Search & Filter Components */
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-md);
+  color: var(--on-surface);
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface-bright);
+  box-shadow: 0 0 0 4px var(--primary-container);
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--on-surface-variant);
+  pointer-events: none;
+}
+
+.filter-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-chip:hover {
+  background: var(--surface-container-high);
+}
+
+.filter-chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.form-input {
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+}
+
+.form-input:focus {
+  background: var(--surface-bright);
+  border-color: var(--primary);
+}
+
+select.form-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
 }

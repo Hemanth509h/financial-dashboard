@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
-import { Edit2, Trash2, Download } from 'lucide-react';
+import { Edit2, Trash2, Download, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const WorkLog = () => {
@@ -14,6 +14,8 @@ export const WorkLog = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0].substring(0, 7));
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
   const handleExport = () => {
     if (filteredLogs.length === 0) {
@@ -63,7 +65,13 @@ export const WorkLog = () => {
 
   const filteredLogs = logs.filter(log => {
     const logMonth = new Date(log.date).toISOString().split('T')[0].substring(0, 7);
-    return logMonth === selectedMonth;
+    const matchesMonth = logMonth === selectedMonth;
+    
+    const matchesSearch = log.client.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'All' || log.status === statusFilter;
+    
+    return matchesMonth && matchesSearch && matchesStatus;
   });
 
   const monthlyStats = {
@@ -185,19 +193,55 @@ export const WorkLog = () => {
           </Card>
         </div>
 
-        {/* Month Selector */}
-        <div style={{ marginBottom: 'var(--space-lg)' }}>
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ 
-              padding: 'var(--space-sm) var(--space-md)',
-              border: '1px solid var(--outline)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '16px'
-            }}
-          />
+        {/* Filters & Search */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)', alignItems: 'center' }}>
+          <div className="search-container">
+            <Search className="search-icon" size={18} />
+            <input
+              type="text"
+              placeholder="Search clients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)' }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="filter-group">
+            {['All', 'Paid', 'Unpaid', 'Partially Paid'].map(status => (
+              <button
+                key={status}
+                className={`filter-chip ${statusFilter === status ? 'active' : ''}`}
+                onClick={() => setStatusFilter(status)}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ marginLeft: 'auto' }}>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              style={{ 
+                padding: '0.6rem 1rem',
+                border: '1px solid var(--outline-variant)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '14px',
+                background: 'var(--surface-container-low)',
+                color: 'var(--on-surface)',
+                fontFamily: 'inherit'
+              }}
+            />
+          </div>
         </div>
 
         {/* Activity Log */}

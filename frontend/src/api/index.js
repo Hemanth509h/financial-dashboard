@@ -22,4 +22,5 @@ export const api = {
   addLoanRepayment: (id, data) => axios.post(`${API_URL}/loans/${id}/repayments`, data),
   updateLoanRepayment: (loanId, repaymentId, data) => axios.patch(`${API_URL}/loans/${loanId}/repayments/${repaymentId}`, data),
   deleteLoanRepayment: (loanId, repaymentId) => axios.delete(`${API_URL}/loans/${loanId}/repayments/${repaymentId}`),
+  getClientAnalytics: () => axios.get(`${API_URL}/dashboard/clients`),
 };

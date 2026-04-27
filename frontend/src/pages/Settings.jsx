@@ -10,13 +10,19 @@ export const Settings = () => {
     currency: 'INR',
     userName: 'Hemanth',
     notifications: true,
+    theme: localStorage.getItem('theme') || 'light'
   });
 
   useEffect(() => {
     const savedGoal = localStorage.getItem('monthlyGoal');
     const savedName = localStorage.getItem('userName');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    
     if (savedGoal) setSettings(prev => ({ ...prev, monthlyGoal: Number(savedGoal) }));
     if (savedName) setSettings(prev => ({ ...prev, userName: savedName }));
+    setSettings(prev => ({ ...prev, theme: savedTheme }));
+    
+    document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
 
   const handleChange = (e) => {
@@ -30,6 +36,10 @@ export const Settings = () => {
   const handleSave = () => {
     localStorage.setItem('monthlyGoal', settings.monthlyGoal);
     localStorage.setItem('userName', settings.userName);
+    localStorage.setItem('theme', settings.theme);
+    
+    document.documentElement.setAttribute('data-theme', settings.theme);
+    
     toast.success('Settings saved successfully!');
     // Trigger a storage event for other tabs/components
     window.dispatchEvent(new Event('storage'));
@@ -129,6 +139,23 @@ export const Settings = () => {
                 onChange={handleChange}
                 style={{ width: '20px', height: '20px', accentColor: 'var(--primary)' }}
               />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
+              <div>
+                <div className="font-semibold">Dark Mode</div>
+                <div className="body-sm text-muted">Use a dark theme for the dashboard.</div>
+              </div>
+              <select 
+                name="theme"
+                value={settings.theme}
+                onChange={handleChange}
+                className="form-input"
+                style={{ width: '120px', padding: 'var(--space-xs) var(--space-sm)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}
+              >
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
             </div>
           </Card>
 

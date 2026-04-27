@@ -139,4 +139,35 @@ router.get('/analytics', async (req, res) => {
   }
 });
 
+router.get('/clients', async (req, res) => {
+  try {
+    const entries = await WorkEntry.find({});
+    const clientData = entries.reduce((acc, entry) => {
+      const client = entry.client;
+      if (!acc[client]) {
+        acc[client] = {
+          name: client,
+          totalEarned: 0,
+          pendingAmount: 0,
+          workCount: 0,
+          lastWorkDate: entry.date
+        };
+      }
+      const earned = entry.status === 'Paid' ? entry.amount : (entry.amountPaid || 0);
+      const pending = entry.amount - earned;
+      acc[client].totalEarned += earned;
+      acc[client].pendingAmount += pending;
+      acc[client].workCount += 1;
+      if (new Date(entry.date) > new Date(acc[client].lastWorkDate)) {
+        acc[client].lastWorkDate = entry.date;
+      }
+      return acc;
+    }, {});
+    const result = Object.values(clientData).sort((a, b) => b.totalEarned - a.totalEarned);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

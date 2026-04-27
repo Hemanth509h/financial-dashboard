@@ -6,7 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { PaymentForm } from '../components/forms/PaymentForm';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
-import { CreditCard, Edit2, Trash2 } from 'lucide-react';
+import { CreditCard, Edit2, Trash2, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Payments = () => {
@@ -17,6 +17,7 @@ export const Payments = () => {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [showWorkEntryModal, setShowWorkEntryModal] = useState(false);
   const [editingWorkEntry, setEditingWorkEntry] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchLogs = async () => {
     try {
@@ -34,11 +35,16 @@ export const Payments = () => {
     fetchLogs();
   }, []);
 
-  const pendingLogs = logs.filter(log => log && (log.status === 'Unpaid' || log.status === 'Partially Paid'));
-  const paidLogs = logs.filter(log => log && log.status === 'Paid');
+  const filteredLogs = logs.filter(log => {
+    if (!log) return false;
+    return log.client.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const pendingLogs = filteredLogs.filter(log => log && (log.status === 'Unpaid' || log.status === 'Partially Paid'));
+  const paidLogs = filteredLogs.filter(log => log && log.status === 'Paid');
   
-  const totalPending = pendingLogs.reduce((sum, log) => sum + (Number(log.amount || 0) - Number(log.amountPaid || 0)), 0);
-  const totalReceived = paidLogs.reduce((sum, log) => sum + Number(log.amountPaid || log.amount || 0), 0);
+  const totalPending = logs.filter(l => l.status !== 'Paid').reduce((sum, log) => sum + (Number(log.amount || 0) - Number(log.amountPaid || 0)), 0);
+  const totalReceived = logs.filter(l => l.status === 'Paid').reduce((sum, log) => sum + Number(log.amountPaid || log.amount || 0), 0);
   
   const totalValue = totalReceived + totalPending;
   const collectionRate = totalValue > 0 ? (totalReceived / totalValue) * 100 : 0;
@@ -222,6 +228,27 @@ export const Payments = () => {
         >
           History
         </button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="search-container" style={{ marginBottom: 'var(--space-lg)', maxWidth: 'none' }}>
+        <Search className="search-icon" size={18} />
+        <input
+          type="text"
+          placeholder="Search client names..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="search-input"
+          style={{ maxWidth: '400px' }}
+        />
+        {searchQuery && (
+          <button 
+            onClick={() => setSearchQuery('')}
+            style={{ position: 'absolute', left: '370px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)' }}
+          >
+            <X size={14} />
+          </button>
+        )}
       </div>
 
       <div className="content">
