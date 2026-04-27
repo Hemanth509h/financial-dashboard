@@ -6,12 +6,30 @@ import { WorkLog } from './pages/WorkLog';
 import { Payments } from './pages/Payments';
 import { Loans } from './pages/Loans';
 import { Settings } from './pages/Settings';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
-
 import { ScrollToTop } from './components/utils/ScrollToTop';
+import { messaging } from './firebase';
+import { onMessage } from 'firebase/messaging';
 
 function AppContent() {
+  React.useEffect(() => {
+    if (messaging) {
+      const unsubscribe = onMessage(messaging, (payload) => {
+        console.log('Message received in foreground: ', payload);
+        toast(
+          (t) => (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <strong style={{ marginBottom: '4px' }}>{payload.notification?.title || 'New Notification'}</strong>
+              <span className="body-sm text-muted">{payload.notification?.body}</span>
+            </div>
+          ),
+          { duration: 5000, icon: '🔔' }
+        );
+      });
+      return () => unsubscribe();
+    }
+  }, []);
   return (
     <>
       <ScrollToTop />

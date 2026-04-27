@@ -3,6 +3,8 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Target, CircleDollarSign, User, Bell, Shield, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { messaging } from '../firebase';
+import { getToken } from 'firebase/messaging';
 
 export const Settings = () => {
   const [settings, setSettings] = useState({
@@ -25,12 +27,49 @@ export const Settings = () => {
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value, type, checked } = e.target;
+    
+    if (name === 'notifications' && checked && messaging) {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          // In a real app, pass your VAPID key here to generate a token
+          const token = await getToken(messaging);
+          console.log('FCM Token generated:', token);
+          toast.success('Push notifications enabled!');
+          
+          // Send a test notification immediately
+          new Notification('GigFinance', {
+            body: 'Push notifications have been enabled!',
+            icon: '/favicon.svg'
+          });
+        } else {
+          toast.error('Notification permission denied.');
+          return;
+        }
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
+        toast.error('Failed to enable notifications. Ensure VAPID key is configured.');
+      }
+    }
+
     setSettings(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const sendTestNotification = () => {
+    if (Notification.permission === 'granted') {
+      new Notification('GigFinance Test', {
+        body: 'This is a test notification from your settings!',
+        icon: '/favicon.svg'
+      });
+      toast.success('Test notification sent!');
+    } else {
+      toast.error('Please enable notifications first.');
+    }
   };
 
   const handleSave = () => {
@@ -140,6 +179,19 @@ export const Settings = () => {
                 style={{ width: '20px', height: '20px', accentColor: 'var(--primary)' }}
               />
             </div>
+
+            {settings.notifications && (
+              <div style={{ marginTop: 'var(--space-sm)', display: 'flex', justifyContent: 'flex-start' }}>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={sendTestNotification}
+                  style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-md)' }}
+                >
+                  Send Test Notification
+                </Button>
+              </div>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
               <div>

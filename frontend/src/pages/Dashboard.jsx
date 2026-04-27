@@ -4,7 +4,6 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { AnalyticsChart } from '../components/ui/AnalyticsChart';
-import { ClientPieChart } from '../components/ui/ClientPieChart';
 import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown } from 'lucide-react';
 import { api } from '../api';
 import './Dashboard.css';
@@ -22,21 +21,18 @@ export const Dashboard = () => {
   });
 
   const [analytics, setAnalytics] = useState([]);
-  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [monthlyGoal, setMonthlyGoal] = useState(50000); // Default goal
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [summaryRes, analyticsRes, clientsRes] = await Promise.all([
+        const [summaryRes, analyticsRes] = await Promise.all([
           api.getDashboardSummary(),
-          api.getAnalytics(),
-          api.getClientAnalytics()
+          api.getAnalytics()
         ]);
         setSummary(summaryRes.data);
         setAnalytics(analyticsRes.data);
-        setClients(clientsRes.data);
         
         // Get goal from localStorage if it exists
         const savedGoal = localStorage.getItem('monthlyGoal');
@@ -172,13 +168,6 @@ export const Dashboard = () => {
                 : `You need ${formatCurrency(monthlyGoal - summary.totalEarnedThisMonth)} more to reach your target.`}
             </p>
           </div>
-        </Card>
-
-        <Card className="client-distribution">
-          <div className="section-header">
-            <h3>Income by Client</h3>
-          </div>
-          <ClientPieChart data={clients} />
         </Card>
 
         <Card className="recent-activity">
