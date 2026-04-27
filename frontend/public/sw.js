@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gigfinance-v2';
+const CACHE_NAME = 'gigfinance-v3';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -31,6 +31,11 @@ self.addEventListener('fetch', event => {
       fetch(event.request).catch(() => caches.match(event.request))
     );
     return;
+  }
+
+  // Bypass cache for all API requests to ensure live data
+  if (event.request.url.includes('/api/')) {
+    return; 
   }
 
   // Use Stale-While-Revalidate for other assets
