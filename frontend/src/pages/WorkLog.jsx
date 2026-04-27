@@ -169,38 +169,40 @@ export const WorkLog = () => {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                     {logs.map((log) => (
-                      <div key={log._id} className="activity-item flex justify-between items-center" style={{padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)'}}>
-                        <div className="flex items-center gap-md" style={{ flex: 1 }}>
+                      <div key={log._id} className="activity-item" style={{padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)'}}>
+                        <div className="responsive-grid" style={{ gridTemplateColumns: 'auto 1fr auto', gap: 'var(--space-md)', alignItems: 'center' }}>
                           <div style={{width: '48px', height: '48px', backgroundColor: 'white', color: 'var(--primary)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, border: '1px solid var(--outline-variant)'}}>
                             <span style={{fontSize: '10px', textTransform: 'uppercase'}}>{new Date(log.date).toLocaleString('default', { month: 'short' })}</span>
                             <span>{new Date(log.date).getDate()}</span>
                           </div>
-                          <div style={{ flex: 1 }}>
-                            <div className="font-semibold">{log.client}</div>
+                          
+                          <div style={{ overflow: 'hidden' }}>
+                            <div className="font-semibold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.client}</div>
                             <div className="body-sm text-muted">{formatCurrency(log.amount)}</div>
                           </div>
-                        </div>
-                        <div style={{textAlign: 'right', marginRight: 'var(--space-md)'}}>
-                          <Badge status={log.status} />
-                          {log.amountPaid > 0 && log.amountPaid < log.amount && (
-                            <div className="body-sm text-success" style={{marginTop: '4px'}}>
-                              Paid: {formatCurrency(log.amountPaid)}
+
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                            <Badge status={log.status} />
+                            {log.amountPaid > 0 && log.amountPaid < log.amount && (
+                              <div className="body-sm text-success font-semibold" style={{fontSize: '11px'}}>
+                                Paid: {formatCurrency(log.amountPaid)}
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', gap: 'var(--space-xs)', marginTop: '4px' }}>
+                              <button 
+                                onClick={() => handleEdit(log)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(log._id)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}
+                              >
+                                <Trash2 size={16} />
+                              </button>
                             </div>
-                          )}
-                        </div>
-                        <div style={{ display: 'flex', gap: 'var(--space-sm)', flexShrink: 0 }}>
-                          <button 
-                            onClick={() => handleEdit(log)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: 'var(--space-sm)' }}
-                          >
-                            <Edit2 size={18} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(log._id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: 'var(--space-sm)' }}
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          </div>
                         </div>
                       </div>
                     ))}

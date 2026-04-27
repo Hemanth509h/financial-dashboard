@@ -202,18 +202,18 @@ export const Payments = () => {
                     </div>
                   </div>
 
-                  <div className="responsive-grid responsive-grid-3" style={{ marginBottom: 'var(--space-md)' }}>
-                    <div style={{ backgroundColor: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)' }}>
+                  <div className="flex flex-wrap gap-sm" style={{ marginBottom: 'var(--space-md)' }}>
+                    <div style={{ backgroundColor: 'white', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', flex: '1 1 100px' }}>
                       <div className="body-sm text-muted">Expected</div>
                       <div className="font-semibold">{formatCurrency(log.amount)}</div>
                     </div>
-                    <div style={{ backgroundColor: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)' }}>
+                    <div style={{ backgroundColor: 'white', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', flex: '1 1 100px' }}>
                       <div className="body-sm text-muted">Received</div>
                       <div className="font-semibold" style={{ color: isPartiallyPaid ? 'var(--primary)' : 'var(--text-muted)' }}>
                         {formatCurrency(log.amountPaid || 0)}
                       </div>
                     </div>
-                    <div style={{ backgroundColor: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-sm)' }}>
+                    <div style={{ backgroundColor: 'white', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', flex: '1 1 100px' }}>
                       <div className="body-sm text-muted">Outstanding</div>
                       <div className="font-semibold" style={{ color: 'var(--error)' }}>
                         {formatCurrency(remaining)}
@@ -279,39 +279,36 @@ export const Payments = () => {
                           border: '1px solid var(--outline-variant)'
                         }}
                       >
-                        <div className="responsive-grid responsive-grid-3" style={{ gap: 'var(--space-lg)' }}>
-                          <div>
-                            <div className="body-sm text-muted">Work Date</div>
-                            <div className="font-semibold">{formatDate(log.date)}</div>
-                          </div>
-                          <div>
-                            <div className="body-sm text-muted">Client / Project</div>
+                        <div className="flex flex-col gap-md">
+                          <div className="flex justify-between items-start">
                             <div>
                               <div className="font-semibold">{log.client}</div>
+                              <div className="body-sm text-muted">Work on {formatDate(log.date)}</div>
+                            </div>
+                            <div className="flex gap-xs">
+                              <button 
+                                onClick={() => handleEditWorkEntry(log)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteWorkEntry(log._id)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}
+                              >
+                                <Trash2 size={16} />
+                              </button>
                             </div>
                           </div>
-                          <div style={{textAlign: 'right'}}>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', gap: 'var(--space-md)' }}>
-                              <div style={{textAlign: 'right'}}>
-                                <div className="body-sm text-muted">Amount Paid</div>
-                                <div className="font-semibold" style={{ color: 'var(--success)' }}>
-                                  {formatCurrency(log.amountPaid || log.amount)}
-                                </div>
-                                <div className="body-sm text-muted">on {log.datePaid ? formatDate(log.datePaid) : 'Unknown'}</div>
-                              </div>
-                              <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: '4px' }}>
-                                <button 
-                                  onClick={() => handleEditWorkEntry(log)}
-                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: 0 }}
-                                >
-                                  <Edit2 size={16} />
-                                </button>
-                                <button 
-                                  onClick={() => handleDeleteWorkEntry(log._id)}
-                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: 0 }}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                          
+                          <div className="flex justify-between items-end" style={{ paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--outline-variant)' }}>
+                            <div className="body-sm text-muted">
+                              Paid on {log.datePaid ? formatDate(log.datePaid) : 'Unknown'}
+                            </div>
+                            <div className="text-right">
+                              <div className="body-sm text-muted">Amount Received</div>
+                              <div className="font-semibold" style={{ color: 'var(--success)' }}>
+                                {formatCurrency(log.amountPaid || log.amount)}
                               </div>
                             </div>
                           </div>
