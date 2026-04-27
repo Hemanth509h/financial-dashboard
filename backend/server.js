@@ -23,6 +23,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/financial
   .catch((err) => console.error('MongoDB connection error:', err));
 
 // Routes
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/work-logs', workEntryRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/dashboard', dashboardRoutes);

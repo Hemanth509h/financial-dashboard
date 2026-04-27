@@ -7,8 +7,14 @@ import { Payments } from './pages/Payments';
 import { Loans } from './pages/Loans';
 
 import { ScrollToTop } from './components/utils/ScrollToTop';
+import { api } from './api';
 
 function App() {
+  React.useEffect(() => {
+    // Wake up the backend (helpful for Render free tier)
+    fetch('/api/health').catch(() => {});
+  }, []);
+
   return (
     <BrowserRouter>
       <ScrollToTop />
