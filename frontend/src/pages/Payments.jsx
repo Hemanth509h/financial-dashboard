@@ -33,14 +33,17 @@ export const Payments = () => {
     fetchLogs();
   }, []);
 
-  const pendingLogs = logs.filter(log => log.status === 'Unpaid' || log.status === 'Partially Paid');
-  const paidLogs = logs.filter(log => log.status === 'Paid');
+  const pendingLogs = logs.filter(log => log && (log.status === 'Unpaid' || log.status === 'Partially Paid'));
+  const paidLogs = logs.filter(log => log && log.status === 'Paid');
   
-  const totalPending = pendingLogs.reduce((sum, log) => sum + (log.amount - log.amountPaid), 0);
-  const totalReceived = paidLogs.reduce((sum, log) => sum + (log.amountPaid || log.amount), 0);
-  const collectionRate = logs.length > 0 ? (paidLogs.length / logs.length) * 100 : 0;
+  const totalPending = pendingLogs.reduce((sum, log) => sum + (Number(log.amount || 0) - Number(log.amountPaid || 0)), 0);
+  const totalReceived = paidLogs.reduce((sum, log) => sum + Number(log.amountPaid || log.amount || 0), 0);
+  
+  const totalValue = totalReceived + totalPending;
+  const collectionRate = totalValue > 0 ? (totalReceived / totalValue) * 100 : 0;
 
   const handleRecordPayment = async (formData) => {
+    if (!selectedEntry) return;
     try {
       await api.updateWorkLog(selectedEntry._id, formData);
       fetchLogs();
@@ -52,6 +55,7 @@ export const Payments = () => {
   };
 
   const handleOpenPaymentModal = (entry) => {
+    if (!entry) return;
     setSelectedEntry(entry);
     setShowPaymentModal(true);
   };
@@ -62,11 +66,13 @@ export const Payments = () => {
   };
 
   const handleEditWorkEntry = (entry) => {
+    if (!entry) return;
     setEditingWorkEntry(entry);
     setShowWorkEntryModal(true);
   };
 
   const handleDeleteWorkEntry = async (id) => {
+    if (!id) return;
     if (confirm('Are you sure you want to delete this work entry?')) {
       try {
         await api.deleteWorkLog(id);
@@ -78,6 +84,7 @@ export const Payments = () => {
   };
 
   const handleUpdateWorkEntry = async (formData) => {
+    if (!editingWorkEntry) return;
     try {
       await api.updateWorkLog(editingWorkEntry._id, formData);
       fetchLogs();
@@ -88,21 +95,38 @@ export const Payments = () => {
     }
   };
 
+  const handleCloseWorkEntryModal = () => {
+    setShowWorkEntryModal(false);
+    setEditingWorkEntry(null);
+  };
+
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+    const value = Number(amount || 0);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (!dateString) return 'No Date';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch (e) {
+      return 'Invalid Date';
+    }
   };
 
   const groupLogsByMonth = (logList) => {
-    if (!logList) return {};
+    if (!logList || !Array.isArray(logList)) return {};
     return logList.reduce((groups, log) => {
-      const date = new Date(log.date);
-      const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-      if (!groups[monthYear]) groups[monthYear] = [];
-      groups[monthYear].push(log);
+      if (!log || !log.date) return groups;
+      try {
+        const date = new Date(log.date);
+        if (isNaN(date.getTime())) return groups;
+        const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+        if (!groups[monthYear]) groups[monthYear] = [];
+        groups[monthYear].push(log);
+      } catch (e) {}
       return groups;
     }, {});
   };
@@ -201,12 +225,12 @@ export const Payments = () => {
                 const isPartiallyPaid = log.amountPaid > 0;
                 
                 return (
-                  <Card key={log._id} style={{ padding: '0', overflow: 'hidden', borderLeft: `6px solid ${isPartiallyPaid ? 'var(--primary)' : 'var(--warning)'}` }}>
-                    <div style={{ padding: 'var(--space-md)' }}>
+                  <Card key={log._id} style={{ padding: '0', overflow: 'hidden', borderLeft: `4px solid ${isPartiallyPaid ? 'var(--primary)' : 'var(--warning)'}` }}>
+                    <div style={{ padding: 'var(--space-sm)' }}>
                       <div className="flex justify-between items-start" style={{ marginBottom: 'var(--space-md)' }}>
                         <div>
-                          <div className="font-semibold" style={{ fontSize: '18px' }}>{log.client}</div>
-                          <div className="body-sm text-muted">{formatDate(log.date)}</div>
+                          <div className="font-semibold" style={{ fontSize: '16px' }}>{log.client}</div>
+                          <div className="body-sm text-muted" style={{ fontSize: '11px' }}>{formatDate(log.date)}</div>
                         </div>
                         <div className="flex flex-col items-end gap-xs">
                           <Badge status={log.status} />
@@ -228,16 +252,16 @@ export const Payments = () => {
                         marginBottom: 'var(--space-md)'
                       }}>
                         <div>
-                          <div className="body-sm text-muted" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Amount</div>
-                          <div className="font-semibold">{formatCurrency(log.amount)}</div>
+                          <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Amount</div>
+                          <div className="font-semibold" style={{ fontSize: '13px' }}>{formatCurrency(log.amount)}</div>
                         </div>
                         <div>
-                          <div className="body-sm text-muted" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Received</div>
-                          <div className="font-semibold" style={{ color: isPartiallyPaid ? 'var(--primary)' : 'inherit' }}>{formatCurrency(log.amountPaid || 0)}</div>
+                          <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Received</div>
+                          <div className="font-semibold" style={{ fontSize: '13px', color: isPartiallyPaid ? 'var(--primary)' : 'inherit' }}>{formatCurrency(log.amountPaid || 0)}</div>
                         </div>
                         <div>
-                          <div className="body-sm text-muted" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Balance</div>
-                          <div className="font-semibold" style={{ color: 'var(--error)' }}>{formatCurrency(remaining)}</div>
+                          <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Balance</div>
+                          <div className="font-semibold" style={{ fontSize: '13px', color: 'var(--error)' }}>{formatCurrency(remaining)}</div>
                         </div>
                       </div>
 
@@ -256,21 +280,21 @@ export const Payments = () => {
                       onClick={() => handleOpenPaymentModal(log)}
                       style={{ 
                         width: '100%', 
-                        padding: '14px', 
+                        padding: '10px', 
                         border: 'none', 
                         borderTop: '1px solid var(--outline-variant)',
                         backgroundColor: 'white',
                         color: 'var(--primary)',
                         fontWeight: '600',
-                        fontSize: '14px',
+                        fontSize: '13px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '8px'
+                        gap: '6px'
                       }}
                     >
-                      <CreditCard size={16} />
+                      <CreditCard size={14} />
                       Record Payment
                     </button>
                   </Card>
@@ -294,7 +318,7 @@ export const Payments = () => {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                     {monthLogs.map((log) => (
-                      <Card key={log._id} style={{ padding: 'var(--space-md)' }}>
+                      <Card key={log._id} style={{ padding: 'var(--space-sm)' }}>
                         <div className="flex justify-between items-center">
                           <div>
                             <div className="font-semibold">{log.client}</div>
