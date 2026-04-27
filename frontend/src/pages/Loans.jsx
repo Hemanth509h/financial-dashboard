@@ -1,0 +1,346 @@
+import React, { useState, useEffect } from 'react';
+import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
+import { LoanForm } from '../components/forms/LoanForm';
+import { RepaymentForm } from '../components/forms/RepaymentForm';
+import { api } from '../api';
+import { Edit2, Trash2, Plus } from 'lucide-react';
+
+export const Loans = () => {
+  const [loans, setLoans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showLoanModal, setShowLoanModal] = useState(false);
+  const [showRepaymentModal, setShowRepaymentModal] = useState(false);
+  const [editingLoan, setEditingLoan] = useState(null);
+  const [selectedLoanForRepayment, setSelectedLoanForRepayment] = useState(null);
+  const [editingRepayment, setEditingRepayment] = useState(null);
+  const [expandedLoan, setExpandedLoan] = useState(null);
+  const [repayments, setRepayments] = useState({});
+  const [loadingRepayments, setLoadingRepayments] = useState({});
+
+  const toggleExpandLoan = async (loanId) => {
+    if (expandedLoan === loanId) {
+      setExpandedLoan(null);
+      return;
+    }
+    
+    setExpandedLoan(loanId);
+    
+    if (!repayments[loanId]) {
+      setLoadingRepayments(prev => ({ ...prev, [loanId]: true }));
+      try {
+        const { data } = await api.getLoanRepayments(loanId);
+        setRepayments(prev => ({ ...prev, [loanId]: data }));
+      } catch (error) {
+        console.error('Failed to fetch repayments', error);
+      } finally {
+        setLoadingRepayments(prev => ({ ...prev, [loanId]: false }));
+      }
+    }
+  };
+
+  const fetchLoans = async () => {
+    try {
+      const { data } = await api.getLoans();
+      setLoans(data);
+    } catch (error) {
+      console.error('Failed to fetch loans', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLoans();
+  }, []);
+
+  const handleAddOrUpdateLoan = async (formData) => {
+    try {
+      if (editingLoan) {
+        await api.updateLoan(editingLoan._id, formData);
+      } else {
+        await api.createLoan(formData);
+      }
+      fetchLoans();
+      setShowLoanModal(false);
+      setEditingLoan(null);
+    } catch (error) {
+      console.error('Failed to save loan', error);
+    }
+  };
+
+  const handleAddOrUpdateRepayment = async (formData) => {
+    try {
+      if (editingRepayment) {
+        await api.updateLoanRepayment(selectedLoanForRepayment._id, editingRepayment._id, formData);
+      } else {
+        await api.addLoanRepayment(selectedLoanForRepayment._id, formData);
+      }
+      fetchLoans();
+      
+      const { data } = await api.getLoanRepayments(selectedLoanForRepayment._id);
+      setRepayments(prev => ({ ...prev, [selectedLoanForRepayment._id]: data }));
+
+      setShowRepaymentModal(false);
+      setSelectedLoanForRepayment(null);
+      setEditingRepayment(null);
+    } catch (error) {
+      console.error('Failed to save repayment', error);
+    }
+  };
+
+  const handleEditRepayment = (loan, repayment) => {
+    setSelectedLoanForRepayment(loan);
+    setEditingRepayment(repayment);
+    setShowRepaymentModal(true);
+  };
+
+  const handleDeleteRepayment = async (loanId, repaymentId) => {
+    if (confirm('Are you sure you want to delete this repayment?')) {
+      try {
+        await api.deleteLoanRepayment(loanId, repaymentId);
+        fetchLoans();
+        const { data } = await api.getLoanRepayments(loanId);
+        setRepayments(prev => ({ ...prev, [loanId]: data }));
+      } catch (error) {
+        console.error('Failed to delete repayment', error);
+      }
+    }
+  };
+
+  const handleEditLoan = (loan) => {
+    setEditingLoan(loan);
+    setShowLoanModal(true);
+  };
+
+  const handleDeleteLoan = async (id) => {
+    if (confirm('Are you sure you want to delete this loan?')) {
+      try {
+        await api.deleteLoan(id);
+        fetchLoans();
+      } catch (error) {
+        console.error('Failed to delete loan', error);
+      }
+    }
+  };
+
+  const handleCloseLoanModal = () => {
+    setShowLoanModal(false);
+    setEditingLoan(null);
+  };
+
+  const handleCloseRepaymentModal = () => {
+    setShowRepaymentModal(false);
+    setSelectedLoanForRepayment(null);
+    setEditingRepayment(null);
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const groupRepaymentsByMonth = (repaymentList) => {
+    if (!repaymentList) return {};
+    return repaymentList.reduce((groups, rep) => {
+      const date = new Date(rep.date);
+      const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+      if (!groups[monthYear]) groups[monthYear] = [];
+      groups[monthYear].push(rep);
+      return groups;
+    }, {});
+  };
+
+  return (
+    <div className="page">
+      <header className="page-header mobile-stack" style={{marginBottom: 'var(--space-xl)', gap: 'var(--space-md)'}}>
+        <div>
+          <h1 style={{marginBottom: 'var(--space-xs)'}}>Loan Management</h1>
+          <p className="text-muted">Overview of your active liabilities and repayment progress.</p>
+        </div>
+        <Button onClick={() => setShowLoanModal(true)}>+ Add New Loan</Button>
+      </header>
+      
+      <div className="content">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-lg)', marginBottom: 'var(--space-xl)' }}>
+          {loading ? (
+            <>
+              <div className="skeleton skeleton-card" style={{ height: '300px' }}></div>
+              <div className="skeleton skeleton-card" style={{ height: '300px' }}></div>
+            </>
+          ) : loans.length === 0 ? (
+            <div style={{ padding: 'var(--space-xl) 0', textAlign: 'center', gridColumn: '1 / -1' }}>
+              <p className="text-muted body-lg mb-4">No loans found. Click "Add New Loan" to get started.</p>
+            </div>
+          ) : null}
+          
+          {!loading && loans.map(loan => {
+            const progress = loan.totalAmount > 0 ? (loan.amountPaid / loan.totalAmount) * 100 : 0;
+            const remaining = loan.totalAmount - loan.amountPaid;
+            
+            return (
+              <Card key={loan._id} style={{ borderTop: '4px solid ' + (loan.status === 'Repaid' ? 'var(--success)' : 'var(--primary)') }}>
+                <div className="flex justify-between items-center" style={{marginBottom: 'var(--space-md)'}}>
+                  <div className="text-muted body-sm" style={{textTransform: 'uppercase', letterSpacing: '0.05em'}}>LENDER</div>
+                  <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                    <Badge status={loan.status === 'Repaid' ? 'Paid' : 'Unpaid'} />
+                    <button 
+                      onClick={() => handleEditLoan(loan)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: 0 }}
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteLoan(loan._id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: 0 }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+                <h2 style={{marginBottom: 'var(--space-lg)', fontSize: '20px'}}>{loan.lenderName}</h2>
+                
+                <div className="flex justify-between" style={{marginBottom: 'var(--space-lg)'}}>
+                  <div>
+                    <div className="text-muted body-sm">Total Amount</div>
+                    <div className="font-semibold" style={{fontSize: '20px'}}>{formatCurrency(loan.totalAmount)}</div>
+                  </div>
+                  <div style={{textAlign: 'right'}}>
+                    <div className="text-muted body-sm">Remaining</div>
+                    <div className="font-semibold" style={{fontSize: '20px', color: loan.status === 'Repaid' ? 'var(--success)' : 'inherit'}}>
+                      {formatCurrency(remaining)}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{marginBottom: 'var(--space-lg)'}}>
+                  <div className="flex justify-between body-sm" style={{marginBottom: 'var(--space-xs)'}}>
+                    <span className="text-muted">Repayment Progress</span>
+                    <span className="font-semibold">{formatCurrency(loan.amountPaid)} paid</span>
+                  </div>
+                  <div style={{width: '100%', height: '8px', backgroundColor: 'var(--surface-container-low)', borderRadius: '4px', marginBottom: 'var(--space-xs)'}}>
+                    <div style={{width: `${progress}%`, height: '100%', backgroundColor: progress === 100 ? 'var(--success)' : 'var(--primary)', borderRadius: '4px', transition: 'width 0.3s'}}></div>
+                  </div>
+                  <div className="flex justify-between body-sm" style={{fontSize: '12px'}}>
+                    <span className="text-muted">{Math.round(progress)}% Complete</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                  <Button 
+                    variant="secondary" 
+                    style={{flex: 1}}
+                    disabled={loan.status === 'Repaid'}
+                    onClick={() => {
+                      setSelectedLoanForRepayment(loan);
+                      setShowRepaymentModal(true);
+                    }}
+                  >
+                    {loan.status === 'Repaid' ? 'Fully Repaid' : '+ Repayment'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    style={{flex: 1, backgroundColor: 'var(--surface-container-high)', border: 'none'}}
+                    onClick={() => toggleExpandLoan(loan._id)}
+                  >
+                    {expandedLoan === loan._id ? 'Hide History' : 'View History'}
+                  </Button>
+                </div>
+
+                {expandedLoan === loan._id && (
+                  <div style={{ marginTop: 'var(--space-lg)', paddingTop: 'var(--space-lg)', borderTop: '1px solid var(--outline-variant)' }}>
+                    <h4 style={{ marginBottom: 'var(--space-md)' }}>Repayment History</h4>
+                    
+                    {loadingRepayments[loan._id] ? (
+                      <div className="skeleton skeleton-text" style={{height: '40px'}}></div>
+                    ) : repayments[loan._id] && repayments[loan._id].length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                        {Object.entries(groupRepaymentsByMonth(repayments[loan._id])).map(([monthYear, reps]) => (
+                          <div key={monthYear}>
+                            <div className="flex justify-between items-center" style={{ marginBottom: 'var(--space-xs)' }}>
+                              <span className="text-muted body-sm font-semibold" style={{ textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>
+                                {monthYear}
+                              </span>
+                              <span className="text-primary body-sm font-semibold">
+                                {formatCurrency(reps.reduce((sum, r) => sum + r.amount, 0))}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+                              {reps.map(rep => (
+                                <div key={rep._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-sm)', backgroundColor: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
+                                  <div style={{ flex: 1 }}>
+                                    <div className="font-semibold" style={{ color: rep.status === 'Success' ? 'var(--success)' : 'inherit' }}>
+                                      {formatCurrency(rep.amount)}
+                                    </div>
+                                    <div className="text-muted body-sm">{formatDate(rep.date)}</div>
+                                  </div>
+                                  <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+                                    <Badge status={rep.status || 'Success'} />
+                                    <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                                      <button 
+                                        onClick={() => handleEditRepayment(loan, rep)}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: 0 }}
+                                      >
+                                        <Edit2 size={16} />
+                                      </button>
+                                      <button 
+                                        onClick={() => handleDeleteRepayment(loan._id, rep._id)}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: 0 }}
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted" style={{ fontSize: '13px' }}>No repayments recorded yet.</p>
+                    )}
+                  </div>
+                )}
+              </Card>
+            )
+          })}
+        </div>
+      </div>
+
+      <Modal isOpen={showLoanModal} title={editingLoan ? 'Edit Loan' : 'Add a New Loan'} onClose={handleCloseLoanModal}>
+        <LoanForm 
+          initialData={editingLoan ? {
+            lenderName: editingLoan.lenderName,
+            totalAmount: editingLoan.totalAmount,
+            startDate: editingLoan.startDate.split('T')[0],
+            status: editingLoan.status
+          } : undefined}
+          onSubmit={handleAddOrUpdateLoan}
+          onCancel={handleCloseLoanModal}
+        />
+      </Modal>
+
+      <Modal isOpen={showRepaymentModal} title={editingRepayment ? "Edit Repayment" : "Record a Loan Repayment"} onClose={handleCloseRepaymentModal}>
+        {selectedLoanForRepayment && (
+          <RepaymentForm 
+            loan={selectedLoanForRepayment}
+            initialData={editingRepayment ? {
+              amount: editingRepayment.amount,
+              date: editingRepayment.date.split('T')[0],
+              method: editingRepayment.method || 'Cash',
+              status: editingRepayment.status || 'Success'
+            } : undefined}
+            onSubmit={handleAddOrUpdateRepayment}
+            onCancel={handleCloseRepaymentModal}
+          />
+        )}
+      </Modal>
+    </div>
+  );
+};
