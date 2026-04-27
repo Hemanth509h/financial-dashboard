@@ -24,7 +24,7 @@ export const SidebarLayout = () => {
       <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="logo flex items-center gap-sm">
-            <div className="logo-icon"></div>
+            <img src="/logo.png" alt="GigFinance Logo" style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }} />
             <div>
               <h2 className="text-primary">GigFinance</h2>
               <span className="text-muted body-sm" style={{textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.05em'}}>Worker Portal v3.1</span>
