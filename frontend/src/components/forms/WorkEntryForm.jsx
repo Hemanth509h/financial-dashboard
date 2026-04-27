@@ -73,7 +73,30 @@ export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
           value={formData.client}
           onChange={handleChange}
         />
-        {errors.client && <span className="error">{errors.client}</span>}
+        <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+          <span className="body-sm text-muted" style={{ marginRight: '4px', alignSelf: 'center' }}>Quick Picks:</span>
+          {['Canteen', 'Personal', 'Other'].map(suggestion => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, client: suggestion }))}
+              style={{
+                padding: '4px 12px',
+                borderRadius: '16px',
+                border: '1px solid var(--outline-variant)',
+                backgroundColor: formData.client === suggestion ? 'var(--primary-container)' : 'var(--surface-container-low)',
+                color: formData.client === suggestion ? 'var(--on-primary-container)' : 'var(--on-surface-variant)',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+        {errors.client && <span className="error" style={{ marginTop: '4px', display: 'block' }}>{errors.client}</span>}
       </div>
 
 
