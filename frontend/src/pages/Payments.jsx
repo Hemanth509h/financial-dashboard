@@ -7,6 +7,7 @@ import { PaymentForm } from '../components/forms/PaymentForm';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
 import { CreditCard, Edit2, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export const Payments = () => {
   const [logs, setLogs] = useState([]);
@@ -46,11 +47,13 @@ export const Payments = () => {
     if (!selectedEntry) return;
     try {
       await api.updateWorkLog(selectedEntry._id, formData);
+      toast.success('Payment recorded successfully!');
       fetchLogs();
       setShowPaymentModal(false);
       setSelectedEntry(null);
     } catch (error) {
       console.error('Failed to record payment', error);
+      toast.error('Failed to record payment.');
     }
   };
 
@@ -76,9 +79,11 @@ export const Payments = () => {
     if (confirm('Are you sure you want to delete this work entry?')) {
       try {
         await api.deleteWorkLog(id);
+        toast.success('Work entry deleted successfully!');
         fetchLogs();
       } catch (error) {
         console.error('Failed to delete work entry', error);
+        toast.error('Failed to delete work entry.');
       }
     }
   };
@@ -87,11 +92,13 @@ export const Payments = () => {
     if (!editingWorkEntry) return;
     try {
       await api.updateWorkLog(editingWorkEntry._id, formData);
+      toast.success('Work entry updated successfully!');
       fetchLogs();
       setShowWorkEntryModal(false);
       setEditingWorkEntry(null);
     } catch (error) {
       console.error('Failed to save work entry', error);
+      toast.error('Failed to save work entry.');
     }
   };
 

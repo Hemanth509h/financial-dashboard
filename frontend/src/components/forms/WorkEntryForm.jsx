@@ -5,7 +5,7 @@ import './Form.css';
 export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState(initialData || {
     date: new Date().toISOString().split('T')[0],
-    client: '',
+    client: 'Canteen',
     amount: '',
     status: 'Unpaid'
   });

@@ -6,6 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
 import { Edit2, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export const WorkLog = () => {
   const [logs, setLogs] = useState([]);
@@ -47,14 +48,17 @@ export const WorkLog = () => {
     try {
       if (editingEntry) {
         await api.updateWorkLog(editingEntry._id, formData);
+        toast.success('Work entry updated successfully!');
       } else {
         await api.createWorkLog(formData);
+        toast.success('Work day logged successfully!');
       }
       fetchLogs();
       setShowModal(false);
       setEditingEntry(null);
     } catch (error) {
       console.error('Failed to save work entry', error);
+      toast.error('Failed to save work entry. Please try again.');
     }
   };
 
@@ -67,9 +71,11 @@ export const WorkLog = () => {
     if (confirm('Are you sure you want to delete this work entry?')) {
       try {
         await api.deleteWorkLog(id);
+        toast.success('Work entry deleted successfully!');
         fetchLogs();
       } catch (error) {
         console.error('Failed to delete work entry', error);
+        toast.error('Failed to delete work entry.');
       }
     }
   };

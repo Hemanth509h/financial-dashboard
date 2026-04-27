@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 import { WorkLog } from './pages/WorkLog';
 import { Payments } from './pages/Payments';
 import { Loans } from './pages/Loans';
+import { Toaster } from 'react-hot-toast';
 
 import { ScrollToTop } from './components/utils/ScrollToTop';
 
@@ -17,6 +18,7 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<SidebarLayout />}>
           <Route index element={<Dashboard />} />

@@ -7,6 +7,7 @@ import { LoanForm } from '../components/forms/LoanForm';
 import { RepaymentForm } from '../components/forms/RepaymentForm';
 import { api } from '../api';
 import { Edit2, Trash2, Plus } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export const Loans = () => {
   const [loans, setLoans] = useState([]);
@@ -60,14 +61,17 @@ export const Loans = () => {
     try {
       if (editingLoan) {
         await api.updateLoan(editingLoan._id, formData);
+        toast.success('Loan updated successfully!');
       } else {
         await api.createLoan(formData);
+        toast.success('New loan added successfully!');
       }
       fetchLoans();
       setShowLoanModal(false);
       setEditingLoan(null);
     } catch (error) {
       console.error('Failed to save loan', error);
+      toast.error('Failed to save loan information.');
     }
   };
 
@@ -75,8 +79,10 @@ export const Loans = () => {
     try {
       if (editingRepayment) {
         await api.updateLoanRepayment(selectedLoanForRepayment._id, editingRepayment._id, formData);
+        toast.success('Repayment updated successfully!');
       } else {
         await api.addLoanRepayment(selectedLoanForRepayment._id, formData);
+        toast.success('Repayment recorded successfully!');
       }
       fetchLoans();
       
@@ -88,6 +94,7 @@ export const Loans = () => {
       setEditingRepayment(null);
     } catch (error) {
       console.error('Failed to save repayment', error);
+      toast.error('Failed to record repayment.');
     }
   };
 
@@ -101,11 +108,13 @@ export const Loans = () => {
     if (confirm('Are you sure you want to delete this repayment?')) {
       try {
         await api.deleteLoanRepayment(loanId, repaymentId);
+        toast.success('Repayment deleted successfully!');
         fetchLoans();
         const { data } = await api.getLoanRepayments(loanId);
         setRepayments(prev => ({ ...prev, [loanId]: data }));
       } catch (error) {
         console.error('Failed to delete repayment', error);
+        toast.error('Failed to delete repayment.');
       }
     }
   };
@@ -119,9 +128,11 @@ export const Loans = () => {
     if (confirm('Are you sure you want to delete this loan?')) {
       try {
         await api.deleteLoan(id);
+        toast.success('Loan deleted successfully!');
         fetchLoans();
       } catch (error) {
         console.error('Failed to delete loan', error);
+        toast.error('Failed to delete loan.');
       }
     }
   };
