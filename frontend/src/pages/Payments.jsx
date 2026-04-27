@@ -11,13 +11,15 @@ import { CreditCard, Edit2, Trash2 } from 'lucide-react';
 export const Payments = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('pending');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [showWorkEntryModal, setShowWorkEntryModal] = useState(false);
   const [editingWorkEntry, setEditingWorkEntry] = useState(null);
 
-  const fetchPendingLogs = async () => {
+  const fetchLogs = async () => {
     try {
+      setLoading(true);
       const { data } = await api.getWorkLogs();
       setLogs(data);
     } catch (error) {
@@ -28,18 +30,20 @@ export const Payments = () => {
   };
 
   useEffect(() => {
-    fetchPendingLogs();
+    fetchLogs();
   }, []);
 
   const pendingLogs = logs.filter(log => log.status === 'Unpaid' || log.status === 'Partially Paid');
+  const paidLogs = logs.filter(log => log.status === 'Paid');
   
   const totalPending = pendingLogs.reduce((sum, log) => sum + (log.amount - log.amountPaid), 0);
-  const paidLogs = logs.filter(log => log.status === 'Paid');
+  const totalReceived = paidLogs.reduce((sum, log) => sum + (log.amountPaid || log.amount), 0);
+  const collectionRate = logs.length > 0 ? (paidLogs.length / logs.length) * 100 : 0;
 
   const handleRecordPayment = async (formData) => {
     try {
       await api.updateWorkLog(selectedEntry._id, formData);
-      fetchPendingLogs();
+      fetchLogs();
       setShowPaymentModal(false);
       setSelectedEntry(null);
     } catch (error) {
@@ -66,7 +70,7 @@ export const Payments = () => {
     if (confirm('Are you sure you want to delete this work entry?')) {
       try {
         await api.deleteWorkLog(id);
-        fetchPendingLogs();
+        fetchLogs();
       } catch (error) {
         console.error('Failed to delete work entry', error);
       }
@@ -76,17 +80,12 @@ export const Payments = () => {
   const handleUpdateWorkEntry = async (formData) => {
     try {
       await api.updateWorkLog(editingWorkEntry._id, formData);
-      fetchPendingLogs();
+      fetchLogs();
       setShowWorkEntryModal(false);
       setEditingWorkEntry(null);
     } catch (error) {
       console.error('Failed to save work entry', error);
     }
-  };
-
-  const handleCloseWorkEntryModal = () => {
-    setShowWorkEntryModal(false);
-    setEditingWorkEntry(null);
   };
 
   const formatCurrency = (amount) => {
@@ -109,208 +108,213 @@ export const Payments = () => {
   };
 
   return (
-    <div className="page">
-      <header className="page-header mobile-stack" style={{marginBottom: 'var(--space-xl)', gap: 'var(--space-md)'}}>
+    <div className="page" style={{ paddingBottom: '80px' }}>
+      <header className="page-header" style={{ marginBottom: 'var(--space-lg)' }}>
         <div>
-          <p className="text-muted" style={{textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em', marginBottom: 'var(--space-xs)'}}>Tracking Overview</p>
-          <h1 style={{marginBottom: 'var(--space-xs)'}}>Pending Payments</h1>
-          <p className="text-muted">Review and manage outstanding balances for your recent work entries.</p>
+          <h1 style={{ fontSize: '28px' }}>Payments Ledger</h1>
+          <p className="text-muted">Track your earnings and pending collections.</p>
         </div>
       </header>
-      
-      <div className="content">
-        {/* Total Pending Card */}
-        {pendingLogs.length > 0 && (
-          <Card style={{ 
-            padding: 'var(--space-lg)',
-            marginBottom: 'var(--space-xl)',
-            borderLeft: '4px solid var(--warning)',
-            backgroundColor: 'rgba(255, 193, 7, 0.05)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-              <CreditCard size={32} color="var(--warning)" />
-              <div>
-                <div className="text-muted body-sm">Total Outstanding</div>
-                <div style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--warning)' }}>
-                  {formatCurrency(totalPending)}
-                </div>
-                <div className="body-sm text-muted">{pendingLogs.length} {pendingLogs.length === 1 ? 'entry' : 'entries'} awaiting payment</div>
-              </div>
-            </div>
-          </Card>
-        )}
 
-        {/* Pending Entries List */}
-        <Card className="activity-log-card">
-          <div className="section-header" style={{paddingBottom: 'var(--space-md)', borderBottom: '1px solid var(--outline-variant)', marginBottom: 'var(--space-md)'}}>
-            <h3>Work Entries Pending Payment</h3>
-          </div>
-
-          <div className="activity-list" style={{display: 'flex', flexDirection: 'column'}}>
-            {loading ? (
-              <p>Loading...</p>
-            ) : pendingLogs.length === 0 ? (
-              <p className="text-muted" style={{padding: 'var(--space-md) 0'}}>No pending payments. All caught up!</p>
-            ) : null}
-            
-            {pendingLogs.map((log) => {
-              const remaining = log.amount - log.amountPaid;
-              const isPartiallyPaid = log.amountPaid > 0;
-              
-              return (
-                <div 
-                  key={log._id} 
-                  className="activity-item"
-                  style={{
-                    padding: 'var(--space-md)',
-                    marginBottom: 'var(--space-md)',
-                    backgroundColor: 'var(--surface-container-low)',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--outline-variant)'
-                  }}
-                >
-                  <div className="flex justify-between items-start" style={{ marginBottom: 'var(--space-md)' }}>
-                    <div>
-                      <div className="font-semibold" style={{ fontSize: '16px' }}>{log.client}</div>
-                      <div className="body-sm text-muted">Work on {formatDate(log.date)}</div>
-                    </div>
-                    <div className="flex flex-col items-end gap-xs">
-                      <Badge status={log.status} />
-                      <div className="flex gap-xs" style={{ marginTop: '4px' }}>
-                        <button 
-                          onClick={() => handleEditWorkEntry(log)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteWorkEntry(log._id)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-sm" style={{ marginBottom: 'var(--space-md)' }}>
-                    <div style={{ backgroundColor: 'white', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', flex: '1 1 100px' }}>
-                      <div className="body-sm text-muted">Expected</div>
-                      <div className="font-semibold">{formatCurrency(log.amount)}</div>
-                    </div>
-                    <div style={{ backgroundColor: 'white', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', flex: '1 1 100px' }}>
-                      <div className="body-sm text-muted">Received</div>
-                      <div className="font-semibold" style={{ color: isPartiallyPaid ? 'var(--primary)' : 'var(--text-muted)' }}>
-                        {formatCurrency(log.amountPaid || 0)}
-                      </div>
-                    </div>
-                    <div style={{ backgroundColor: 'white', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', flex: '1 1 100px' }}>
-                      <div className="body-sm text-muted">Outstanding</div>
-                      <div className="font-semibold" style={{ color: 'var(--error)' }}>
-                        {formatCurrency(remaining)}
-                      </div>
-                    </div>
-                  </div>
-
-                  {isPartiallyPaid && (
-                    <div style={{ marginBottom: 'var(--space-md)' }}>
-                      <div className="body-sm text-muted" style={{ marginBottom: 'var(--space-xs)' }}>Payment Progress</div>
-                      <div style={{width: '100%', height: '6px', backgroundColor: 'white', borderRadius: '4px'}}>
-                        <div style={{
-                          width: `${(log.amountPaid / log.amount) * 100}%`,
-                          height: '100%',
-                          backgroundColor: 'var(--primary)',
-                          borderRadius: '4px'
-                        }}></div>
-                      </div>
-                    </div>
-                  )}
-
-                  <Button 
-                    onClick={() => handleOpenPaymentModal(log)}
-                    style={{ width: '100%' }}
-                  >
-                    + Record Payment
-                  </Button>
-                </div>
-              )
-            })}
-          </div>
-        </Card>
+      {/* Metrics Banner */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+        gap: 'var(--space-sm)',
+        marginBottom: 'var(--space-xl)'
+      }}>
+        <div style={{ backgroundColor: 'var(--warning)', color: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)' }}>
+          <div className="body-sm" style={{ opacity: 0.9 }}>Total Pending</div>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(totalPending)}</div>
+        </div>
+        <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' }}>
+          <div className="body-sm" style={{ opacity: 0.9 }}>Total Collected</div>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(totalReceived)}</div>
+        </div>
+        <div style={{ backgroundColor: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
+          <div className="body-sm text-muted">Success Rate</div>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px', color: 'var(--on-surface)' }}>{Math.round(collectionRate)}%</div>
+        </div>
       </div>
 
-      {/* Payment History List */}
-      <div className="content" style={{ marginTop: 'var(--space-xl)' }}>
-        {paidLogs.length > 0 && (
-          <Card className="activity-log-card">
-            <div className="section-header" style={{paddingBottom: 'var(--space-md)', borderBottom: '1px solid var(--outline-variant)', marginBottom: 'var(--space-md)'}}>
-              <h3>Payment History</h3>
-            </div>
+      {/* Tab Navigation */}
+      <div style={{ 
+        display: 'flex', 
+        backgroundColor: 'var(--surface-container)', 
+        padding: '4px', 
+        borderRadius: '12px',
+        marginBottom: 'var(--space-lg)',
+        maxWidth: '400px'
+      }}>
+        <button 
+          onClick={() => setActiveTab('pending')}
+          style={{ 
+            flex: 1, 
+            padding: '10px', 
+            borderRadius: '10px', 
+            border: 'none',
+            backgroundColor: activeTab === 'pending' ? 'white' : 'transparent',
+            boxShadow: activeTab === 'pending' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
+            fontWeight: activeTab === 'pending' ? '600' : '500',
+            color: activeTab === 'pending' ? 'var(--primary)' : 'var(--on-surface-variant)',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          Pending ({pendingLogs.length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('history')}
+          style={{ 
+            flex: 1, 
+            padding: '10px', 
+            borderRadius: '10px', 
+            border: 'none',
+            backgroundColor: activeTab === 'history' ? 'white' : 'transparent',
+            boxShadow: activeTab === 'history' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
+            fontWeight: activeTab === 'history' ? '600' : '500',
+            color: activeTab === 'history' ? 'var(--primary)' : 'var(--on-surface-variant)',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          History
+        </button>
+      </div>
 
-            <div className="activity-list" style={{display: 'flex', flexDirection: 'column', gap: 'var(--space-md)'}}>
-              {Object.entries(groupLogsByMonth(paidLogs)).map(([monthYear, logs]) => (
-                <div key={monthYear}>
-                  <div className="flex flex-wrap justify-between items-center gap-xs" style={{ marginBottom: 'var(--space-xs)', padding: '0 var(--space-xs)' }}>
-                    <span className="text-muted body-sm font-semibold" style={{ textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>
-                      {monthYear}
-                    </span>
-                    <span className="text-primary body-sm font-semibold">
-                      Total Received: {formatCurrency(logs.reduce((sum, log) => sum + (log.amountPaid || log.amount), 0))}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                    {logs.map((log) => (
-                      <div 
-                        key={log._id} 
-                        className="activity-item"
-                        style={{
-                          padding: 'var(--space-md)',
-                          backgroundColor: 'var(--surface-container-low)',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid var(--outline-variant)'
-                        }}
-                      >
-                        <div className="flex flex-col gap-md">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="font-semibold">{log.client}</div>
-                              <div className="body-sm text-muted">Work on {formatDate(log.date)}</div>
-                            </div>
-                            <div className="flex gap-xs">
-                              <button 
-                                onClick={() => handleEditWorkEntry(log)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleDeleteWorkEntry(log._id)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </div>
-                          
-                          <div className="flex justify-between items-end" style={{ paddingTop: 'var(--space-sm)', borderTop: '1px solid var(--outline-variant)' }}>
-                            <div className="body-sm text-muted">
-                              Paid on {log.datePaid ? formatDate(log.datePaid) : 'Unknown'}
-                            </div>
-                            <div className="text-right">
-                              <div className="body-sm text-muted">Amount Received</div>
-                              <div className="font-semibold" style={{ color: 'var(--success)' }}>
-                                {formatCurrency(log.amountPaid || log.amount)}
-                              </div>
-                            </div>
+      <div className="content">
+        {loading ? (
+          <div style={{ padding: 'var(--space-xl)', textAlign: 'center' }}>
+            <div className="skeleton skeleton-card" style={{ height: '100px', marginBottom: 'var(--space-md)' }}></div>
+            <div className="skeleton skeleton-card" style={{ height: '100px' }}></div>
+          </div>
+        ) : activeTab === 'pending' ? (
+          /* Pending View */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+            {pendingLogs.length === 0 ? (
+              <Card style={{ padding: 'var(--space-xl)', textAlign: 'center' }}>
+                <p className="text-muted">No pending payments. You're all caught up!</p>
+              </Card>
+            ) : (
+              pendingLogs.map((log) => {
+                const remaining = log.amount - log.amountPaid;
+                const isPartiallyPaid = log.amountPaid > 0;
+                
+                return (
+                  <Card key={log._id} style={{ padding: '0', overflow: 'hidden', borderLeft: `6px solid ${isPartiallyPaid ? 'var(--primary)' : 'var(--warning)'}` }}>
+                    <div style={{ padding: 'var(--space-md)' }}>
+                      <div className="flex justify-between items-start" style={{ marginBottom: 'var(--space-md)' }}>
+                        <div>
+                          <div className="font-semibold" style={{ fontSize: '18px' }}>{log.client}</div>
+                          <div className="body-sm text-muted">{formatDate(log.date)}</div>
+                        </div>
+                        <div className="flex flex-col items-end gap-xs">
+                          <Badge status={log.status} />
+                          <div className="flex gap-xs" style={{ marginTop: '4px' }}>
+                            <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--on-surface-variant)', cursor: 'pointer' }}>
+                              <Edit2 size={14} />
+                            </button>
+                            <button onClick={() => handleDeleteWorkEntry(log._id)} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--error)', cursor: 'pointer' }}>
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                         </div>
                       </div>
+
+                      <div className="payment-stats-grid" style={{ 
+                        backgroundColor: 'var(--surface-container-low)', 
+                        padding: 'var(--space-sm)', 
+                        borderRadius: 'var(--radius-md)',
+                        marginBottom: 'var(--space-md)'
+                      }}>
+                        <div>
+                          <div className="body-sm text-muted" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Amount</div>
+                          <div className="font-semibold">{formatCurrency(log.amount)}</div>
+                        </div>
+                        <div>
+                          <div className="body-sm text-muted" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Received</div>
+                          <div className="font-semibold" style={{ color: isPartiallyPaid ? 'var(--primary)' : 'inherit' }}>{formatCurrency(log.amountPaid || 0)}</div>
+                        </div>
+                        <div>
+                          <div className="body-sm text-muted" style={{ fontSize: '10px', textTransform: 'uppercase' }}>Balance</div>
+                          <div className="font-semibold" style={{ color: 'var(--error)' }}>{formatCurrency(remaining)}</div>
+                        </div>
+                      </div>
+
+                      {isPartiallyPaid && (
+                        <div style={{ marginBottom: 'var(--space-md)' }}>
+                          <div className="flex justify-between items-center" style={{ marginBottom: '4px' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--on-surface-variant)' }}>Collected {Math.round((log.amountPaid / log.amount) * 100)}%</span>
+                          </div>
+                          <div style={{ width: '100%', height: '4px', backgroundColor: 'var(--surface-container-high)', borderRadius: '2px' }}>
+                            <div style={{ width: `${(log.amountPaid / log.amount) * 100}%`, height: '100%', backgroundColor: 'var(--primary)', borderRadius: '2px' }}></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <button 
+                      onClick={() => handleOpenPaymentModal(log)}
+                      style={{ 
+                        width: '100%', 
+                        padding: '14px', 
+                        border: 'none', 
+                        borderTop: '1px solid var(--outline-variant)',
+                        backgroundColor: 'white',
+                        color: 'var(--primary)',
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <CreditCard size={16} />
+                      Record Payment
+                    </button>
+                  </Card>
+                )
+              })
+            )}
+          </div>
+        ) : (
+          /* History View */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
+            {paidLogs.length === 0 ? (
+              <Card style={{ padding: 'var(--space-xl)', textAlign: 'center' }}>
+                <p className="text-muted">No payment history yet.</p>
+              </Card>
+            ) : (
+              Object.entries(groupLogsByMonth(paidLogs)).map(([monthYear, monthLogs]) => (
+                <div key={monthYear}>
+                  <div className="flex justify-between items-end" style={{ marginBottom: 'var(--space-md)', padding: '0 4px' }}>
+                    <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: 'var(--on-surface-variant)', letterSpacing: '0.05em' }}>{monthYear}</h3>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--primary)' }}>{formatCurrency(monthLogs.reduce((sum, l) => sum + (l.amountPaid || l.amount), 0))}</div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+                    {monthLogs.map((log) => (
+                      <Card key={log._id} style={{ padding: 'var(--space-md)' }}>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="font-semibold">{log.client}</div>
+                            <div className="body-sm text-muted">Paid on {log.datePaid ? formatDate(log.datePaid) : formatDate(log.date)}</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div className="font-semibold" style={{ color: 'var(--success)' }}>{formatCurrency(log.amountPaid || log.amount)}</div>
+                            <div className="flex gap-xs" style={{ marginTop: '4px', justifyContent: 'flex-end' }}>
+                              <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer' }}><Edit2 size={12} /></button>
+                              <button onClick={() => handleDeleteWorkEntry(log._id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}><Trash2 size={12} /></button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </Card>
+              ))
+            )}
+          </div>
         )}
       </div>
 

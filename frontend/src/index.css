@@ -206,3 +206,47 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   }
 }
 
+
+@media (max-width: 768px) {
+  .page {
+    padding: var(--space-xs) !important;
+  }
+  
+  .card {
+    padding: var(--space-sm) !important;
+  }
+  
+  .activity-log-card {
+    padding: var(--space-sm) !important;
+  }
+}
+
+.payment-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xs);
+}
+
+@media (max-width: 500px) {
+  .payment-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  
+  .payment-stats-grid > div {
+    border-right: none !important;
+    border-bottom: 1px solid var(--outline-variant);
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    text-align: left !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .payment-stats-grid > div:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}

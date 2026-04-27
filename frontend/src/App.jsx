@@ -7,7 +7,6 @@ import { Payments } from './pages/Payments';
 import { Loans } from './pages/Loans';
 
 import { ScrollToTop } from './components/utils/ScrollToTop';
-import { api } from './api';
 
 function App() {
   React.useEffect(() => {
