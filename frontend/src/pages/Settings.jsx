@@ -187,15 +187,6 @@ export const Settings = () => {
     }
   };
 
-  const copyToken = async () => {
-    if (!fcmToken) return;
-    try {
-      await navigator.clipboard.writeText(fcmToken);
-      toast.success('Device token copied.');
-    } catch {
-      toast.error('Could not copy. Long-press to select instead.');
-    }
-  };
 
   const handleSave = () => {
     localStorage.setItem('monthlyGoal', settings.monthlyGoal);
@@ -323,16 +314,6 @@ export const Settings = () => {
                 >
                   Send Test Notification
                 </Button>
-                {fcmToken && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={copyToken}
-                    style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-md)' }}
-                  >
-                    Copy Device Token
-                  </Button>
-                )}
               </div>
             )}
 
