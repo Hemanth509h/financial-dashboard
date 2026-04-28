@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, Wallet, Building2, HelpCircle, Menu, MoreHorizontal, X, Settings } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Wallet, Building2, Menu, MoreHorizontal, X, Settings } from 'lucide-react';
 import './SidebarLayout.css';
 
 export const SidebarLayout = () => {
@@ -15,7 +15,6 @@ export const SidebarLayout = () => {
 
   const footerItems = [
     { name: 'Settings', path: '/settings', icon: Settings },
-    { name: 'Support', path: '#', icon: HelpCircle },
   ];
 
   return (
@@ -23,7 +22,7 @@ export const SidebarLayout = () => {
       <button className="mobile-toggle" onClick={() => setIsMobileOpen(!isMobileOpen)}>
         <Menu size={24} />
       </button>
-      
+
       {isMobileOpen && <div className="sidebar-overlay" onClick={() => setIsMobileOpen(false)}></div>}
 
       <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
@@ -32,17 +31,17 @@ export const SidebarLayout = () => {
             <img src="/logo.png" alt="GigFinance Logo" style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }} />
             <div>
               <h2 className="text-primary">GigFinance</h2>
-              <span className="text-muted body-sm" style={{textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.05em'}}>Worker Portal v3.1</span>
+              <span className="text-muted body-sm" style={{ textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.05em' }}>Worker Portal v3.1</span>
             </div>
           </div>
         </div>
-        
+
         <nav className="sidebar-nav">
           <ul>
             {navItems.map((item) => (
               <li key={item.name}>
-                <NavLink 
-                  to={item.path} 
+                <NavLink
+                  to={item.path}
                   onClick={() => setIsMobileOpen(false)}
                   className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 >
@@ -65,8 +64,8 @@ export const SidebarLayout = () => {
                       {item.name}
                     </a>
                   ) : (
-                    <NavLink 
-                      to={item.path} 
+                    <NavLink
+                      to={item.path}
                       onClick={() => setIsMobileOpen(false)}
                       className={({ isActive }) => `nav-link ${isActive ? 'active' : ''} text-muted`}
                     >
@@ -88,17 +87,18 @@ export const SidebarLayout = () => {
       {/* Bottom Navigation for Mobile */}
       <nav className="bottom-nav">
         {navItems.map((item) => (
-          <NavLink 
+          <NavLink
             key={item.name}
-            to={item.path} 
+            to={item.path}
             className={({ isActive }) => `bottom-nav-link ${isActive ? 'active' : ''}`}
           >
             <item.icon size={24} />
             <span>{item.name}</span>
           </NavLink>
         ))}
-        <button 
-          className="bottom-nav-link" 
+
+        <button
+          className="bottom-nav-link"
           onClick={() => setIsMobileOpen(true)}
         >
           <MoreHorizontal size={24} />
@@ -117,9 +117,9 @@ export const SidebarLayout = () => {
             <div className="popup-section">
               <p className="section-title">Navigation</p>
               {navItems.map((item) => (
-                <NavLink 
+                <NavLink
                   key={item.name}
-                  to={item.path} 
+                  to={item.path}
                   onClick={() => setIsMobileOpen(false)}
                   className="popup-link"
                 >
@@ -130,10 +130,24 @@ export const SidebarLayout = () => {
             </div>
             <div className="popup-section">
               <p className="section-title">Others</p>
-              <a href="#" className="popup-link text-muted" onClick={() => setIsMobileOpen(false)}>
-                <HelpCircle size={20} />
-                Support
-              </a>
+              {footerItems.map((item) => (
+                item.path.startsWith('#') ? (
+                  <a key={item.name} href={item.path} className="popup-link text-muted" onClick={() => setIsMobileOpen(false)}>
+                    <item.icon size={20} />
+                    {item.name}
+                  </a>
+                ) : (
+                  <NavLink
+                    key={item.name}
+                    to={item.path}
+                    onClick={() => setIsMobileOpen(false)}
+                    className="popup-link text-muted"
+                  >
+                    <item.icon size={20} />
+                    {item.name}
+                  </NavLink>
+                )
+              ))}
             </div>
           </div>
         </div>

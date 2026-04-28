@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gigfinance-v3';
+const CACHE_NAME = 'gigfinance-v4';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -25,8 +25,15 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Use a Network First strategy for the main page and manifest
-  if (event.request.mode === 'navigate' || event.request.url.includes('manifest.json')) {
+  // Use a Network First strategy for navigate requests (SPA routing)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  if (event.request.url.includes('manifest.json')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );
@@ -44,12 +51,15 @@ self.addEventListener('fetch', event => {
       .then(response => {
         return response || fetch(event.request).then(fetchRes => {
           return caches.open(CACHE_NAME).then(cache => {
-            if (event.request.url.startsWith('http')) {
+            if (event.request.url.startsWith('http') && event.request.method === 'GET') {
               cache.put(event.request, fetchRes.clone());
             }
             return fetchRes;
           });
         });
+      }).catch(err => {
+        console.error('Fetch failed:', err);
+        throw err;
       })
   );
 });

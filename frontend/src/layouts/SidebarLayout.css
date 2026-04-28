@@ -145,7 +145,7 @@
   padding: var(--space-xs);
   border: none;
   background: none;
-  min-width: 64px;
+  min-width: 50px;
   transition: all 0.2s;
   cursor: pointer;
 }
