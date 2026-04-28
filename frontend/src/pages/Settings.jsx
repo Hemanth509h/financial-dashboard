@@ -34,8 +34,13 @@ export const Settings = () => {
       try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-          // In a real app, pass your VAPID key here to generate a token
-          const token = await getToken(messaging);
+          // Pass the VAPID key from the environment variables
+          const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+          if (!vapidKey) {
+            console.error("VITE_FIREBASE_VAPID_KEY is missing from environment variables.");
+            throw new Error('VAPID key missing');
+          }
+          const token = await getToken(messaging, { vapidKey });
           console.log('FCM Token generated:', token);
           toast.success('Push notifications enabled!');
           
