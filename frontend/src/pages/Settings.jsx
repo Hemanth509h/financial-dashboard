@@ -34,10 +34,10 @@ export const Settings = () => {
       try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-          // Pass the VAPID key from the environment variables
-          const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+          // VAPID public key can be safely hardcoded as it is meant to be public
+          const vapidKey = "BFrHGlW2cmYg3Ho6i4sS5FimOzgbJnjO9FmDEd21eFJ9s4DIf4s5gJWCPMmxSTagNANuhVneCzDZ0dMKthzn_L0";
           if (!vapidKey) {
-            console.error("VITE_FIREBASE_VAPID_KEY is missing from environment variables.");
+            console.error("VAPID key is missing.");
             throw new Error('VAPID key missing');
           }
           const token = await getToken(messaging, { vapidKey });
