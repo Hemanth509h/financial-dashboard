@@ -22,6 +22,21 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  const { method, path, ip } = req;
+  
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    const statusColor = res.statusCode >= 400 ? '\x1b[31m' : '\x1b[32m'; // red for errors, green for success
+    const reset = '\x1b[0m';
+    console.log(`${statusColor}[${res.statusCode}]${reset} ${method.padEnd(6)} ${path.padEnd(30)} ${duration}ms - ${ip}`);
+  });
+  
+  next();
+});
+
 async function connectDatabase() {
   const uri = process.env.MONGODB_URI;
 

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Target, User, Bell, Save, Download, Share2 } from 'lucide-react';
+import { Target, User, Bell, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import {
   getMessagingInstance,
   getMessagingSupportInfo,
@@ -32,7 +31,6 @@ export const Settings = () => {
   const [pushSupport, setPushSupport] = useState({ supported: true });
   const [pushBusy, setPushBusy] = useState(false);
   const [fcmToken, setFcmToken] = useState(localStorage.getItem('fcmToken') || '');
-  const { canInstall, isInstalled, isIOS, installApp } = useInstallPrompt();
 
   useEffect(() => {
     const savedGoal = localStorage.getItem('monthlyGoal');
@@ -338,12 +336,6 @@ export const Settings = () => {
               </div>
             )}
 
-            {settings.notifications && fcmToken && (
-              <p className="body-sm text-muted" style={{ marginTop: 'var(--space-sm)', wordBreak: 'break-all' }}>
-                Token: {fcmToken.slice(0, 24)}…{fcmToken.slice(-8)}
-              </p>
-            )}
-
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
               <div>
                 <div className="font-semibold">Dark Mode</div>
@@ -361,60 +353,7 @@ export const Settings = () => {
               </select>
             </div>
           </Card>
-{/* App Installation Section */}
-          {(canInstall || (isIOS && !isInstalled)) && (
-            <Card>
-              <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
-                <div style={{ backgroundColor: 'var(--primary-container)', color: 'var(--primary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
-                  {isIOS ? <Share2 size={24} /> : <Download size={24} />}
-                </div>
-                <h3>Install App</h3>
-              </div>
 
-              <div>
-                <p className="body-sm text-muted" style={{ marginBottom: 'var(--space-md)' }}>
-                  {isIOS 
-                    ? 'Get instant access to GigFinance on your home screen without visiting the browser each time.'
-                    : 'Install GigFinance as an app for faster access, offline support, and a native experience.'}
-                </p>
-
-                <Button 
-                  onClick={installApp}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: 'var(--space-sm) var(--space-lg)' }}
-                >
-                  {isIOS ? (
-                    <>
-                      <Share2 size={18} /> Add to Home Screen
-                    </>
-                  ) : (
-                    <>
-                      <Download size={18} /> Install App
-                    </>
-                  )}
-                </Button>
-
-                {isIOS && (
-                  <ol className="body-sm text-muted" style={{ marginTop: 'var(--space-md)', paddingLeft: '20px' }}>
-                    <li>Tap the <Share2 size={14} style={{ display: 'inline', marginX: '4px' }} /> Share button below</li>
-                    <li>Select "Add to Home Screen"</li>
-                    <li>Tap "Add" to confirm</li>
-                  </ol>
-                )}
-              </div>
-            </Card>
-          )}
-
-          {isInstalled && (
-            <Card>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#4caf50' }}></div>
-                <span className="body-sm font-semibold">GigFinance is installed ✓</span>
-              </div>
-              <p className="body-sm text-muted" style={{ marginTop: 'var(--space-xs)' }}>You can access the app from your home screen anytime.</p>
-            </Card>
-          )}
-
-          
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-md)' }}>
             <Button onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: 'var(--space-sm) var(--space-xl)' }}>
               <Save size={18} /> Save Settings
