@@ -18,6 +18,8 @@ const SUPPORT_MESSAGES = {
   'no-pushmanager': 'This browser does not support web push.',
   'ios-needs-pwa-install':
     'On iPhone or iPad, install GigFinance to your Home Screen first (Share → Add to Home Screen), then open it from there to enable notifications.',
+  'insecure-context':
+    'Service workers require a secure connection (HTTPS). Please ensure you are using HTTPS to enable notifications.',
 };
 
 export const Settings = () => {

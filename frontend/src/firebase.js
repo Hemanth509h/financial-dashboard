@@ -37,6 +37,12 @@ export function getMessagingSupportInfo() {
   if (typeof window === "undefined") {
     return { supported: false, reason: "ssr" };
   }
+
+  // Service workers require HTTPS (except for localhost)
+  if (window.isSecureContext === false) {
+    return { supported: false, reason: "insecure-context" };
+  }
+
   if (!("serviceWorker" in navigator)) {
     return { supported: false, reason: "no-serviceworker" };
   }
@@ -49,10 +55,13 @@ export function getMessagingSupportInfo() {
 
   // iOS only supports web push when launched as an installed PWA.
   const ua = navigator.userAgent || "";
-  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // Detect iPad Pro 'Desktop' mode
+  
   const isStandalone =
     window.matchMedia?.("(display-mode: standalone)").matches ||
     window.navigator.standalone === true;
+    
   if (isIOS && !isStandalone) {
     return { supported: false, reason: "ios-needs-pwa-install" };
   }
