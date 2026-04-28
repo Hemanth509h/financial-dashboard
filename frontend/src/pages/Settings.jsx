@@ -60,9 +60,23 @@ export const Settings = () => {
         return false;
       }
 
+      // Check if permission is already blocked
+      if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+        const isAndroid = /Android/.test(navigator.userAgent);
+        const helpMsg = isAndroid 
+          ? 'Notifications are blocked. Go to Settings → Apps → [Your Browser] → Permissions → Notifications and enable it.'
+          : 'Notifications are blocked. Reset your browser notification permissions in settings.';
+        toast.error(helpMsg, { duration: 6000 });
+        return false;
+      }
+
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        toast.error('Notification permission denied.');
+        const isAndroid = /Android/.test(navigator.userAgent);
+        const helpMsg = isAndroid 
+          ? 'Notifications blocked. Go to Settings → Apps → [Your Browser] → Permissions → Notifications.'
+          : 'Notification permission denied. Check your browser settings.';
+        toast.error(helpMsg, { duration: 6000 });
         return false;
       }
 
