@@ -23,21 +23,14 @@ app.use(cors({
 app.use(express.json());
 
 async function connectDatabase() {
-  let uri = process.env.MONGODB_URI;
+  const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('MONGODB_URI must be set in production.');
-    }
-    console.log('MONGODB_URI not set, starting in-memory MongoDB for development...');
-    const { MongoMemoryServer } = await import('mongodb-memory-server');
-    const mongod = await MongoMemoryServer.create();
-    uri = mongod.getUri();
-    console.log('In-memory MongoDB started at', uri);
+    throw new Error('MONGODB_URI must be set to connect to MongoDB Atlas.');
   }
 
   await mongoose.connect(uri);
-  console.log('Connected to MongoDB');
+  console.log('Connected to MongoDB Atlas');
 }
 
 connectDatabase().catch((err) => {
