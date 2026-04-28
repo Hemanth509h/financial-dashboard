@@ -1,35 +1,19 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { SidebarLayout } from './layouts/SidebarLayout';
 import { Dashboard } from './pages/Dashboard';
 import { WorkLog } from './pages/WorkLog';
 import { Payments } from './pages/Payments';
 import { Loans } from './pages/Loans';
 import { Settings } from './pages/Settings';
-import toast, { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ScrollToTop } from './components/utils/ScrollToTop';
-import { messaging } from './firebase';
-import { onMessage } from 'firebase/messaging';
+import { useForegroundMessages } from './hooks/useForegroundMessages';
 
 function AppContent() {
-  React.useEffect(() => {
-    if (messaging) {
-      const unsubscribe = onMessage(messaging, (payload) => {
-        console.log('Message received in foreground: ', payload);
-        toast(
-          (t) => (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <strong style={{ marginBottom: '4px' }}>{payload.notification?.title || 'New Notification'}</strong>
-              <span className="body-sm text-muted">{payload.notification?.body}</span>
-            </div>
-          ),
-          { duration: 5000, icon: '🔔' }
-        );
-      });
-      return () => unsubscribe();
-    }
-  }, []);
+  useForegroundMessages();
+
   return (
     <>
       <ScrollToTop />
@@ -50,7 +34,6 @@ function AppContent() {
 
 function App() {
   React.useEffect(() => {
-    // Wake up the backend (helpful for Render free tier)
     fetch('/api/health').catch(() => {});
   }, []);
 

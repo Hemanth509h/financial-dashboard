@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gigfinance-v4';
+const CACHE_NAME = 'gigfinance-v5';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -24,7 +24,29 @@ self.addEventListener('activate', event => {
   );
 });
 
+// URLs that this worker must NOT touch — Firebase Cloud Messaging needs
+// direct, uncached access to its own endpoints and its own service worker
+// scope. Intercepting them breaks push registration on mobile devices.
+function isFcmRequest(url) {
+  return (
+    url.includes('/firebase-messaging-sw.js') ||
+    url.includes('firebase-cloud-messaging-push-scope') ||
+    url.includes('fcmregistrations.googleapis.com') ||
+    url.includes('fcm.googleapis.com') ||
+    url.includes('firebaseinstallations.googleapis.com') ||
+    url.includes('firebaseremoteconfig.googleapis.com') ||
+    url.includes('gstatic.com/firebasejs')
+  );
+}
+
 self.addEventListener('fetch', event => {
+  const url = event.request.url;
+
+  // Never intercept FCM traffic — let the browser/native FCM SW handle it.
+  if (isFcmRequest(url)) {
+    return;
+  }
+
   // Use a Network First strategy for navigate requests (SPA routing)
   if (event.request.mode === 'navigate') {
     event.respondWith(
@@ -33,7 +55,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  if (event.request.url.includes('manifest.json')) {
+  if (url.includes('manifest.json')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
     );
@@ -41,8 +63,8 @@ self.addEventListener('fetch', event => {
   }
 
   // Bypass cache for all API requests to ensure live data
-  if (event.request.url.includes('/api/')) {
-    return; 
+  if (url.includes('/api/')) {
+    return;
   }
 
   // Use Stale-While-Revalidate for other assets

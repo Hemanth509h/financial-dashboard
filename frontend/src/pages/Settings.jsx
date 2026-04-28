@@ -1,79 +1,185 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Target, CircleDollarSign, User, Bell, Shield, Save } from 'lucide-react';
+import { Target, User, Bell, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { messaging } from '../firebase';
+import {
+  getMessagingInstance,
+  getMessagingSupportInfo,
+  registerFcmServiceWorker,
+  VAPID_KEY,
+} from '../firebase';
 import { getToken } from 'firebase/messaging';
+
+const SUPPORT_MESSAGES = {
+  ssr: 'Notifications need a real browser environment.',
+  'no-serviceworker': 'This browser does not support service workers.',
+  'no-notification-api': 'This browser does not support notifications.',
+  'no-pushmanager': 'This browser does not support web push.',
+  'ios-needs-pwa-install':
+    'On iPhone or iPad, install GigFinance to your Home Screen first (Share → Add to Home Screen), then open it from there to enable notifications.',
+};
 
 export const Settings = () => {
   const [settings, setSettings] = useState({
     monthlyGoal: 50000,
     currency: 'INR',
     userName: 'Hemanth',
-    notifications: true,
-    theme: localStorage.getItem('theme') || 'light'
+    notifications: false,
+    theme: localStorage.getItem('theme') || 'light',
   });
+  const [pushSupport, setPushSupport] = useState({ supported: true });
+  const [pushBusy, setPushBusy] = useState(false);
+  const [fcmToken, setFcmToken] = useState(localStorage.getItem('fcmToken') || '');
 
   useEffect(() => {
     const savedGoal = localStorage.getItem('monthlyGoal');
     const savedName = localStorage.getItem('userName');
     const savedTheme = localStorage.getItem('theme') || 'light';
-    
-    if (savedGoal) setSettings(prev => ({ ...prev, monthlyGoal: Number(savedGoal) }));
-    if (savedName) setSettings(prev => ({ ...prev, userName: savedName }));
-    setSettings(prev => ({ ...prev, theme: savedTheme }));
-    
+
+    if (savedGoal) setSettings((prev) => ({ ...prev, monthlyGoal: Number(savedGoal) }));
+    if (savedName) setSettings((prev) => ({ ...prev, userName: savedName }));
+    setSettings((prev) => ({ ...prev, theme: savedTheme }));
+
     document.documentElement.setAttribute('data-theme', savedTheme);
-  }, []);
+
+    setPushSupport(getMessagingSupportInfo());
+
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && fcmToken) {
+      setSettings((prev) => ({ ...prev, notifications: true }));
+    }
+  }, [fcmToken]);
+
+  const enablePushNotifications = async () => {
+    setPushBusy(true);
+    try {
+      const support = getMessagingSupportInfo();
+      setPushSupport(support);
+      if (!support.supported) {
+        toast.error(SUPPORT_MESSAGES[support.reason] || 'Notifications are not supported here.');
+        return false;
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        toast.error('Notification permission denied.');
+        return false;
+      }
+
+      const swRegistration = await registerFcmServiceWorker();
+      if (!swRegistration) {
+        toast.error('Could not register the notification service worker.');
+        return false;
+      }
+
+      // Make sure the worker is fully active before asking FCM for a token —
+      // otherwise getToken can hang or fail on slow mobile networks.
+      if (swRegistration.installing || swRegistration.waiting) {
+        await new Promise((resolve) => {
+          const sw = swRegistration.installing || swRegistration.waiting;
+          if (!sw) return resolve();
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'activated') resolve();
+          });
+        });
+      }
+
+      const messaging = await getMessagingInstance();
+      if (!messaging) {
+        toast.error('Notifications are not supported in this browser.');
+        return false;
+      }
+
+      const token = await getToken(messaging, {
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration: swRegistration,
+      });
+
+      if (!token) {
+        toast.error('Could not get a notification token. Please try again.');
+        return false;
+      }
+
+      console.log('FCM token:', token);
+      localStorage.setItem('fcmToken', token);
+      setFcmToken(token);
+      toast.success('Push notifications enabled!');
+
+      try {
+        new Notification('GigFinance', {
+          body: 'Push notifications have been enabled on this device.',
+          icon: '/logo.png',
+        });
+      } catch {
+        // Some browsers (notably iOS PWA) only allow notifications via the SW.
+        swRegistration.showNotification('GigFinance', {
+          body: 'Push notifications have been enabled on this device.',
+          icon: '/logo.png',
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error enabling notifications:', error);
+      toast.error(error?.message || 'Failed to enable notifications.');
+      return false;
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const handleChange = async (e) => {
     const { name, value, type, checked } = e.target;
-    
-    if (name === 'notifications' && checked && messaging) {
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          // VAPID public key can be safely hardcoded as it is meant to be public
-          const vapidKey = "BFrHGlW2cmYg3Ho6i4sS5FimOzgbJnjO9FmDEd21eFJ9s4DIf4s5gJWCPMmxSTagNANuhVneCzDZ0dMKthzn_L0";
-          if (!vapidKey) {
-            console.error("VAPID key is missing.");
-            throw new Error('VAPID key missing');
-          }
-          const token = await getToken(messaging, { vapidKey });
-          console.log('FCM Token generated:', token);
-          toast.success('Push notifications enabled!');
-          
-          // Send a test notification immediately
-          new Notification('GigFinance', {
-            body: 'Push notifications have been enabled!',
-            icon: '/favicon.svg'
-          });
-        } else {
-          toast.error('Notification permission denied.');
-          return;
-        }
-      } catch (error) {
-        console.error('Error requesting notification permission:', error);
-        toast.error('Failed to enable notifications. Ensure VAPID key is configured.');
+
+    if (name === 'notifications') {
+      if (checked) {
+        const ok = await enablePushNotifications();
+        setSettings((prev) => ({ ...prev, notifications: ok }));
+        return;
       }
+      setSettings((prev) => ({ ...prev, notifications: false }));
+      return;
     }
 
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const sendTestNotification = () => {
-    if (Notification.permission === 'granted') {
-      new Notification('GigFinance Test', {
-        body: 'This is a test notification from your settings!',
-        icon: '/favicon.svg'
-      });
-      toast.success('Test notification sent!');
-    } else {
+  const sendTestNotification = async () => {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
       toast.error('Please enable notifications first.');
+      return;
+    }
+    try {
+      const reg = await registerFcmServiceWorker();
+      if (reg && reg.showNotification) {
+        await reg.showNotification('GigFinance Test', {
+          body: 'This is a test notification from your settings!',
+          icon: '/logo.png',
+          badge: '/logo.png',
+        });
+      } else {
+        new Notification('GigFinance Test', {
+          body: 'This is a test notification from your settings!',
+          icon: '/logo.png',
+        });
+      }
+      toast.success('Test notification sent!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Could not show test notification.');
+    }
+  };
+
+  const copyToken = async () => {
+    if (!fcmToken) return;
+    try {
+      await navigator.clipboard.writeText(fcmToken);
+      toast.success('Device token copied.');
+    } catch {
+      toast.error('Could not copy. Long-press to select instead.');
     }
   };
 
@@ -81,13 +187,14 @@ export const Settings = () => {
     localStorage.setItem('monthlyGoal', settings.monthlyGoal);
     localStorage.setItem('userName', settings.userName);
     localStorage.setItem('theme', settings.theme);
-    
+
     document.documentElement.setAttribute('data-theme', settings.theme);
-    
+
     toast.success('Settings saved successfully!');
-    // Trigger a storage event for other tabs/components
     window.dispatchEvent(new Event('storage'));
   };
+
+  const supportNote = !pushSupport.supported ? SUPPORT_MESSAGES[pushSupport.reason] : null;
 
   return (
     <div className="page">
@@ -106,12 +213,12 @@ export const Settings = () => {
               </div>
               <h3>Profile Settings</h3>
             </div>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
               <div>
                 <label className="body-sm font-semibold text-muted" style={{ display: 'block', marginBottom: 'var(--space-xs)' }}>Your Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="userName"
                   value={settings.userName}
                   onChange={handleChange}
@@ -121,7 +228,7 @@ export const Settings = () => {
               </div>
               <div>
                 <label className="body-sm font-semibold text-muted" style={{ display: 'block', marginBottom: 'var(--space-xs)' }}>Currency</label>
-                <select 
+                <select
                   name="currency"
                   value={settings.currency}
                   onChange={handleChange}
@@ -144,13 +251,13 @@ export const Settings = () => {
               </div>
               <h3>Financial Goals</h3>
             </div>
-            
+
             <div>
               <label className="body-sm font-semibold text-muted" style={{ display: 'block', marginBottom: 'var(--space-xs)' }}>Monthly Earnings Target</label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--on-surface-variant)' }}>₹</span>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   name="monthlyGoal"
                   value={settings.monthlyGoal}
                   onChange={handleChange}
@@ -170,32 +277,55 @@ export const Settings = () => {
               </div>
               <h3>Preferences</h3>
             </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)' }}>
+              <div style={{ minWidth: 0 }}>
                 <div className="font-semibold">Push Notifications</div>
                 <div className="body-sm text-muted">Receive alerts for loan repayments and payments.</div>
               </div>
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 name="notifications"
                 checked={settings.notifications}
                 onChange={handleChange}
+                disabled={pushBusy || !pushSupport.supported}
                 style={{ width: '20px', height: '20px', accentColor: 'var(--primary)' }}
               />
             </div>
 
+            {supportNote && (
+              <p className="body-sm text-muted" style={{ marginTop: 'var(--space-sm)' }}>
+                {supportNote}
+              </p>
+            )}
+
             {settings.notifications && (
-              <div style={{ marginTop: 'var(--space-sm)', display: 'flex', justifyContent: 'flex-start' }}>
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
+              <div style={{ marginTop: 'var(--space-sm)', display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={sendTestNotification}
                   style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-md)' }}
                 >
                   Send Test Notification
                 </Button>
+                {fcmToken && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={copyToken}
+                    style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-md)' }}
+                  >
+                    Copy Device Token
+                  </Button>
+                )}
               </div>
+            )}
+
+            {settings.notifications && fcmToken && (
+              <p className="body-sm text-muted" style={{ marginTop: 'var(--space-sm)', wordBreak: 'break-all' }}>
+                Token: {fcmToken.slice(0, 24)}…{fcmToken.slice(-8)}
+              </p>
             )}
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
@@ -203,7 +333,7 @@ export const Settings = () => {
                 <div className="font-semibold">Dark Mode</div>
                 <div className="body-sm text-muted">Use a dark theme for the dashboard.</div>
               </div>
-              <select 
+              <select
                 name="theme"
                 value={settings.theme}
                 onChange={handleChange}
