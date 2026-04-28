@@ -1,11 +1,13 @@
 {
   "short_name": "GigFinance",
   "name": "GigFinance: Personal Financial Dashboard",
+  "description": "Manage your gig work income, loans, and repayments all in one place",
   "icons": [
     {
       "src": "logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "logo.png",
@@ -14,8 +16,25 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "theme_color": "#006a6a",
-  "background_color": "#f4fbfa"
+  "background_color": "#f4fbfa",
+  "categories": ["finance", "productivity"],
+  "screenshots": [
+    {
+      "src": "logo.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
 }

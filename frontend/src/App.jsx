@@ -8,6 +8,7 @@ import { Payments } from './pages/Payments';
 import { Loans } from './pages/Loans';
 import { Settings } from './pages/Settings';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { InstallBanner } from './components/ui/InstallBanner';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { useForegroundMessages } from './hooks/useForegroundMessages';
 
@@ -17,6 +18,7 @@ function AppContent() {
   return (
     <>
       <ScrollToTop />
+      <InstallBanner />
       <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<SidebarLayout />}>
