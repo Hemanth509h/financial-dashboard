@@ -10,9 +10,11 @@ import { Settings } from './pages/Settings';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { useForegroundMessages } from './hooks/useForegroundMessages';
+import { useSyncFcmToken } from './hooks/useSyncFcmToken';
 
 function AppContent() {
   useForegroundMessages();
+  useSyncFcmToken();
 
   return (
     <>

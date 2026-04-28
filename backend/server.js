@@ -7,6 +7,8 @@ import { fileURLToPath } from 'url';
 import workEntryRoutes from './routes/workEntries.js';
 import loanRoutes from './routes/loans.js';
 import dashboardRoutes from './routes/dashboard.js';
+import notificationRoutes from './routes/notifications.js';
+import { startCronJobs } from './services/notificationService.js';
 
 dotenv.config();
 
@@ -58,6 +60,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/work-logs', workEntryRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Serve the built frontend in production.
 if (process.env.NODE_ENV === 'production') {
@@ -72,6 +75,7 @@ const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 app.listen(PORT, HOST, () => {
   console.log(`Server running on ${HOST}:${PORT}`);
+  startCronJobs();
 });
 
 export default app;

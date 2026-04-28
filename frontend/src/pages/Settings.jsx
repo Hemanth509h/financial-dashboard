@@ -16,6 +16,7 @@ export const Settings = () => {
     currency: 'INR',
     userName: 'Hemanth',
     notifications: false,
+    notificationTime: '09:00',
     theme: localStorage.getItem('theme') || 'light',
   });
   const [pushSupport, setPushSupport] = useState({ supported: true });
@@ -33,6 +34,20 @@ export const Settings = () => {
     document.documentElement.setAttribute('data-theme', savedTheme);
     setPushSupport(getMessagingSupportInfo());
 
+    // Fetch notification settings from backend
+    const fetchNotificationSettings = async () => {
+      try {
+        const res = await fetch('/api/notifications/settings');
+        if (res.ok) {
+          const data = await res.json();
+          setSettings(prev => ({ ...prev, notificationTime: data.notificationTime }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch notification settings', err);
+      }
+    };
+    fetchNotificationSettings();
+
     // Sync notification checkbox with current permission and token state
     const fcmToken = localStorage.getItem('fcmToken');
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && fcmToken) {
@@ -46,6 +61,14 @@ export const Settings = () => {
       try {
         const token = await enableNotifications();
         localStorage.setItem('fcmToken', token);
+        
+        // Register token on backend
+        await fetch('/api/notifications/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, deviceType: 'web' }),
+        });
+
         setSettings((prev) => ({ ...prev, notifications: true }));
         toast.success('Push notifications enabled!');
       } catch (error) {
@@ -82,11 +105,23 @@ export const Settings = () => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     localStorage.setItem('monthlyGoal', settings.monthlyGoal);
     localStorage.setItem('userName', settings.userName);
     localStorage.setItem('theme', settings.theme);
     document.documentElement.setAttribute('data-theme', settings.theme);
+
+    // Save notification time to backend
+    try {
+      await fetch('/api/notifications/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationTime: settings.notificationTime }),
+      });
+    } catch (err) {
+      console.error('Failed to save notification settings', err);
+    }
+
     toast.success('Settings saved successfully!');
     window.dispatchEvent(new Event('storage'));
   };
@@ -206,6 +241,25 @@ export const Settings = () => {
                 >
                   Send Test Notification
                 </Button>
+              </div>
+            )}
+
+            {settings.notifications && (
+              <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div className="font-semibold">Daily Metrics Report</div>
+                    <div className="body-sm text-muted">Set what time you want to receive your daily summary.</div>
+                  </div>
+                  <input
+                    type="time"
+                    name="notificationTime"
+                    value={settings.notificationTime}
+                    onChange={handleChange}
+                    className="form-input"
+                    style={{ padding: 'var(--space-xs) var(--space-sm)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}
+                  />
+                </div>
               </div>
             )}
 
