@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { onMessage } from 'firebase/messaging';
-import { getMessagingInstance, registerFcmServiceWorker } from '../firebase';
+import { onForegroundMessage } from '../firebase';
 
 export function useForegroundMessages() {
   useEffect(() => {
@@ -9,11 +8,9 @@ export function useForegroundMessages() {
     let cancelled = false;
 
     (async () => {
-      await registerFcmServiceWorker();
-      const messaging = await getMessagingInstance();
-      if (cancelled || !messaging) return;
-
-      unsubscribe = onMessage(messaging, (payload) => {
+      const unsub = await onForegroundMessage((payload) => {
+        if (cancelled) return;
+        
         const data = payload.data || {};
         const notification = payload.notification || {};
         const title = notification.title || data.title || 'New Notification';
@@ -29,6 +26,12 @@ export function useForegroundMessages() {
           { duration: 5000, icon: '🔔' }
         );
       });
+      
+      if (!cancelled) {
+        unsubscribe = unsub;
+      } else if (unsub) {
+        unsub();
+      }
     })();
 
     return () => {

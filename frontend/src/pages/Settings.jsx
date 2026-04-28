@@ -4,23 +4,11 @@ import { Button } from '../components/ui/Button';
 import { Target, User, Bell, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
-  getMessagingInstance,
   getMessagingSupportInfo,
-  registerFcmServiceWorker,
-  VAPID_KEY,
+  enableNotifications,
+  sendTestNotification as triggerTestNotification,
+  SUPPORT_MESSAGES,
 } from '../firebase';
-import { getToken } from 'firebase/messaging';
-
-const SUPPORT_MESSAGES = {
-  ssr: 'Notifications need a real browser environment.',
-  'no-serviceworker': 'This browser does not support service workers.',
-  'no-notification-api': 'This browser does not support notifications.',
-  'no-pushmanager': 'This browser does not support web push.',
-  'ios-needs-pwa-install':
-    'On iPhone or iPad, install GigFinance to your Home Screen first (Share → Add to Home Screen), then open it from there to enable notifications.',
-  'insecure-context':
-    'Service workers require a secure connection (HTTPS). Please ensure you are using HTTPS to enable notifications.',
-};
 
 export const Settings = () => {
   const [settings, setSettings] = useState({
@@ -32,7 +20,6 @@ export const Settings = () => {
   });
   const [pushSupport, setPushSupport] = useState({ supported: true });
   const [pushBusy, setPushBusy] = useState(false);
-  const [fcmToken, setFcmToken] = useState(localStorage.getItem('fcmToken') || '');
 
   useEffect(() => {
     const savedGoal = localStorage.getItem('monthlyGoal');
@@ -44,159 +31,62 @@ export const Settings = () => {
     setSettings((prev) => ({ ...prev, theme: savedTheme }));
 
     document.documentElement.setAttribute('data-theme', savedTheme);
-
     setPushSupport(getMessagingSupportInfo());
 
+    // Sync notification checkbox with current permission and token state
+    const fcmToken = localStorage.getItem('fcmToken');
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && fcmToken) {
       setSettings((prev) => ({ ...prev, notifications: true }));
     }
-  }, [fcmToken]);
+  }, []);
 
-  const enablePushNotifications = async () => {
-    setPushBusy(true);
-    try {
-      const support = getMessagingSupportInfo();
-      setPushSupport(support);
-      if (!support.supported) {
-        toast.error(SUPPORT_MESSAGES[support.reason] || 'Notifications are not supported here.');
-        return false;
-      }
-
-      // Check if permission is already blocked
-      if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
-        const isAndroid = /Android/.test(navigator.userAgent);
-        const helpMsg = isAndroid 
-          ? 'Notifications are blocked. Go to Settings → Apps → [Your Browser] → Permissions → Notifications and enable it.'
-          : 'Notifications are blocked. Reset your browser notification permissions in settings.';
-        toast.error(helpMsg, { duration: 6000 });
-        return false;
-      }
-
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        const isAndroid = /Android/.test(navigator.userAgent);
-        const helpMsg = isAndroid 
-          ? 'Notifications blocked. Go to Settings → Apps → [Your Browser] → Permissions → Notifications.'
-          : 'Notification permission denied. Check your browser settings.';
-        toast.error(helpMsg, { duration: 6000 });
-        return false;
-      }
-
-      const swRegistration = await registerFcmServiceWorker();
-      if (!swRegistration) {
-        toast.error('Could not register the notification service worker.');
-        return false;
-      }
-
-      // Make sure the worker is fully active before asking FCM for a token —
-      // otherwise getToken can hang or fail on slow mobile networks.
-      if (swRegistration.installing || swRegistration.waiting) {
-        await new Promise((resolve) => {
-          const sw = swRegistration.installing || swRegistration.waiting;
-          if (!sw) return resolve();
-          sw.addEventListener('statechange', () => {
-            if (sw.state === 'activated') resolve();
-          });
-        });
-      }
-
-      const messaging = await getMessagingInstance();
-      if (!messaging) {
-        toast.error('Notifications are not supported in this browser.');
-        return false;
-      }
-
-      const token = await getToken(messaging, {
-        vapidKey: VAPID_KEY,
-        serviceWorkerRegistration: swRegistration,
-      });
-
-      if (!token) {
-        toast.error('Could not get a notification token. Please try again.');
-        return false;
-      }
-
-      console.log('FCM token:', token);
-      localStorage.setItem('fcmToken', token);
-      setFcmToken(token);
-      toast.success('Push notifications enabled!');
-
+  const handleNotificationToggle = async (checked) => {
+    if (checked) {
+      setPushBusy(true);
       try {
-        new Notification('GigFinance', {
-          body: 'Push notifications have been enabled on this device.',
-          icon: '/logo.png',
-        });
-      } catch {
-        // Some browsers (notably iOS PWA) only allow notifications via the SW.
-        swRegistration.showNotification('GigFinance', {
-          body: 'Push notifications have been enabled on this device.',
-          icon: '/logo.png',
-        });
+        const token = await enableNotifications();
+        localStorage.setItem('fcmToken', token);
+        setSettings((prev) => ({ ...prev, notifications: true }));
+        toast.success('Push notifications enabled!');
+      } catch (error) {
+        console.error('Failed to enable notifications:', error);
+        toast.error(error.message || 'Failed to enable notifications.');
+        setSettings((prev) => ({ ...prev, notifications: false }));
+      } finally {
+        setPushBusy(false);
       }
-
-      return true;
-    } catch (error) {
-      console.error('Error enabling notifications:', error);
-      toast.error(error?.message || 'Failed to enable notifications.');
-      return false;
-    } finally {
-      setPushBusy(false);
+    } else {
+      setSettings((prev) => ({ ...prev, notifications: false }));
+      // Optional: Logic to unregister or disable on backend
     }
   };
 
-  const handleChange = async (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleSendTest = async () => {
+    try {
+      await triggerTestNotification();
+      toast.success('Test notification sent!');
+    } catch (err) {
+      toast.error(err.message || 'Could not show test notification.');
+    }
+  };
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     if (name === 'notifications') {
-      if (checked) {
-        const ok = await enablePushNotifications();
-        setSettings((prev) => ({ ...prev, notifications: ok }));
-        return;
-      }
-      setSettings((prev) => ({ ...prev, notifications: false }));
+      handleNotificationToggle(checked);
       return;
     }
-
     setSettings((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
-  const sendTestNotification = async () => {
-    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
-      toast.error('Please enable notifications first.');
-      return;
-    }
-    try {
-      const reg = await registerFcmServiceWorker();
-      if (reg && reg.showNotification) {
-        await reg.showNotification('GigFinance Test', {
-          body: 'This is a test notification from your settings!',
-          icon: '/logo.png',
-          badge: '/logo.png',
-        });
-      } else {
-        new Notification('GigFinance Test', {
-          body: 'This is a test notification from your settings!',
-          icon: '/logo.png',
-        });
-      }
-      toast.success('Test notification sent!');
-    } catch (err) {
-      console.error(err);
-      toast.error('Could not show test notification.');
-    }
-  };
-
-
   const handleSave = () => {
     localStorage.setItem('monthlyGoal', settings.monthlyGoal);
     localStorage.setItem('userName', settings.userName);
     localStorage.setItem('theme', settings.theme);
-
     document.documentElement.setAttribute('data-theme', settings.theme);
-
     toast.success('Settings saved successfully!');
     window.dispatchEvent(new Event('storage'));
   };
@@ -311,7 +201,7 @@ export const Settings = () => {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={sendTestNotification}
+                  onClick={handleSendTest}
                   style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-md)' }}
                 >
                   Send Test Notification

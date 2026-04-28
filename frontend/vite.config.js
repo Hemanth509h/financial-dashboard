@@ -10,10 +10,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:5000'
     },
-    hmr: {
-      host: 'localhost',
-      port: 5001,
-      protocol: 'ws'
-    }
+    // Letting Vite handle HMR host/port automatically is more reliable
+    hmr: true
   }
 })

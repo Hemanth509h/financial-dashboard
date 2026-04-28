@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
-import { getMessaging, isSupported as isMessagingSupported } from "firebase/messaging";
+import { getMessaging, isSupported as isMessagingSupported, getToken, onMessage } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBe-L9BLWphGtGF_fR52HPSViFNSvKV1gE",
@@ -113,4 +113,117 @@ export function getMessagingInstance() {
     })();
   }
   return messagingPromise;
+}
+export const SUPPORT_MESSAGES = {
+  ssr: "Notifications need a real browser environment.",
+  "no-serviceworker": "This browser does not support service workers.",
+  "no-notification-api": "This browser does not support notifications.",
+  "no-pushmanager": "This browser does not support web push.",
+  "ios-needs-pwa-install":
+    "On iPhone or iPad, install GigFinance to your Home Screen first (Share → Add to Home Screen), then open it from there to enable notifications.",
+  "insecure-context":
+    "Service workers require a secure connection (HTTPS). Please ensure you are using HTTPS to enable notifications.",
+};
+
+/**
+ * Orchestrates the full flow to enable notifications:
+ * 1. Checks support
+ * 2. Checks/Requests permission
+ * 3. Registers service worker
+ * 4. Gets FCM token
+ * 5. Shows a confirmation notification
+ */
+export async function enableNotifications() {
+  const support = getMessagingSupportInfo();
+  if (!support.supported) {
+    throw new Error(SUPPORT_MESSAGES[support.reason] || "Notifications not supported.");
+  }
+
+  if (typeof Notification !== "undefined" && Notification.permission === "denied") {
+    const isAndroid = /Android/.test(navigator.userAgent);
+    throw new Error(
+      isAndroid
+        ? "Notifications are blocked. Go to Settings → Apps → [Browser] → Permissions → Notifications and enable it."
+        : "Notifications are blocked. Reset your browser notification permissions in settings."
+    );
+  }
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    throw new Error("Notification permission denied.");
+  }
+
+  const swRegistration = await registerFcmServiceWorker();
+  if (!swRegistration) {
+    throw new Error("Could not register the notification service worker.");
+  }
+
+  // Ensure SW is active
+  if (swRegistration.installing || swRegistration.waiting) {
+    await new Promise((resolve) => {
+      const sw = swRegistration.installing || swRegistration.waiting;
+      if (!sw) return resolve();
+      sw.addEventListener("statechange", () => {
+        if (sw.state === "activated") resolve();
+      });
+    });
+  }
+
+  const messaging = await getMessagingInstance();
+  if (!messaging) {
+    throw new Error("Firebase messaging failed to initialize.");
+  }
+
+  const token = await getToken(messaging, {
+    vapidKey: VAPID_KEY,
+    serviceWorkerRegistration: swRegistration,
+  });
+
+  if (!token) {
+    throw new Error("Could not get a notification token.");
+  }
+
+  // Show confirmation
+  const title = "GigFinance";
+  const body = "Push notifications have been enabled on this device.";
+  try {
+    new Notification(title, { body, icon: "/logo.png" });
+  } catch {
+    swRegistration.showNotification(title, { body, icon: "/logo.png" });
+  }
+
+  return token;
+}
+
+/**
+ * Sends a local test notification to verify the integration.
+ */
+export async function sendTestNotification() {
+  if (typeof Notification === "undefined" || Notification.permission !== "granted") {
+    throw new Error("Please enable notifications first.");
+  }
+
+  const reg = await registerFcmServiceWorker();
+  const title = "GigFinance Test";
+  const options = {
+    body: "This is a test notification from your settings!",
+    icon: "/logo.png",
+    badge: "/logo.png",
+  };
+
+  if (reg && reg.showNotification) {
+    await reg.showNotification(title, options);
+  } else {
+    new Notification(title, options);
+  }
+}
+
+/**
+ * Listens for messages when the app is in the foreground.
+ * Returns an unsubscribe function.
+ */
+export async function onForegroundMessage(callback) {
+  const messaging = await getMessagingInstance();
+  if (!messaging) return () => {};
+  return onMessage(messaging, callback);
 }
