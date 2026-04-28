@@ -96,14 +96,13 @@ export const SidebarLayout = () => {
             <span>{item.name}</span>
           </NavLink>
         ))}
-
-        <button
-          className="bottom-nav-link"
-          onClick={() => setIsMobileOpen(true)}
+        <NavLink
+          to="/settings"
+          className={({ isActive }) => `bottom-nav-link ${isActive ? 'active' : ''}`}
         >
-          <MoreHorizontal size={24} />
-          <span>Menu</span>
-        </button>
+          <Settings size={24} />
+          <span>Settings</span>
+        </NavLink>
       </nav>
 
       {/* Mobile Menu Popup */}

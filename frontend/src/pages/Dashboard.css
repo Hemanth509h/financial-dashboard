@@ -19,6 +19,15 @@
   gap: var(--space-lg);
 }
 
+@media (min-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .analytics-section {
+    grid-column: span 2;
+  }
+}
+
 
 
 

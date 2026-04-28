@@ -122,7 +122,7 @@ export const Dashboard = () => {
       </div>
 
       <div className="dashboard-grid">
-        <Card className="analytics-section" style={{ gridColumn: 'span 2' }}>
+        <Card className="analytics-section">
           <div className="section-header">
             <h3>Earnings vs. Repayments</h3>
             <div className="flex items-center gap-sm">
