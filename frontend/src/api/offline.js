@@ -285,8 +285,8 @@ async function flushQueue() {
           dequeue(op.id);
           continue;
         }
-        // Network or 5xx error: stop and try again later.
-        if (!err.response) setOnline(false);
+        // Network or gateway error: stop and try again later.
+        if (isOfflineError(err)) setOnline(false);
         break;
       }
     }
@@ -297,6 +297,105 @@ async function flushQueue() {
 }
 
 const isMutation = (m) => ['post', 'patch', 'put', 'delete'].includes(m);
+
+/**
+ * The Vite/production proxy returns 502/503/504 when the upstream backend is
+ * unreachable. From the frontend's point of view that's the same as a
+ * network error, so treat it as "offline" and fall back to local data.
+ */
+const isOfflineError = (err) =>
+  !err.response || [502, 503, 504].includes(err.response.status);
+
+/**
+ * When the backend is unreachable, derive a useful dashboard summary from
+ * whatever we have cached locally — including work entries and loans the
+ * user added while offline. This means the dashboard reflects local state
+ * instead of going stale at the last server-computed snapshot.
+ */
+function computeLocalSummary() {
+  const workLogs = getCache('/api/work-logs') || [];
+  const loans = getCache('/api/loans') || [];
+
+  const now = new Date();
+  const month = now.getMonth();
+  const year = now.getFullYear();
+
+  let totalEarnedThisMonth = 0;
+  let pendingPayments = 0;
+  let pendingCount = 0;
+
+  for (const w of workLogs) {
+    const amount = Number(w.amount || 0);
+    const paid = Number(w.amountPaid || 0);
+    const d = w.date ? new Date(w.date) : null;
+    const inMonth = d && d.getMonth() === month && d.getFullYear() === year;
+    if (inMonth) totalEarnedThisMonth += paid;
+    const owed = Math.max(0, amount - paid);
+    if (owed > 0) {
+      pendingPayments += owed;
+      pendingCount += 1;
+    }
+  }
+
+  let totalLoanGoal = 0;
+  let totalLoanPaid = 0;
+  for (const l of loans) {
+    totalLoanGoal += Number(l.amount || 0);
+    totalLoanPaid += Number(l.amountPaid || 0);
+  }
+  const totalLoanBalance = Math.max(0, totalLoanGoal - totalLoanPaid);
+
+  let totalRepaidThisMonth = 0;
+  for (const l of loans) {
+    const reps = getCache(`/api/loans/${l._id}/repayments`) || [];
+    for (const r of reps) {
+      const d = r.date ? new Date(r.date) : null;
+      if (d && d.getMonth() === month && d.getFullYear() === year) {
+        totalRepaidThisMonth += Number(r.amount || 0);
+      }
+    }
+  }
+
+  const recentActivity = [...workLogs]
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+    .slice(0, 5)
+    .map((w) => ({
+      _id: w._id,
+      type: 'work',
+      date: w.date,
+      data: {
+        client: w.client,
+        amount: Number(w.amount || 0),
+        status: w.status || 'Unpaid',
+        amountPaid: Number(w.amountPaid || 0),
+      },
+    }));
+
+  return {
+    totalEarnedThisMonth,
+    pendingPayments,
+    pendingCount,
+    totalLoanBalance,
+    totalLoanGoal,
+    totalLoanPaid,
+    totalRepaidThisMonth,
+    recentActivity,
+    _localComputed: true,
+  };
+}
+
+function offlineFallback(url) {
+  if (url.endsWith('/dashboard/summary')) return computeLocalSummary();
+  if (url.endsWith('/dashboard/analytics')) {
+    return getCache(url) || { byMonth: [], byClient: [] };
+  }
+  if (url.endsWith('/dashboard/clients')) return getCache(url) || [];
+  const cached = getCache(url);
+  if (cached !== undefined) return cached;
+  // Reasonable empty default for list endpoints
+  if (/\/api\/(work-logs|loans)(\/.+\/repayments)?$/.test(url)) return [];
+  return undefined;
+}
 
 export async function request(config) {
   const method = (config.method || 'get').toLowerCase();
@@ -309,17 +408,17 @@ export async function request(config) {
       setOnline(true);
       return res;
     } catch (err) {
-      if (err.response) {
-        // Server responded with an error — not "offline".
+      if (!isOfflineError(err)) {
+        // Real server error (4xx, 5xx other than gateway) — propagate.
         throw err;
       }
       setOnline(false);
-      const cached = getCache(url);
-      if (cached !== undefined) {
+      const fallback = offlineFallback(url);
+      if (fallback !== undefined) {
         return {
-          data: cached,
+          data: fallback,
           status: 200,
-          statusText: 'OK (offline cache)',
+          statusText: 'OK (offline)',
           headers: {},
           config,
           fromCache: true,
@@ -349,11 +448,11 @@ export async function request(config) {
       }
       return res;
     } catch (err) {
-      if (err.response) {
+      if (!isOfflineError(err)) {
         // Real server error — propagate so the UI can show a message.
         throw err;
       }
-      // Offline — queue and return optimistic result.
+      // Backend unreachable — queue and return optimistic result.
       setOnline(false);
       enqueue(op);
       return {
@@ -375,15 +474,33 @@ export async function request(config) {
 async function ping() {
   try {
     await axios.get('/api/health', { timeout: 5000 });
+    const wasOffline = !state.online;
     setOnline(true);
     if (state.queue.length > 0) flushQueue();
+    if (wasOffline) prewarm();
   } catch (err) {
-    if (!err.response) setOnline(false);
+    if (isOfflineError(err)) setOnline(false);
   }
 }
 
+const PREWARM_URLS = ['/api/work-logs', '/api/loans'];
+async function prewarm() {
+  await Promise.allSettled(
+    PREWARM_URLS.map(async (url) => {
+      try {
+        const res = await axios.get(url, { timeout: 5000 });
+        setCache(url, res.data);
+      } catch {
+        // ignore — best effort
+      }
+    }),
+  );
+}
+
 if (typeof window !== 'undefined') {
-  ping();
+  ping().then(() => {
+    if (state.online) prewarm();
+  });
   setInterval(ping, 15000);
   window.addEventListener('online', ping);
   window.addEventListener('offline', () => setOnline(false));
