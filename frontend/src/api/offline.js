@@ -497,7 +497,33 @@ async function prewarm() {
   );
 }
 
+async function requestPersistentStorage() {
+  try {
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.storage &&
+      typeof navigator.storage.persist === 'function'
+    ) {
+      const already =
+        typeof navigator.storage.persisted === 'function'
+          ? await navigator.storage.persisted()
+          : false;
+      if (!already) {
+        const granted = await navigator.storage.persist();
+        console.log(
+          granted
+            ? 'Persistent storage granted — local data will not be evicted by the browser.'
+            : 'Persistent storage not granted; data may be cleared under storage pressure.',
+        );
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
+
 if (typeof window !== 'undefined') {
+  requestPersistentStorage();
   ping().then(() => {
     if (state.online) prewarm();
   });
