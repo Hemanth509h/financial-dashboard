@@ -179,9 +179,9 @@ export const Payments = () => {
       </header>
 
       {/* Metrics Banner */}
-      <div style={{ 
+      <div className="payments-summary-grid" style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', 
         gap: 'var(--space-sm)',
         marginBottom: 'var(--space-xl)'
       }}>
@@ -193,14 +193,14 @@ export const Payments = () => {
           <div className="body-sm" style={{ opacity: 0.9 }}>This Month Collected</div>
           <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(totalReceived)}</div>
         </div>
-        <div style={{ backgroundColor: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
+        <div style={{ backgroundColor: 'var(--surface-bright)', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
           <div className="body-sm text-muted">Success Rate</div>
           <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px', color: 'var(--on-surface)' }}>{Math.round(collectionRate)}%</div>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div style={{ 
+      <div className="payment-tabs" style={{ 
         display: 'flex', 
         backgroundColor: 'var(--surface-container)', 
         padding: '4px', 
@@ -215,7 +215,7 @@ export const Payments = () => {
             padding: '10px', 
             borderRadius: '10px', 
             border: 'none',
-            backgroundColor: activeTab === 'pending' ? 'white' : 'transparent',
+            backgroundColor: activeTab === 'pending' ? 'var(--surface-bright)' : 'transparent',
             boxShadow: activeTab === 'pending' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
             fontWeight: activeTab === 'pending' ? '600' : '500',
             color: activeTab === 'pending' ? 'var(--primary)' : 'var(--on-surface-variant)',
@@ -232,7 +232,7 @@ export const Payments = () => {
             padding: '10px', 
             borderRadius: '10px', 
             border: 'none',
-            backgroundColor: activeTab === 'history' ? 'white' : 'transparent',
+            backgroundColor: activeTab === 'history' ? 'var(--surface-bright)' : 'transparent',
             boxShadow: activeTab === 'history' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
             fontWeight: activeTab === 'history' ? '600' : '500',
             color: activeTab === 'history' ? 'var(--primary)' : 'var(--on-surface-variant)',
@@ -285,13 +285,13 @@ export const Payments = () => {
                 
                 return (
                   <Card key={log._id} style={{ padding: 'var(--space-sm)', overflow: 'hidden', borderLeft: `4px solid ${isPartiallyPaid ? 'var(--primary)' : 'var(--warning)'}` }}>
-                    <div className="flex justify-between items-start" style={{ marginBottom: '10px' }}>
+                    <div className="flex justify-between items-start mobile-card-row" style={{ marginBottom: '10px' }}>
                       <div style={{ flex: 1 }}>
                         <div className="font-semibold" style={{ fontSize: '15px', lineHeight: '1.2' }}>{log.client}</div>
                         <div className="body-sm text-muted" style={{ fontSize: '11px' }}>{formatDate(log.date)}</div>
                       </div>
-                      <div className="flex flex-col items-end gap-xs">
-                        <div className="flex gap-xs">
+                      <div className="flex flex-col items-end gap-xs mobile-card-actions">
+                        <div className="flex gap-xs mobile-card-actions">
                           <button 
                             onClick={() => handleOpenPaymentModal(log)} 
                             title="Record Payment"
@@ -314,8 +314,8 @@ export const Payments = () => {
                       backgroundColor: 'var(--surface-container-low)', 
                       padding: '8px', 
                       borderRadius: 'var(--radius-sm)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
                       alignItems: 'center'
                     }}>
                       <div style={{ flex: 1 }}>
@@ -361,12 +361,12 @@ export const Payments = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                         {weekLogs.map(log => (
                           <Card key={log._id} style={{ padding: 'var(--space-sm)' }}>
-                            <div className="flex justify-between items-center">
+                            <div className="flex justify-between items-center mobile-card-row">
                               <div style={{ flex: 1 }}>
                                 <div className="font-semibold" style={{ fontSize: '15px' }}>{log.client}</div>
                                 <div className="body-sm text-muted" style={{ fontSize: '11px' }}>Paid {log.datePaid ? formatDate(log.datePaid) : formatDate(log.date)}</div>
                               </div>
-                              <div className="flex flex-col items-end gap-xs">
+                              <div className="flex flex-col items-end gap-xs mobile-card-actions">
                                 <div className="font-semibold" style={{ color: 'var(--success)', fontSize: '14px' }}>{formatCurrency(log.amountPaid || log.amount)}</div>
                                 <div className="flex gap-xs">
                                   <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer' }}><Edit2 size={12} /></button>

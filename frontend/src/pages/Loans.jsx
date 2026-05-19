@@ -291,7 +291,7 @@ export const Loans = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                <div className="mobile-split-actions" style={{ display: 'flex', gap: 'var(--space-sm)' }}>
                   <Button 
                     variant="secondary" 
                     style={{flex: 1}}
@@ -339,14 +339,14 @@ export const Loans = () => {
                                 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                                   {weekReps.map(rep => (
-                                    <div key={rep._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-sm)', backgroundColor: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
+                                    <div className="mobile-card-row" key={rep._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-sm)', backgroundColor: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
                                       <div style={{ flex: 1 }}>
                                         <div className="font-semibold" style={{ color: rep.status === 'Success' ? 'var(--success)' : 'inherit' }}>
                                           {formatCurrency(rep.amount)}
                                         </div>
                                         <div className="text-muted body-sm">{formatDate(rep.date)}</div>
                                       </div>
-                                      <div style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+                                      <div className="mobile-card-actions" style={{ textAlign: 'right', display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
                                         <Badge status={rep.status || 'Success'} />
                                         <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
                                           <button 

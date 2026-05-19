@@ -167,7 +167,10 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 
 .flex { display: flex; }
 .items-center { align-items: center; }
+.items-start { align-items: flex-start; }
 .justify-between { justify-content: space-between; }
+.flex-col { flex-direction: column; }
+.gap-xs { gap: var(--space-xs); }
 .gap-sm { gap: var(--space-sm); }
 .gap-md { gap: var(--space-md); }
 
@@ -260,6 +263,10 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
     padding: var(--space-sm) !important;
     border-radius: var(--radius-md) !important;
   }
+
+  .card:hover {
+    transform: none !important;
+  }
   
   .activity-log-card {
     padding: var(--space-sm) !important;
@@ -284,6 +291,14 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
     width: 100%;
   }
 
+  .page-header {
+    gap: var(--space-sm) !important;
+  }
+
+  .page-header > div:first-child {
+    min-width: 0;
+  }
+
   .search-container {
     max-width: none;
   }
@@ -303,6 +318,16 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   .activity-item .responsive-grid {
     grid-template-columns: 1fr !important;
   }
+
+  .month-filter {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .month-filter input,
+  input[type="month"] {
+    width: 100%;
+  }
 }
 
 .payment-stats-grid {
@@ -313,7 +338,7 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 
 @media (max-width: 500px) {
   .payment-stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: 4px;
   }
   
@@ -332,6 +357,56 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
     border-bottom: none;
     margin-bottom: 0;
     padding-bottom: 0;
+  }
+}
+
+@media (max-width: 500px) {
+  .mobile-card-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: var(--space-sm) !important;
+  }
+
+  .mobile-card-row > * {
+    min-width: 0;
+  }
+
+  .mobile-card-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .mobile-card-actions .btn,
+  .mobile-card-actions button {
+    min-height: 40px;
+  }
+
+  .mobile-split-actions {
+    flex-direction: column !important;
+  }
+
+  .mobile-split-actions .btn,
+  .mobile-split-actions button {
+    width: 100%;
+  }
+
+  .work-log-entry-grid {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-sm) !important;
+  }
+
+  .work-log-entry-grid > div:last-child {
+    align-items: flex-start !important;
+    width: 100%;
+  }
+
+  .payments-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .payment-tabs {
+    max-width: none !important;
+    width: 100%;
   }
 }
 

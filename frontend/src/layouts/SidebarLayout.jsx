@@ -13,6 +13,7 @@ export const SidebarLayout = () => {
     { name: 'Loans', path: '/loans', icon: Building2 },
     { name: 'History', path: '/monthly-history', icon: Archive },
   ];
+  const bottomNavItems = navItems.slice(0, 4);
 
   const footerItems = [
     { name: 'Settings', path: '/settings', icon: Settings },
@@ -87,23 +88,25 @@ export const SidebarLayout = () => {
 
       {/* Bottom Navigation for Mobile */}
       <nav className="bottom-nav">
-        {navItems.map((item) => (
+        {bottomNavItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
+            onClick={() => setIsMobileOpen(false)}
             className={({ isActive }) => `bottom-nav-link ${isActive ? 'active' : ''}`}
           >
             <item.icon size={24} />
             <span>{item.name}</span>
           </NavLink>
         ))}
-        <NavLink
-          to="/settings"
-          className={({ isActive }) => `bottom-nav-link ${isActive ? 'active' : ''}`}
+        <button
+          type="button"
+          className={`bottom-nav-link ${isMobileOpen ? 'active' : ''}`}
+          onClick={() => setIsMobileOpen(true)}
         >
-          <Settings size={24} />
-          <span>Settings</span>
-        </NavLink>
+          <Menu size={24} />
+          <span>Menu</span>
+        </button>
       </nav>
 
       {/* Mobile Menu Popup */}

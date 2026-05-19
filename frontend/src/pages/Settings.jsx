@@ -192,7 +192,7 @@ export const Settings = () => {
               <h3>Preferences</h3>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)' }}>
+            <div className="mobile-card-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)' }}>
               <div style={{ minWidth: 0 }}>
                 <div className="font-semibold">Push Notifications</div>
                 <div className="body-sm text-muted">Receive alerts for loan repayments and payments.</div>
@@ -271,7 +271,7 @@ export const Settings = () => {
             </div>
           </Card>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-md)' }}>
+          <div className="mobile-card-actions" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-md)' }}>
             <Button onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: 'var(--space-sm) var(--space-xl)' }}>
               <Save size={18} /> Save Settings
             </Button>
