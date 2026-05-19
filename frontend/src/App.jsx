@@ -11,13 +11,8 @@ import { MonthlyHistory } from './pages/MonthlyHistory';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { SyncStatus } from './components/ui/SyncStatus';
-import { useForegroundMessages } from './hooks/useForegroundMessages';
-import { useDailyReport } from './hooks/useDailyReport';
 
 function AppContent() {
-  useForegroundMessages();
-  useDailyReport();
-
   return (
     <>
       <ScrollToTop />

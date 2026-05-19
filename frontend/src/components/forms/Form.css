@@ -18,9 +18,10 @@
 
 .form-group input,
 .form-group select {
-  padding: var(--space-sm) var(--space-md);
+  min-height: 46px;
+  padding: var(--space-sm);
   border: 1px solid var(--outline);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: 16px;
   font-family: inherit;
   transition: border-color 0.2s;

@@ -1,92 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Target, User, Bell, Save } from 'lucide-react';
+import { Target, User, Moon, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
-import {
-  getMessagingSupportInfo,
-  enableNotifications,
-  sendTestNotification as triggerTestNotification,
-  SUPPORT_MESSAGES,
-} from '../firebase';
-import { showDailyMetricsReport } from '../utils/notificationUtils';
 
 const getInitialSettings = () => {
-  const notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
-  const notifications =
-    typeof Notification !== 'undefined' && Notification.permission !== 'granted'
-      ? false
-      : notificationsEnabled;
-
-  if (!notifications && notificationsEnabled) {
-    localStorage.setItem('notificationsEnabled', 'false');
-  }
-
   return {
     monthlyGoal: localStorage.getItem('monthlyGoal') || 50000,
     currency: localStorage.getItem('currency') || 'INR',
     userName: localStorage.getItem('userName') || 'Hemanth',
-    notifications,
-    notificationTime: localStorage.getItem('notificationTime') || '09:00',
     theme: localStorage.getItem('theme') || 'light',
   };
 };
 
 export const Settings = () => {
   const [settings, setSettings] = useState(getInitialSettings);
-  const [pushSupport] = useState(getMessagingSupportInfo);
-  const [pushBusy, setPushBusy] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme);
   }, [settings.theme]);
 
-  const handleNotificationToggle = async (checked) => {
-    if (checked) {
-      setPushBusy(true);
-      try {
-        await enableNotifications();
-        setSettings((prev) => ({ ...prev, notifications: true }));
-        localStorage.setItem('notificationsEnabled', 'true');
-        toast.success('Push notifications enabled!');
-      } catch (error) {
-        console.error('Failed to enable notifications:', error);
-        toast.error(error.message || 'Failed to enable notifications.');
-        setSettings((prev) => ({ ...prev, notifications: false }));
-        localStorage.setItem('notificationsEnabled', 'false');
-      } finally {
-        setPushBusy(false);
-      }
-    } else {
-      setSettings((prev) => ({ ...prev, notifications: false }));
-      localStorage.setItem('notificationsEnabled', 'false');
-    }
-  };
-
-  const handleSendTest = async () => {
-    try {
-      await triggerTestNotification();
-      toast.success('Test notification sent!');
-    } catch (err) {
-      toast.error(err.message || 'Could not show test notification.');
-    }
-  };
-
-  const handleTriggerDailyReport = async () => {
-    try {
-      await showDailyMetricsReport();
-      toast.success('Daily report triggered!');
-    } catch (err) {
-      toast.error(err.message || 'Failed to show daily report.');
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (name === 'notifications') {
-      handleNotificationToggle(checked);
-      return;
-    }
     setSettings((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
@@ -98,15 +33,11 @@ export const Settings = () => {
     localStorage.setItem('userName', settings.userName);
     localStorage.setItem('currency', settings.currency);
     localStorage.setItem('theme', settings.theme);
-    localStorage.setItem('notificationTime', settings.notificationTime);
-    localStorage.setItem('notificationsEnabled', settings.notifications);
     
     document.documentElement.setAttribute('data-theme', settings.theme);
     toast.success('Settings saved successfully!');
     window.dispatchEvent(new Event('storage'));
   };
-
-  const supportNote = !pushSupport.supported ? SUPPORT_MESSAGES[pushSupport.reason] : null;
 
   return (
     <div className="page">
@@ -187,73 +118,12 @@ export const Settings = () => {
           <Card>
             <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
               <div style={{ backgroundColor: 'var(--surface-container-high)', color: 'var(--on-surface)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
-                <Bell size={24} />
+                <Moon size={24} />
               </div>
               <h3>Preferences</h3>
             </div>
 
-            <div className="mobile-card-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)' }}>
-              <div style={{ minWidth: 0 }}>
-                <div className="font-semibold">Push Notifications</div>
-                <div className="body-sm text-muted">Receive alerts for loan repayments and payments.</div>
-              </div>
-              <input
-                type="checkbox"
-                name="notifications"
-                checked={settings.notifications}
-                onChange={handleChange}
-                disabled={pushBusy || !pushSupport.supported}
-                style={{ width: '20px', height: '20px', accentColor: 'var(--primary)' }}
-              />
-            </div>
-
-            {supportNote && (
-              <p className="body-sm text-muted" style={{ marginTop: 'var(--space-sm)' }}>
-                {supportNote}
-              </p>
-            )}
-
-            <div style={{ marginTop: 'var(--space-sm)', display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleSendTest}
-                disabled={!settings.notifications}
-                style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-md)' }}
-              >
-                Send Test Notification
-              </Button>
-            </div>
-
-            <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
-              <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
-                <div style={{ minWidth: 0 }}>
-                  <div className="font-semibold">Daily Metrics Report</div>
-                  <div className="body-sm text-muted">Set what time you want to receive your daily summary.</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
-                  <input
-                    type="time"
-                    name="notificationTime"
-                    value={settings.notificationTime}
-                    onChange={handleChange}
-                    className="form-input"
-                    style={{ padding: 'var(--space-xs) var(--space-sm)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}
-                  />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleTriggerDailyReport}
-                    disabled={!settings.notifications}
-                    style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-sm)' }}
-                  >
-                    Send Now
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="mobile-stack" style={{ gap: 'var(--space-md)', marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
+            <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
               <div style={{ minWidth: 0 }}>
                 <div className="font-semibold">Dark Mode</div>
                 <div className="body-sm text-muted">Use a dark theme for the dashboard.</div>

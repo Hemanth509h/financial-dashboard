@@ -43,20 +43,25 @@ export const Payments = () => {
   const pendingLogs = filteredLogs.filter(log => log && (log.status === 'Unpaid' || log.status === 'Partially Paid'));
   const paidLogs = filteredLogs.filter(log => log && log.status === 'Paid');
 
-  const now = new Date();
-  const currentMonthLogs = logs.filter((log) => {
-    const dateValue = log.datePaid || log.date;
+  const isCurrentMonth = (dateValue) => {
     if (!dateValue) return false;
     const date = new Date(dateValue);
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-  });
+  };
 
-  const totalPending = currentMonthLogs
+  const now = new Date();
+  const currentMonthWorkLogs = logs.filter((log) => isCurrentMonth(log.date));
+  const currentMonthPaymentLogs = logs.filter((log) => isCurrentMonth(log.datePaid || log.date));
+
+  const totalPending = currentMonthWorkLogs
     .filter(l => l.status !== 'Paid')
     .reduce((sum, log) => sum + (Number(log.amount || 0) - Number(log.amountPaid || 0)), 0);
-  const totalReceived = currentMonthLogs
-    .filter(l => l.status === 'Paid')
-    .reduce((sum, log) => sum + Number(log.amountPaid || log.amount || 0), 0);
+  const totalReceived = currentMonthPaymentLogs
+    .filter(l => l.status === 'Paid' || l.status === 'Partially Paid')
+    .reduce((sum, log) => {
+      const paid = Number(log.amountPaid || 0);
+      return sum + (paid > 0 ? paid : Number(log.amount || 0));
+    }, 0);
   
   const totalValue = totalReceived + totalPending;
   const collectionRate = totalValue > 0 ? (totalReceived / totalValue) * 100 : 0;

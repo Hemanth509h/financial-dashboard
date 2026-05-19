@@ -117,24 +117,25 @@
 .bottom-nav {
   display: none;
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  min-height: 72px;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  min-height: 66px;
   background-color: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 18px;
   z-index: 50;
-  padding: 6px 4px max(6px, env(safe-area-inset-bottom));
+  padding: 6px;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
 }
 
 [data-theme='dark'] .bottom-nav {
   background-color: rgba(15, 23, 42, 0.94);
-  border-top-color: var(--outline-variant);
+  border-color: var(--outline-variant);
 }
 
 .bottom-nav-link {
@@ -266,7 +267,7 @@
   .main-content {
     margin-left: 0;
     padding: 12px;
-    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
   }
   .mobile-toggle {
     display: none; /* Replaced by bottom nav */
@@ -276,8 +277,8 @@
   }
 
   .bottom-nav-link svg {
-    width: 20px;
-    height: 20px;
+    width: 19px;
+    height: 19px;
   }
 
   .mobile-popup-content {

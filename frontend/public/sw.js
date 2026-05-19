@@ -46,28 +46,8 @@ self.addEventListener('activate', event => {
   );
 });
 
-// URLs that this worker must NOT touch — Firebase Cloud Messaging needs
-// direct, uncached access to its own endpoints and its own service worker
-// scope. Intercepting them breaks push registration on mobile devices.
-function isFcmRequest(url) {
-  return (
-    url.includes('/firebase-messaging-sw.js') ||
-    url.includes('firebase-cloud-messaging-push-scope') ||
-    url.includes('fcmregistrations.googleapis.com') ||
-    url.includes('fcm.googleapis.com') ||
-    url.includes('firebaseinstallations.googleapis.com') ||
-    url.includes('firebaseremoteconfig.googleapis.com') ||
-    url.includes('gstatic.com/firebasejs')
-  );
-}
-
 self.addEventListener('fetch', event => {
   const url = event.request.url;
-
-  // Never intercept FCM traffic — let the browser/native FCM SW handle it.
-  if (isFcmRequest(url)) {
-    return;
-  }
 
   // Use a Network First strategy for navigate requests (SPA routing)
   if (event.request.mode === 'navigate') {

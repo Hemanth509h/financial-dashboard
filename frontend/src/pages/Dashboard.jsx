@@ -4,10 +4,8 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { AnalyticsChart } from '../components/ui/AnalyticsChart';
-import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown, Bell } from 'lucide-react';
+import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown } from 'lucide-react';
 import { api } from '../api';
-import { showDailyMetricsReport } from '../utils/notificationUtils';
-import toast from 'react-hot-toast';
 import './Dashboard.css';
 
 export const Dashboard = () => {
@@ -48,46 +46,6 @@ export const Dashboard = () => {
     fetchData();
   }, []);
 
-  const handleTestNotification = async () => {
-    try {
-      if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          toast.error('Notification permission denied.');
-          return;
-        }
-      }
-      await showDailyMetricsReport();
-      toast.success('Summary notification sent!');
-    } catch (err) {
-      toast.error(err.message || 'Failed to send notification.');
-    }
-  };
-
-  const handleMetricNotify = async (title, value) => {
-    try {
-      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-        new Notification('Financial Update', {
-          body: `${title}: ${value}`,
-          icon: '/logo.png'
-        });
-        toast.success(`Sent notification for ${title}`);
-      } else {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          new Notification('Financial Update', {
-            body: `${title}: ${value}`,
-            icon: '/logo.png'
-          });
-        } else {
-          toast.error('Permission denied');
-        }
-      }
-    } catch {
-      toast.error('Failed to send notification');
-    }
-  };
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
   };
@@ -111,9 +69,6 @@ export const Dashboard = () => {
           <p className="text-muted">Welcome back. Here is your financial summary.</p>
         </div>
         <div className="flex gap-sm">
-          <Button onClick={handleTestNotification} title="Send Summary Notification">
-            <Bell size={18} style={{ marginRight: '8px' }} /> Send Metrics Notification
-          </Button>
           <Button variant="secondary" onClick={() => window.location.href = '/work-log'}>Log Work</Button>
           <Button variant="secondary" onClick={() => window.location.href = '/loans'}>Record Repayment</Button>
         </div>
@@ -139,7 +94,6 @@ export const Dashboard = () => {
           subtextColor="primary"
           icon={TrendingUp}
           iconBgColor="#d1fae5"
-          onNotify={() => handleMetricNotify(`Earned in ${getMonthName()}`, formatCurrency(summary.totalEarnedThisMonth))}
         />
         <MetricTile 
           title="PENDING PAYMENTS"
@@ -148,7 +102,6 @@ export const Dashboard = () => {
           subtextColor="pending"
           icon={ClipboardList}
           iconBgColor="#fef3c7"
-          onNotify={() => handleMetricNotify('Pending Payments', formatCurrency(summary.pendingPayments))}
         />
         <MetricTile 
           title="LOAN BALANCE"
@@ -157,7 +110,6 @@ export const Dashboard = () => {
           subtextColor={summary.totalLoanBalance === 0 ? 'success' : 'error'}
           icon={WalletCards}
           iconBgColor="#ffe4e6"
-          onNotify={() => handleMetricNotify('Loan Balance', formatCurrency(summary.totalLoanBalance))}
         />
         <MetricTile 
           title="REPAID THIS MONTH"
@@ -166,7 +118,6 @@ export const Dashboard = () => {
           subtextColor="primary"
           icon={TrendingDown}
           iconBgColor="#f3e8ff"
-          onNotify={() => handleMetricNotify('Repaid This Month', formatCurrency(summary.totalRepaidThisMonth))}
         />
       </div>
 

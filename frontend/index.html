@@ -22,14 +22,6 @@
           reg.update().catch(() => {});
         }).catch((err) => console.warn('App SW failed', err));
 
-        // Dedicated Firebase Cloud Messaging worker. Registered explicitly so
-        // push works on iOS PWA, Android Chrome, and desktop. Use a distinct
-        // scope so it doesn't fight the app shell worker for control.
-        navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-          scope: '/firebase-cloud-messaging-push-scope'
-        }).then(() => {
-          console.log('FCM SW registered');
-        }).catch((err) => console.warn('FCM SW failed', err));
       });
     }
   </script>
