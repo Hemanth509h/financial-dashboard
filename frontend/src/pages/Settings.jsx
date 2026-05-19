@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Target, User, Bell, Save } from 'lucide-react';
@@ -11,31 +11,35 @@ import {
 } from '../firebase';
 import { showDailyMetricsReport } from '../utils/notificationUtils';
 
-export const Settings = () => {
-  const [settings, setSettings] = useState({
+const getInitialSettings = () => {
+  const notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+  const notifications =
+    typeof Notification !== 'undefined' && Notification.permission !== 'granted'
+      ? false
+      : notificationsEnabled;
+
+  if (!notifications && notificationsEnabled) {
+    localStorage.setItem('notificationsEnabled', 'false');
+  }
+
+  return {
     monthlyGoal: localStorage.getItem('monthlyGoal') || 50000,
     currency: localStorage.getItem('currency') || 'INR',
     userName: localStorage.getItem('userName') || 'Hemanth',
-    notifications: localStorage.getItem('notificationsEnabled') === 'true',
+    notifications,
     notificationTime: localStorage.getItem('notificationTime') || '09:00',
     theme: localStorage.getItem('theme') || 'light',
-  });
-  const [pushSupport, setPushSupport] = useState({ supported: true });
+  };
+};
+
+export const Settings = () => {
+  const [settings, setSettings] = useState(getInitialSettings);
+  const [pushSupport] = useState(getMessagingSupportInfo);
   const [pushBusy, setPushBusy] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    setPushSupport(getMessagingSupportInfo());
-
-    // Sync notification checkbox with current permission on mount only
-    if (typeof Notification !== 'undefined') {
-      if (Notification.permission !== 'granted' && settings.notifications) {
-        setSettings((prev) => ({ ...prev, notifications: false }));
-        localStorage.setItem('notificationsEnabled', 'false');
-      }
-    }
-  }, []); // Only on mount
+    document.documentElement.setAttribute('data-theme', settings.theme);
+  }, [settings.theme]);
 
   const handleNotificationToggle = async (checked) => {
     if (checked) {

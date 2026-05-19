@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '../ui/Button';
 import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import './Form.css';

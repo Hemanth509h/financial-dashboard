@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { SidebarLayout } from './layouts/SidebarLayout';
@@ -37,7 +37,7 @@ function AppContent() {
 }
 
 function App() {
-  React.useEffect(() => {
+  useEffect(() => {
     fetch('/api/health').catch(() => {});
   }, []);
 

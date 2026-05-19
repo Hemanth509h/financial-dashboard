@@ -27,7 +27,7 @@ export function useDailyReport() {
           if (success) {
             localStorage.setItem('lastReportShownDate', today);
           }
-        } catch (err) {
+        } catch {
           // Error already logged in utility
         }
       }

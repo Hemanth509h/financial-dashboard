@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { PaymentForm } from '../components/forms/PaymentForm';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
@@ -32,6 +31,7 @@ export const Payments = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLogs();
   }, []);
 
@@ -124,7 +124,7 @@ export const Payments = () => {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'Invalid Date';
       return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-    } catch (e) {
+    } catch {
       return 'Invalid Date';
     }
   };
@@ -150,7 +150,9 @@ export const Payments = () => {
         if (!groups[monthYear]) groups[monthYear] = {};
         if (!groups[monthYear][weekLabel]) groups[monthYear][weekLabel] = [];
         groups[monthYear][weekLabel].push(log);
-      } catch (e) {}
+      } catch {
+        return groups;
+      }
       return groups;
     }, {});
   };

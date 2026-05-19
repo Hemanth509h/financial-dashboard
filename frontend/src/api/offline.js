@@ -73,6 +73,29 @@ const setOnline = (value) => {
   if (value) flushQueue();
 };
 
+const getCacheKey = (url) => {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return parsed.pathname + parsed.search;
+  } catch {
+    return url;
+  }
+};
+
+const normalizeSavedCache = () => {
+  let changed = false;
+  for (const key of Object.keys(state.cache)) {
+    const normalized = getCacheKey(key);
+    if (normalized !== key && state.cache[normalized] === undefined) {
+      state.cache[normalized] = state.cache[key];
+      delete state.cache[key];
+      changed = true;
+    }
+  }
+  if (changed) persistCache();
+};
+normalizeSavedCache();
+
 const tempId = (prefix = 'tmp') =>
   `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
 
@@ -229,6 +252,7 @@ function replaceTempId(oldId, newId) {
   state.queue = state.queue.map((op) => ({
     ...op,
     url: op.url.split(oldId).join(newId),
+    requestUrl: (op.requestUrl || op.url).split(oldId).join(newId),
     tempId: op.tempId === oldId ? newId : op.tempId,
   }));
 
@@ -271,7 +295,7 @@ async function flushQueue() {
       try {
         const res = await axios.request({
           method: op.method,
-          url: op.url,
+          url: op.requestUrl || op.url,
           data: op.data,
         });
         if (op.tempId && res.data && res.data._id && res.data._id !== op.tempId) {
@@ -340,7 +364,7 @@ function computeLocalSummary() {
   let totalLoanGoal = 0;
   let totalLoanPaid = 0;
   for (const l of loans) {
-    totalLoanGoal += Number(l.amount || 0);
+    totalLoanGoal += Number(l.totalAmount || 0);
     totalLoanPaid += Number(l.amountPaid || 0);
   }
   const totalLoanBalance = Math.max(0, totalLoanGoal - totalLoanPaid);
@@ -384,12 +408,77 @@ function computeLocalSummary() {
   };
 }
 
+function computeLocalAnalytics() {
+  const workLogs = getCache('/api/work-logs') || [];
+  const loans = getCache('/api/loans') || [];
+  const now = new Date();
+
+  return Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+    const month = date.getMonth();
+    const year = date.getFullYear();
+
+    const earnings = workLogs.reduce((sum, entry) => {
+      const paidDate = entry.datePaid ? new Date(entry.datePaid) : new Date(entry.updatedAt || entry.date);
+      if (paidDate.getMonth() !== month || paidDate.getFullYear() !== year) return sum;
+      return sum + Number(entry.amountPaid || (entry.status === 'Paid' ? entry.amount : 0) || 0);
+    }, 0);
+
+    const repayments = loans.reduce((sum, loan) => {
+      const loanRepayments = getCache(`/api/loans/${loan._id}/repayments`) || [];
+      return sum + loanRepayments.reduce((repaymentSum, repayment) => {
+        const repaymentDate = repayment.date ? new Date(repayment.date) : null;
+        if (
+          !repaymentDate ||
+          repaymentDate.getMonth() !== month ||
+          repaymentDate.getFullYear() !== year ||
+          (repayment.status && repayment.status !== 'Success')
+        ) {
+          return repaymentSum;
+        }
+        return repaymentSum + Number(repayment.amount || 0);
+      }, 0);
+    }, 0);
+
+    return {
+      month: date.toLocaleString('default', { month: 'short' }),
+      earnings,
+      repayments,
+    };
+  });
+}
+
+function computeLocalClients() {
+  const workLogs = getCache('/api/work-logs') || [];
+  const clients = workLogs.reduce((acc, entry) => {
+    if (!entry.client) return acc;
+    if (!acc[entry.client]) {
+      acc[entry.client] = {
+        name: entry.client,
+        totalEarned: 0,
+        pendingAmount: 0,
+        workCount: 0,
+        lastWorkDate: entry.date,
+      };
+    }
+
+    const earned = entry.status === 'Paid' ? Number(entry.amount || 0) : Number(entry.amountPaid || 0);
+    acc[entry.client].totalEarned += earned;
+    acc[entry.client].pendingAmount += Math.max(0, Number(entry.amount || 0) - earned);
+    acc[entry.client].workCount += 1;
+    if (new Date(entry.date) > new Date(acc[entry.client].lastWorkDate)) {
+      acc[entry.client].lastWorkDate = entry.date;
+    }
+    return acc;
+  }, {});
+
+  return Object.values(clients).sort((a, b) => b.totalEarned - a.totalEarned);
+}
+
 function offlineFallback(url) {
   if (url.endsWith('/dashboard/summary')) return computeLocalSummary();
-  if (url.endsWith('/dashboard/analytics')) {
-    return getCache(url) || { byMonth: [], byClient: [] };
-  }
-  if (url.endsWith('/dashboard/clients')) return getCache(url) || [];
+  if (url.endsWith('/dashboard/analytics')) return getCache(url) || computeLocalAnalytics();
+  if (url.endsWith('/dashboard/clients')) return getCache(url) || computeLocalClients();
   const cached = getCache(url);
   if (cached !== undefined) return cached;
   // Reasonable empty default for list endpoints
@@ -399,7 +488,8 @@ function offlineFallback(url) {
 
 export async function request(config) {
   const method = (config.method || 'get').toLowerCase();
-  const url = config.url;
+  const requestUrl = config.url;
+  const url = getCacheKey(requestUrl);
 
   if (method === 'get') {
     try {
@@ -434,6 +524,7 @@ export async function request(config) {
       id: opId,
       method,
       url,
+      requestUrl,
       data: config.data,
     };
     if (method === 'post') op.tempId = tempId('rec');

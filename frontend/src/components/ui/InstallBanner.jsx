@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Download, Share2, Plus } from 'lucide-react';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 import './InstallBanner.css';

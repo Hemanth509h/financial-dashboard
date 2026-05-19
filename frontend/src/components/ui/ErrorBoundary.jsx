@@ -12,7 +12,7 @@ export class ErrorBoundary extends React.Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
@@ -64,7 +64,7 @@ export class ErrorBoundary extends React.Component {
             Please try refreshing or contact support if the problem persists.
           </p>
           
-          {process.env.NODE_ENV === 'development' && this.state.error && (
+          {import.meta.env.DEV && this.state.error && (
             <details style={{
               width: '100%',
               textAlign: 'left',

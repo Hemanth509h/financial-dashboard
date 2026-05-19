@@ -1,15 +1,37 @@
-const CACHE_NAME = 'gigfinance-v5';
+const CACHE_NAME = 'gigfinance-v6';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/logo.png',
+  '/favicon.svg'
 ];
+
+async function cacheCurrentBuild(cache) {
+  const response = await fetch('/index.html', { cache: 'reload' });
+  if (!response.ok) return;
+
+  const html = await response.clone().text();
+  await cache.put('/index.html', response);
+
+  const assetUrls = Array.from(
+    html.matchAll(/(?:src|href)="([^"]+\.(?:js|css))"/g),
+    (match) => match[1],
+  );
+
+  await Promise.allSettled(
+    assetUrls.map((assetUrl) => cache.add(new Request(assetUrl, { cache: 'reload' }))),
+  );
+}
 
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(async cache => {
+        await cache.addAll(urlsToCache);
+        await cacheCurrentBuild(cache);
+      })
   );
 });
 

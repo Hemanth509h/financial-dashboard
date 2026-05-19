@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MetricTile } from '../components/ui/MetricTile';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -83,7 +83,7 @@ export const Dashboard = () => {
           toast.error('Permission denied');
         }
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to send notification');
     }
   };

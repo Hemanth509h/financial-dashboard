@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { 
   PieChart, 
   Pie, 
@@ -11,12 +11,6 @@ import {
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#71717a'];
 
 export const ClientPieChart = ({ data }) => {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
     
@@ -47,10 +41,6 @@ export const ClientPieChart = ({ data }) => {
       maximumFractionDigits: 0 
     }).format(value);
   };
-
-  if (!isMounted) {
-    return <div style={{ width: '100%', height: 300 }}></div>;
-  }
 
   if (chartData.length === 0) {
     return (

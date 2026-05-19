@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { 
   AreaChart, 
   Area, 
@@ -11,12 +11,6 @@ import {
 } from 'recharts';
 
 export const AnalyticsChart = ({ data }) => {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-IN', { 
       style: 'currency', 
@@ -33,10 +27,6 @@ export const AnalyticsChart = ({ data }) => {
     }
     return data;
   }, [data]);
-
-  if (!isMounted) {
-    return <div style={{ width: '100%', height: 350, backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-lg)' }}></div>;
-  }
 
   return (
     <div style={{ width: '100%', height: 350, minHeight: 350, marginTop: 'var(--space-md)' }}>

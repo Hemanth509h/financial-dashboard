@@ -1,27 +1,25 @@
 import { useState, useEffect } from 'react';
 
+const getStandaloneStatus = () =>
+  window.matchMedia?.('(display-mode: standalone)').matches ||
+  window.navigator.standalone === true;
+
+const getIOSInstallPromptStatus = () => {
+  const ua = navigator.userAgent || '';
+  return /iPad|iPhone|iPod/.test(ua) && !window.MSStream && !getStandaloneStatus();
+};
+
 /**
  * Hook to manage the beforeinstallprompt event and installation state.
  * Detects if the app is installable and provides the install function.
  */
 export function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(getStandaloneStatus);
+  const [isIOS] = useState(getIOSInstallPromptStatus);
   const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
-    // Check if running as installed PWA
-    const isStandalone =
-      window.matchMedia?.('(display-mode: standalone)').matches ||
-      window.navigator.standalone === true;
-    setIsInstalled(isStandalone);
-
-    // Detect iOS
-    const ua = navigator.userAgent || '';
-    const isiOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-    setIsIOS(isiOS && !isStandalone);
-
     // Listen for beforeinstallprompt (Android, some desktop browsers)
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, Wallet, Building2, Menu, MoreHorizontal, X, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
+import { LayoutDashboard, CalendarDays, Wallet, Building2, Menu, X, Settings } from 'lucide-react';
 import './SidebarLayout.css';
 
 export const SidebarLayout = () => {

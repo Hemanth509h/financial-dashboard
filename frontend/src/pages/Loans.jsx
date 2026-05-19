@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -6,7 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { LoanForm } from '../components/forms/LoanForm';
 import { RepaymentForm } from '../components/forms/RepaymentForm';
 import { api } from '../api';
-import { Edit2, Trash2, Plus, Download } from 'lucide-react';
+import { Edit2, Trash2, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Loans = () => {
@@ -86,6 +86,7 @@ export const Loans = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLoans();
   }, []);
 

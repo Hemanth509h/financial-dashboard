@@ -18,7 +18,7 @@ const messaging = firebase.messaging();
 
 // Activate this worker immediately on install/update so push works on first
 // load without requiring a manual reload.
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
