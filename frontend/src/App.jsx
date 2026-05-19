@@ -10,14 +10,13 @@ import { Settings } from './pages/Settings';
 import { MonthlyHistory } from './pages/MonthlyHistory';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ScrollToTop } from './components/utils/ScrollToTop';
-import { SyncStatus } from './components/ui/SyncStatus';
+
 
 function AppContent() {
   return (
     <>
       <ScrollToTop />
       <Toaster position="top-center" reverseOrder={false} />
-      <SyncStatus />
       <Routes>
         <Route path="/" element={<SidebarLayout />}>
           <Route index element={<Dashboard />} />

@@ -14,6 +14,14 @@
   <link rel="manifest" href="/manifest.json" />
   <title>GigFinance</title>
   <script>
+    // Clean up offline data caching/queueing localStorage keys
+    try {
+      localStorage.removeItem('gf:offline:cache:v1');
+      localStorage.removeItem('gf:offline:queue:v1');
+    } catch (e) {
+      console.warn('Failed to clear offline storage keys:', e);
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         // App shell / offline cache worker.

@@ -1,11 +1,11 @@
-import { request, subscribeStatus } from './offline';
+import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-const get = (path) => request({ method: 'get', url: `${API_URL}${path}` });
-const post = (path, data) => request({ method: 'post', url: `${API_URL}${path}`, data });
-const patch = (path, data) => request({ method: 'patch', url: `${API_URL}${path}`, data });
-const del = (path) => request({ method: 'delete', url: `${API_URL}${path}` });
+const get = (path) => axios.get(`${API_URL}${path}`);
+const post = (path, data) => axios.post(`${API_URL}${path}`, data);
+const patch = (path, data) => axios.patch(`${API_URL}${path}`, data);
+const del = (path) => axios.delete(`${API_URL}${path}`);
 
 export const api = {
   // Dashboard
@@ -32,5 +32,3 @@ export const api = {
   deleteLoanRepayment: (loanId, repaymentId) =>
     del(`/loans/${loanId}/repayments/${repaymentId}`),
 };
-
-export { subscribeStatus };
