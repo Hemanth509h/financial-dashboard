@@ -36,7 +36,8 @@
 .form-group input[type="date"],
 .form-group input[type="number"],
 .form-group select {
-  background: white;
+  background: var(--surface-bright);
+  color: var(--on-surface);
 }
 
 .error {
@@ -58,5 +59,13 @@
 @media (max-width: 600px) {
   .form-actions {
     flex-direction: column-reverse;
+    gap: var(--space-sm);
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    font-size: 16px;
   }
 }

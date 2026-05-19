@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, Wallet, Building2, Menu, X, Settings } from 'lucide-react';
+import { Archive, LayoutDashboard, CalendarDays, Wallet, Building2, Menu, X, Settings } from 'lucide-react';
 import './SidebarLayout.css';
 
 export const SidebarLayout = () => {
@@ -11,6 +11,7 @@ export const SidebarLayout = () => {
     { name: 'Work Log', path: '/work-log', icon: CalendarDays },
     { name: 'Payments', path: '/payments', icon: Wallet },
     { name: 'Loans', path: '/loans', icon: Building2 },
+    { name: 'History', path: '/monthly-history', icon: Archive },
   ];
 
   const footerItems = [

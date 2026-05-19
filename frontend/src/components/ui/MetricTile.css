@@ -31,3 +31,19 @@
   align-items: center;
   justify-content: center;
 }
+
+@media (max-width: 480px) {
+  .metric-tile {
+    gap: 6px;
+  }
+
+  .metric-title {
+    font-size: 11px;
+  }
+
+  .metric-value.numeric-display {
+    font-size: 28px;
+    line-height: 34px;
+    word-break: break-word;
+  }
+}

@@ -20,7 +20,15 @@ router.post('/', async (req, res) => {
     let amountPaid = req.body.amountPaid || 0;
     if (status === 'Paid') amountPaid = amount;
 
-    const newEntry = new WorkEntry({ date, client, amount, status, amountPaid, description });
+    const newEntry = new WorkEntry({
+      date,
+      client,
+      amount,
+      status,
+      amountPaid,
+      datePaid: status === 'Paid' ? (req.body.datePaid || date) : req.body.datePaid,
+      description,
+    });
     await newEntry.save();
     res.status(201).json(newEntry);
   } catch (error) {
@@ -39,6 +47,9 @@ router.patch('/:id', async (req, res) => {
     const updateData = { ...req.body };
     if (updateData.status === 'Paid' && (!updateData.amountPaid || updateData.amountPaid === 0)) {
       updateData.amountPaid = entry.amount;
+    }
+    if (updateData.status === 'Paid' && !updateData.datePaid) {
+      updateData.datePaid = entry.date;
     }
 
     const updatedEntry = await WorkEntry.findByIdAndUpdate(

@@ -5,17 +5,35 @@ import Repayment from '../models/Repayment.js';
 
 const router = express.Router();
 
+const getMonthRange = (date = new Date()) => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+  return { start, end };
+};
+
+const getMonthKey = (date) => {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const getMonthLabel = (monthKey) => {
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Date(year, month - 1, 1).toLocaleString('default', {
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
 router.get('/summary', async (req, res) => {
   try {
-    // 1. Total Earned This Month (Received payments this month)
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    const { start: startOfMonth, end: startOfNextMonth } = getMonthRange();
 
-    // Sum of amountPaid for entries that have been partially or fully paid this month
     const paidEntries = await WorkEntry.find({
       status: { $in: ['Paid', 'Partially Paid'] },
-      updatedAt: { $gte: startOfMonth }
+      $or: [
+        { datePaid: { $gte: startOfMonth, $lt: startOfNextMonth } },
+        { datePaid: { $exists: false }, date: { $gte: startOfMonth, $lt: startOfNextMonth } },
+      ],
     });
     
     let totalEarnedThisMonth = 0;
@@ -27,9 +45,9 @@ router.get('/summary', async (req, res) => {
       }
     });
 
-    // 2. Pending Payments (Unpaid and partially paid remaining balances)
     const pendingEntries = await WorkEntry.find({
-      status: { $in: ['Unpaid', 'Partially Paid'] }
+      status: { $in: ['Unpaid', 'Partially Paid'] },
+      date: { $gte: startOfMonth, $lt: startOfNextMonth }
     });
     
     let pendingPayments = 0;
@@ -51,7 +69,7 @@ router.get('/summary', async (req, res) => {
     });
 
     const recentRepaymentsThisMonth = await Repayment.find({
-      date: { $gte: startOfMonth } // Simplified since status might not always be explicitly 'Success'
+      date: { $gte: startOfMonth, $lt: startOfNextMonth }
     });
     
     let totalRepaidThisMonth = 0;
@@ -86,6 +104,56 @@ router.get('/summary', async (req, res) => {
   }
 });
 
+router.get('/monthly-history', async (req, res) => {
+  try {
+    const [entries, repayments] = await Promise.all([
+      WorkEntry.find({}).sort({ date: -1 }),
+      Repayment.find({}).sort({ date: -1 }).populate('loanId'),
+    ]);
+
+    const months = {};
+    const ensureMonth = (date) => {
+      const key = getMonthKey(date);
+      if (!months[key]) {
+        months[key] = {
+          month: key,
+          label: getMonthLabel(key),
+          expectedEarnings: 0,
+          earned: 0,
+          pending: 0,
+          workCount: 0,
+          repaymentTotal: 0,
+          repaymentCount: 0,
+        };
+      }
+      return months[key];
+    };
+
+    entries.forEach((entry) => {
+      const bucket = ensureMonth(entry.date);
+      const amount = Number(entry.amount || 0);
+      const paid = entry.status === 'Paid' ? amount : Number(entry.amountPaid || 0);
+      bucket.expectedEarnings += amount;
+      bucket.earned += paid;
+      bucket.pending += Math.max(0, amount - paid);
+      bucket.workCount += 1;
+    });
+
+    repayments.forEach((repayment) => {
+      if (repayment.status && repayment.status !== 'Success') return;
+      const bucket = ensureMonth(repayment.date);
+      bucket.repaymentTotal += Number(repayment.amount || 0);
+      bucket.repaymentCount += 1;
+    });
+
+    res.json(
+      Object.values(months).sort((a, b) => b.month.localeCompare(a.month))
+    );
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get('/analytics', async (req, res) => {
   try {
     const months = [];
@@ -105,7 +173,10 @@ router.get('/analytics', async (req, res) => {
       // Earnings: amountPaid from WorkEntries paid in this month
       const entries = await WorkEntry.find({
         status: { $in: ['Paid', 'Partially Paid'] },
-        datePaid: { $gte: m.start, $lte: m.end }
+        $or: [
+          { datePaid: { $gte: m.start, $lte: m.end } },
+          { datePaid: { $exists: false }, date: { $gte: m.start, $lte: m.end } },
+        ],
       });
 
       let earnings = 0;

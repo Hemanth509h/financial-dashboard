@@ -234,6 +234,7 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 @media (max-width: 768px) {
   h1 { font-size: 24px; line-height: 32px; }
   h2 { font-size: 20px; line-height: 28px; }
+  h3 { font-size: 16px; line-height: 24px; }
   .numeric-display { font-size: 32px; line-height: 40px; }
   
   .container {
@@ -252,15 +253,55 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 
 @media (max-width: 768px) {
   .page {
-    padding: var(--space-xs) !important;
+    padding: 0 !important;
   }
   
   .card {
     padding: var(--space-sm) !important;
+    border-radius: var(--radius-md) !important;
   }
   
   .activity-log-card {
     padding: var(--space-sm) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --space-xs: 0.375rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.25rem;
+    --space-xl: 1.75rem;
+  }
+
+  .flex.gap-sm {
+    flex-wrap: wrap;
+  }
+
+  .page-header .btn,
+  .page-header button {
+    width: 100%;
+  }
+
+  .search-container {
+    max-width: none;
+  }
+
+  .filter-group {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+
+  .filter-chip {
+    flex: 0 0 auto;
+    padding: 0.45rem 0.8rem;
+  }
+
+  .activity-item .responsive-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 

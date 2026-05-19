@@ -241,12 +241,12 @@ export const Payments = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="search-input"
-          style={{ maxWidth: '400px' }}
+          style={{ maxWidth: '400px', width: '100%' }}
         />
         {searchQuery && (
           <button 
             onClick={() => setSearchQuery('')}
-            style={{ position: 'absolute', left: '370px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)' }}
+            style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)' }}
           >
             <X size={14} />
           </button>

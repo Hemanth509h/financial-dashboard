@@ -227,7 +227,7 @@ export const Loans = () => {
       </header>
       
       <div className="content">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-lg)', marginBottom: 'var(--space-xl)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 'var(--space-lg)', marginBottom: 'var(--space-xl)' }}>
           {loading ? (
             <>
               <div className="skeleton skeleton-card" style={{ height: '300px' }}></div>

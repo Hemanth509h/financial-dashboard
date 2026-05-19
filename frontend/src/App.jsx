@@ -7,6 +7,7 @@ import { WorkLog } from './pages/WorkLog';
 import { Payments } from './pages/Payments';
 import { Loans } from './pages/Loans';
 import { Settings } from './pages/Settings';
+import { MonthlyHistory } from './pages/MonthlyHistory';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { SyncStatus } from './components/ui/SyncStatus';
@@ -28,6 +29,7 @@ function AppContent() {
           <Route path="work-log" element={<WorkLog />} />
           <Route path="payments" element={<Payments />} />
           <Route path="loans" element={<Loans />} />
+          <Route path="monthly-history" element={<MonthlyHistory />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<Navigate to="/" />} />

@@ -12,6 +12,7 @@ export const api = {
   getDashboardSummary: () => get('/dashboard/summary'),
   getAnalytics: () => get('/dashboard/analytics'),
   getClientAnalytics: () => get('/dashboard/clients'),
+  getMonthlyHistory: () => get('/dashboard/monthly-history'),
 
   // Work Logs
   getWorkLogs: () => get('/work-logs'),

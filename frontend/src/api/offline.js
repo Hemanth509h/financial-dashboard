@@ -475,10 +475,70 @@ function computeLocalClients() {
   return Object.values(clients).sort((a, b) => b.totalEarned - a.totalEarned);
 }
 
+const getMonthKey = (date) => {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const getMonthLabel = (monthKey) => {
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Date(year, month - 1, 1).toLocaleString('default', {
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
+function computeLocalMonthlyHistory() {
+  const workLogs = getCache('/api/work-logs') || [];
+  const loans = getCache('/api/loans') || [];
+  const months = {};
+
+  const ensureMonth = (date) => {
+    const month = getMonthKey(date);
+    if (!months[month]) {
+      months[month] = {
+        month,
+        label: getMonthLabel(month),
+        expectedEarnings: 0,
+        earned: 0,
+        pending: 0,
+        workCount: 0,
+        repaymentTotal: 0,
+        repaymentCount: 0,
+      };
+    }
+    return months[month];
+  };
+
+  workLogs.forEach((entry) => {
+    if (!entry.date) return;
+    const bucket = ensureMonth(entry.date);
+    const amount = Number(entry.amount || 0);
+    const earned = entry.status === 'Paid' ? amount : Number(entry.amountPaid || 0);
+    bucket.expectedEarnings += amount;
+    bucket.earned += earned;
+    bucket.pending += Math.max(0, amount - earned);
+    bucket.workCount += 1;
+  });
+
+  loans.forEach((loan) => {
+    const repayments = getCache(`/api/loans/${loan._id}/repayments`) || [];
+    repayments.forEach((repayment) => {
+      if (!repayment.date || (repayment.status && repayment.status !== 'Success')) return;
+      const bucket = ensureMonth(repayment.date);
+      bucket.repaymentTotal += Number(repayment.amount || 0);
+      bucket.repaymentCount += 1;
+    });
+  });
+
+  return Object.values(months).sort((a, b) => b.month.localeCompare(a.month));
+}
+
 function offlineFallback(url) {
   if (url.endsWith('/dashboard/summary')) return computeLocalSummary();
   if (url.endsWith('/dashboard/analytics')) return getCache(url) || computeLocalAnalytics();
   if (url.endsWith('/dashboard/clients')) return getCache(url) || computeLocalClients();
+  if (url.endsWith('/dashboard/monthly-history')) return getCache(url) || computeLocalMonthlyHistory();
   const cached = getCache(url);
   if (cached !== undefined) return cached;
   // Reasonable empty default for list endpoints

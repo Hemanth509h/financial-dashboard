@@ -8,7 +8,7 @@
 
 .dashboard-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: var(--space-lg);
   margin-bottom: var(--space-xl);
 }
@@ -76,4 +76,35 @@
   text-align: right;
 }
 
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: var(--space-lg);
+  }
+
+  .dashboard-metrics,
+  .dashboard-grid {
+    gap: var(--space-md);
+  }
+
+  .section-header {
+    align-items: flex-start;
+    gap: var(--space-sm);
+    flex-direction: column;
+  }
+
+  .activity-item {
+    align-items: flex-start;
+    gap: var(--space-sm);
+    flex-direction: column;
+  }
+
+  .activity-amount {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+}
 

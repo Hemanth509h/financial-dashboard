@@ -111,8 +111,10 @@ export const Settings = () => {
   return (
     <div className="page">
       <header className="page-header" style={{ marginBottom: 'var(--space-xl)' }}>
-        <h1>Settings</h1>
-        <p className="text-muted">Manage your profile and app preferences.</p>
+        <div>
+          <h1>Settings</h1>
+          <p className="text-muted">Manage your profile and app preferences.</p>
+        </div>
       </header>
 
       <div className="content" style={{ maxWidth: '800px' }}>
@@ -126,7 +128,7 @@ export const Settings = () => {
               <h3>Profile Settings</h3>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 'var(--space-md)' }}>
               <div>
                 <label className="body-sm font-semibold text-muted" style={{ display: 'block', marginBottom: 'var(--space-xs)' }}>Your Name</label>
                 <input
@@ -224,12 +226,12 @@ export const Settings = () => {
             </div>
 
             <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
+              <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
+                <div style={{ minWidth: 0 }}>
                   <div className="font-semibold">Daily Metrics Report</div>
                   <div className="body-sm text-muted">Set what time you want to receive your daily summary.</div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
                   <input
                     type="time"
                     name="notificationTime"
@@ -251,8 +253,8 @@ export const Settings = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
-              <div>
+            <div className="mobile-stack" style={{ gap: 'var(--space-md)', marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
+              <div style={{ minWidth: 0 }}>
                 <div className="font-semibold">Dark Mode</div>
                 <div className="body-sm text-muted">Use a dark theme for the dashboard.</div>
               </div>
