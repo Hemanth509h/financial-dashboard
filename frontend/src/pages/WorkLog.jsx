@@ -285,7 +285,7 @@ export const WorkLog = () => {
                       
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                         {weekLogs.map((log) => (
-                          <div key={log._id} className="activity-item" style={{padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)'}}>
+                          <div key={log._id} className="work-log-item" style={{padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)'}}>
                             <div className="responsive-grid work-log-entry-grid" style={{ gridTemplateColumns: 'auto 1fr auto', gap: 'var(--space-md)', alignItems: 'center' }}>
                               <div style={{width: '48px', height: '48px', backgroundColor: 'white', color: 'var(--primary)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, border: '1px solid var(--outline-variant)'}}>
                                 <span style={{fontSize: '10px', textTransform: 'uppercase'}}>{new Date(log.date).toLocaleString('default', { month: 'short' })}</span>
