@@ -42,9 +42,21 @@ export const Payments = () => {
 
   const pendingLogs = filteredLogs.filter(log => log && (log.status === 'Unpaid' || log.status === 'Partially Paid'));
   const paidLogs = filteredLogs.filter(log => log && log.status === 'Paid');
-  
-  const totalPending = logs.filter(l => l.status !== 'Paid').reduce((sum, log) => sum + (Number(log.amount || 0) - Number(log.amountPaid || 0)), 0);
-  const totalReceived = logs.filter(l => l.status === 'Paid').reduce((sum, log) => sum + Number(log.amountPaid || log.amount || 0), 0);
+
+  const now = new Date();
+  const currentMonthLogs = logs.filter((log) => {
+    const dateValue = log.datePaid || log.date;
+    if (!dateValue) return false;
+    const date = new Date(dateValue);
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  });
+
+  const totalPending = currentMonthLogs
+    .filter(l => l.status !== 'Paid')
+    .reduce((sum, log) => sum + (Number(log.amount || 0) - Number(log.amountPaid || 0)), 0);
+  const totalReceived = currentMonthLogs
+    .filter(l => l.status === 'Paid')
+    .reduce((sum, log) => sum + Number(log.amountPaid || log.amount || 0), 0);
   
   const totalValue = totalReceived + totalPending;
   const collectionRate = totalValue > 0 ? (totalReceived / totalValue) * 100 : 0;
@@ -174,11 +186,11 @@ export const Payments = () => {
         marginBottom: 'var(--space-xl)'
       }}>
         <div style={{ backgroundColor: 'var(--warning)', color: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)' }}>
-          <div className="body-sm" style={{ opacity: 0.9 }}>Total Pending</div>
+          <div className="body-sm" style={{ opacity: 0.9 }}>This Month Pending</div>
           <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(totalPending)}</div>
         </div>
         <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' }}>
-          <div className="body-sm" style={{ opacity: 0.9 }}>Total Collected</div>
+          <div className="body-sm" style={{ opacity: 0.9 }}>This Month Collected</div>
           <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(totalReceived)}</div>
         </div>
         <div style={{ backgroundColor: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
