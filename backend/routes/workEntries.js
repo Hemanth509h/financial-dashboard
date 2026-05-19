@@ -15,12 +15,12 @@ router.get('/', async (req, res) => {
 
 // Create a new work entry
 router.post('/', async (req, res) => {
-  const { date, client, amount, status } = req.body;
+  const { date, client, amount, status, description } = req.body;
   try {
     let amountPaid = req.body.amountPaid || 0;
     if (status === 'Paid') amountPaid = amount;
-    
-    const newEntry = new WorkEntry({ date, client, amount, status, amountPaid });
+
+    const newEntry = new WorkEntry({ date, client, amount, status, amountPaid, description });
     await newEntry.save();
     res.status(201).json(newEntry);
   } catch (error) {

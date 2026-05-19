@@ -8,6 +8,7 @@ export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
     date: new Date().toISOString().split('T')[0],
     client: 'Canteen',
     amount: '',
+    description: '',
     status: 'Unpaid'
   });
 
@@ -47,6 +48,7 @@ export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
 
     onSubmit({
       ...formData,
+      description: (formData.description || '').trim(),
       amount,
       amountPaid
     });
@@ -132,6 +134,35 @@ export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
             <span>{errors.amount}</span>
           </div>
         )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="description">Description</label>
+        <textarea
+          id="description"
+          name="description"
+          rows={3}
+          maxLength={500}
+          placeholder="Notes about this work (optional)"
+          value={formData.description || ''}
+          onChange={handleChange}
+          style={{
+            width: '100%',
+            padding: '10px 12px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--outline-variant)',
+            backgroundColor: 'var(--surface-container-low)',
+            color: 'var(--on-surface)',
+            fontSize: '14px',
+            fontFamily: 'inherit',
+            resize: 'vertical',
+            minHeight: '72px',
+            boxSizing: 'border-box'
+          }}
+        />
+        <div className="body-sm text-muted" style={{ marginTop: '4px', textAlign: 'right' }}>
+          {(formData.description || '').length}/500
+        </div>
       </div>
 
       <div className="form-group">

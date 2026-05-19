@@ -9,6 +9,7 @@ import { Loans } from './pages/Loans';
 import { Settings } from './pages/Settings';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { ScrollToTop } from './components/utils/ScrollToTop';
+import { SyncStatus } from './components/ui/SyncStatus';
 import { useForegroundMessages } from './hooks/useForegroundMessages';
 import { useDailyReport } from './hooks/useDailyReport';
 
@@ -20,6 +21,7 @@ function AppContent() {
     <>
       <ScrollToTop />
       <Toaster position="top-center" reverseOrder={false} />
+      <SyncStatus />
       <Routes>
         <Route path="/" element={<SidebarLayout />}>
           <Route index element={<Dashboard />} />

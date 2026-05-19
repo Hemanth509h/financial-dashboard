@@ -13,6 +13,12 @@ const workEntrySchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  description: {
+    type: String,
+    default: '',
+    trim: true,
+    maxlength: 500,
+  },
   status: {
     type: String,
     enum: ['Unpaid', 'Partially Paid', 'Paid'],
