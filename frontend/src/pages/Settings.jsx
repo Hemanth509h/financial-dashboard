@@ -9,78 +9,53 @@ import {
   sendTestNotification as triggerTestNotification,
   SUPPORT_MESSAGES,
 } from '../firebase';
+import { showDailyMetricsReport } from '../utils/notificationUtils';
 
 export const Settings = () => {
   const [settings, setSettings] = useState({
-    monthlyGoal: 50000,
-    currency: 'INR',
-    userName: 'Hemanth',
-    notifications: false,
-    notificationTime: '09:00',
+    monthlyGoal: localStorage.getItem('monthlyGoal') || 50000,
+    currency: localStorage.getItem('currency') || 'INR',
+    userName: localStorage.getItem('userName') || 'Hemanth',
+    notifications: localStorage.getItem('notificationsEnabled') === 'true',
+    notificationTime: localStorage.getItem('notificationTime') || '09:00',
     theme: localStorage.getItem('theme') || 'light',
   });
   const [pushSupport, setPushSupport] = useState({ supported: true });
   const [pushBusy, setPushBusy] = useState(false);
 
   useEffect(() => {
-    const savedGoal = localStorage.getItem('monthlyGoal');
-    const savedName = localStorage.getItem('userName');
     const savedTheme = localStorage.getItem('theme') || 'light';
-
-    if (savedGoal) setSettings((prev) => ({ ...prev, monthlyGoal: Number(savedGoal) }));
-    if (savedName) setSettings((prev) => ({ ...prev, userName: savedName }));
-    setSettings((prev) => ({ ...prev, theme: savedTheme }));
-
     document.documentElement.setAttribute('data-theme', savedTheme);
     setPushSupport(getMessagingSupportInfo());
 
-    // Fetch notification settings from backend
-    const fetchNotificationSettings = async () => {
-      try {
-        const res = await fetch('/api/notifications/settings');
-        if (res.ok) {
-          const data = await res.json();
-          setSettings(prev => ({ ...prev, notificationTime: data.notificationTime }));
-        }
-      } catch (err) {
-        console.error('Failed to fetch notification settings', err);
+    // Sync notification checkbox with current permission on mount only
+    if (typeof Notification !== 'undefined') {
+      if (Notification.permission !== 'granted' && settings.notifications) {
+        setSettings((prev) => ({ ...prev, notifications: false }));
+        localStorage.setItem('notificationsEnabled', 'false');
       }
-    };
-    fetchNotificationSettings();
-
-    // Sync notification checkbox with current permission and token state
-    const fcmToken = localStorage.getItem('fcmToken');
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && fcmToken) {
-      setSettings((prev) => ({ ...prev, notifications: true }));
     }
-  }, []);
+  }, []); // Only on mount
 
   const handleNotificationToggle = async (checked) => {
     if (checked) {
       setPushBusy(true);
       try {
-        const token = await enableNotifications();
-        localStorage.setItem('fcmToken', token);
-        
-        // Register token on backend
-        await fetch('/api/notifications/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token, deviceType: 'web' }),
-        });
-
+        await enableNotifications();
         setSettings((prev) => ({ ...prev, notifications: true }));
+        localStorage.setItem('notificationsEnabled', 'true');
         toast.success('Push notifications enabled!');
       } catch (error) {
         console.error('Failed to enable notifications:', error);
         toast.error(error.message || 'Failed to enable notifications.');
         setSettings((prev) => ({ ...prev, notifications: false }));
+        localStorage.setItem('notificationsEnabled', 'false');
       } finally {
         setPushBusy(false);
       }
     } else {
       setSettings((prev) => ({ ...prev, notifications: false }));
-      // Optional: Logic to unregister or disable on backend
+      localStorage.setItem('notificationsEnabled', 'false');
     }
   };
 
@@ -90,6 +65,15 @@ export const Settings = () => {
       toast.success('Test notification sent!');
     } catch (err) {
       toast.error(err.message || 'Could not show test notification.');
+    }
+  };
+
+  const handleTriggerDailyReport = async () => {
+    try {
+      await showDailyMetricsReport();
+      toast.success('Daily report triggered!');
+    } catch (err) {
+      toast.error(err.message || 'Failed to show daily report.');
     }
   };
 
@@ -105,23 +89,15 @@ export const Settings = () => {
     }));
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     localStorage.setItem('monthlyGoal', settings.monthlyGoal);
     localStorage.setItem('userName', settings.userName);
+    localStorage.setItem('currency', settings.currency);
     localStorage.setItem('theme', settings.theme);
+    localStorage.setItem('notificationTime', settings.notificationTime);
+    localStorage.setItem('notificationsEnabled', settings.notifications);
+    
     document.documentElement.setAttribute('data-theme', settings.theme);
-
-    // Save notification time to backend
-    try {
-      await fetch('/api/notifications/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificationTime: settings.notificationTime }),
-      });
-    } catch (err) {
-      console.error('Failed to save notification settings', err);
-    }
-
     toast.success('Settings saved successfully!');
     window.dispatchEvent(new Event('storage'));
   };
@@ -187,7 +163,7 @@ export const Settings = () => {
             <div>
               <label className="body-sm font-semibold text-muted" style={{ display: 'block', marginBottom: 'var(--space-xs)' }}>Monthly Earnings Target</label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--on-surface-variant)' }}>₹</span>
+                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--on-surface-variant)' }}>{settings.currency === 'INR' ? '₹' : settings.currency === 'USD' ? '$' : '€'}</span>
                 <input
                   type="number"
                   name="monthlyGoal"
@@ -231,26 +207,25 @@ export const Settings = () => {
               </p>
             )}
 
-            {settings.notifications && (
-              <div style={{ marginTop: 'var(--space-sm)', display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleSendTest}
-                  style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-md)' }}
-                >
-                  Send Test Notification
-                </Button>
-              </div>
-            )}
+            <div style={{ marginTop: 'var(--space-sm)', display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleSendTest}
+                disabled={!settings.notifications}
+                style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-md)' }}
+              >
+                Send Test Notification
+              </Button>
+            </div>
 
-            {settings.notifications && (
-              <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div className="font-semibold">Daily Metrics Report</div>
-                    <div className="body-sm text-muted">Set what time you want to receive your daily summary.</div>
-                  </div>
+            <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div className="font-semibold">Daily Metrics Report</div>
+                  <div className="body-sm text-muted">Set what time you want to receive your daily summary.</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
                   <input
                     type="time"
                     name="notificationTime"
@@ -259,9 +234,18 @@ export const Settings = () => {
                     className="form-input"
                     style={{ padding: 'var(--space-xs) var(--space-sm)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}
                   />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleTriggerDailyReport}
+                    disabled={!settings.notifications}
+                    style={{ fontSize: '0.8rem', padding: 'var(--space-xs) var(--space-sm)' }}
+                  >
+                    Send Now
+                  </Button>
                 </div>
               </div>
-            )}
+            </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--outline-variant)' }}>
               <div>
