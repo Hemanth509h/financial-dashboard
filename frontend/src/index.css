@@ -242,13 +242,13 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 }
 
 @media (max-width: 768px) {
-  h1 { font-size: 24px; line-height: 32px; }
-  h2 { font-size: 20px; line-height: 28px; }
-  h3 { font-size: 16px; line-height: 24px; }
-  .numeric-display { font-size: 32px; line-height: 40px; }
+  h1 { font-size: 22px; line-height: 28px; }
+  h2 { font-size: 18px; line-height: 24px; }
+  h3 { font-size: 15px; line-height: 20px; }
+  .numeric-display { font-size: 28px; line-height: 36px; }
   
   .container {
-    padding: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
   }
 
   .mobile-left {
@@ -260,15 +260,16 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   }
 }
 
-
 @media (max-width: 768px) {
   .page {
-    padding: 0 !important;
+    padding: 0 0 var(--space-lg) 0 !important;
   }
   
   .card {
-    padding: var(--space-sm) !important;
-    border-radius: var(--radius-md) !important;
+    padding: var(--space-md) !important;
+    border-radius: var(--radius-lg) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
   }
 
   .card:hover {
@@ -276,7 +277,7 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   }
   
   .activity-log-card {
-    padding: var(--space-sm) !important;
+    padding: var(--space-md) !important;
   }
 }
 
@@ -295,11 +296,11 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 
   .page-header .btn,
   .page-header button {
-    width: 100%;
+    width: auto;
   }
 
   .page-header {
-    gap: var(--space-sm) !important;
+    gap: var(--space-xs) !important;
     padding: 2px 0 var(--space-xs);
   }
 
@@ -308,12 +309,12 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   }
 
   .page-header p {
-    font-size: 13px;
-    line-height: 19px;
+    font-size: 12px;
+    line-height: 16px;
   }
 
   .page button {
-    min-height: 42px;
+    min-height: 40px;
   }
 
   .search-container {
@@ -324,12 +325,19 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
     width: 100%;
     overflow-x: auto;
     flex-wrap: nowrap;
-    padding-bottom: 2px;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .filter-group::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
   }
 
   .filter-chip {
     flex: 0 0 auto;
-    padding: 0.45rem 0.8rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 12px;
   }
 
   .activity-item .responsive-grid {
@@ -337,16 +345,64 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   }
 
   .month-filter {
-    width: 100%;
-    margin-left: 0 !important;
+    width: auto;
+    margin-left: auto !important;
   }
 
   .month-filter input,
   input[type="month"] {
-    width: 100%;
+    width: 120px;
+    padding: 0.5rem 0.8rem !important;
+    font-size: 12px !important;
   }
 }
 
+/* Metric Tiles 2x2 Grid Layout for Mobile */
+@media (max-width: 768px) {
+  .dashboard-metrics {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    margin-bottom: var(--space-md) !important;
+  }
+  
+  .metric-tile {
+    padding: var(--space-sm) !important;
+    border-radius: var(--radius-md) !important;
+  }
+  
+  .metric-header {
+    margin-bottom: 4px !important;
+  }
+  
+  .metric-title {
+    font-size: 10px !important;
+    letter-spacing: 0.02em !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .metric-value.numeric-display {
+    font-size: 18px !important;
+    line-height: 24px !important;
+  }
+  
+  .metric-subtext {
+    font-size: 10px !important;
+    margin-top: 2px !important;
+  }
+  
+  .metric-icon {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: var(--radius-sm) !important;
+  }
+  
+  .metric-icon svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+}
+
+/* Payment Stats / Activity Layout for Mobile */
 .payment-stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -355,32 +411,40 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 
 @media (max-width: 500px) {
   .payment-stats-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: 4px;
+    padding: 6px !important;
   }
   
   .payment-stats-grid > div {
-    border-right: none !important;
-    border-bottom: 1px solid var(--outline-variant);
-    padding-bottom: 8px;
-    margin-bottom: 4px;
-    text-align: left !important;
+    border-right: 1px solid var(--outline-variant) !important;
+    border-bottom: none !important;
+    padding: 0 4px !important;
+    margin-bottom: 0 !important;
+    text-align: center !important;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   
   .payment-stats-grid > div:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
+    border-right: none !important;
+  }
+  
+  .payment-stats-grid .body-sm {
+    font-size: 8px !important;
+  }
+  
+  .payment-stats-grid .font-semibold {
+    font-size: 11px !important;
   }
 }
 
 @media (max-width: 500px) {
   .mobile-card-row {
-    flex-direction: column !important;
-    align-items: stretch !important;
+    flex-direction: row !important; /* Keep items horizontal on small screens to save space */
+    align-items: center !important;
     gap: var(--space-sm) !important;
   }
 
@@ -389,45 +453,138 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   }
 
   .mobile-card-actions {
-    width: 100%;
-    justify-content: space-between;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
   }
 
   .mobile-card-actions .btn,
   .mobile-card-actions button {
-    min-height: 40px;
+    min-height: 32px !important;
+    padding: 6px 10px !important;
   }
 
   .mobile-split-actions {
-    flex-direction: column !important;
+    flex-direction: row !important;
+    gap: 8px !important;
   }
 
   .mobile-split-actions .btn,
   .mobile-split-actions button {
-    width: 100%;
+    width: 50% !important;
+    font-size: 12px !important;
+    padding: 8px !important;
+    min-height: 38px !important;
   }
 
   .work-log-entry-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: auto 1fr auto !important; /* Keep grid compact on mobile */
     gap: var(--space-sm) !important;
   }
 
   .work-log-entry-grid > div:last-child {
-    align-items: flex-start !important;
-    width: 100%;
+    align-items: flex-end !important;
   }
 
   .payments-summary-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: var(--space-md) !important;
+  }
+  
+  .payments-summary-card {
+    padding: 8px !important;
+    border-radius: var(--radius-md) !important;
+    min-height: 64px !important;
+  }
+  
+  .payments-summary-card .summary-label {
+    font-size: 9px !important;
+  }
+  
+  .payments-summary-card .summary-value {
+    font-size: 14px !important;
+    margin-top: 2px !important;
   }
 
   .payment-tabs {
     max-width: none !important;
     width: 100%;
+    margin-bottom: var(--space-md) !important;
   }
+  
+  .payment-tabs button {
+    padding: 8px !important;
+    font-size: 13px !important;
+  }
+}
 
-  .payments-summary-grid > div {
-    min-height: 86px;
+/* Floating Action Button (FAB) Mobile UX */
+.mobile-fab {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-fab {
+    display: flex;
+    position: fixed;
+    right: 20px;
+    bottom: 96px; /* Floating nicely above bottom navigation */
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    border: none;
+    z-index: 95;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+  }
+  
+  .mobile-fab:active {
+    transform: scale(0.9);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+  }
+}
+
+/* Compact Responsive Header Styling */
+@media (max-width: 768px) {
+  .page-header.mobile-stack {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: var(--space-md) !important;
+  }
+  
+  .page-header.mobile-stack .flex.gap-sm {
+    display: none !important; /* Hide regular buttons on mobile, replaced by FAB and title icons */
+  }
+  
+  .mobile-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .page-header-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background-color: var(--surface-bright);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    color: var(--on-surface-variant);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  }
+  
+  .page-header-action-btn:active {
+    background-color: var(--surface-container-high);
   }
 }
 
@@ -518,4 +675,61 @@ select.form-input {
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 1rem;
+}
+
+/* Payments Summary Card Classes */
+.payments-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.payments-summary-card {
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.payments-summary-card.warning {
+  background-color: var(--warning);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.payments-summary-card.primary {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.payments-summary-card.neutral {
+  background-color: var(--surface-bright);
+  border: 1px solid var(--outline-variant);
+  color: var(--on-surface);
+}
+
+.payments-summary-card .summary-label {
+  font-size: 12px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.payments-summary-card.neutral .summary-label {
+  color: var(--on-surface-variant);
+  opacity: 1;
+}
+
+.payments-summary-card .summary-value {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.mobile-header-actions {
+  display: none;
 }

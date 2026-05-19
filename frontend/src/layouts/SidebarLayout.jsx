@@ -112,9 +112,10 @@ export const SidebarLayout = () => {
       {/* Mobile Menu Popup */}
       <div className={`mobile-popup ${isMobileOpen ? 'open' : ''}`}>
         <div className="mobile-popup-content">
+          <div className="mobile-popup-drag-handle"></div>
           <div className="mobile-popup-header">
             <h3>Menu</h3>
-            <button onClick={() => setIsMobileOpen(false)}><X size={24} /></button>
+            <button onClick={() => setIsMobileOpen(false)}><X size={20} /></button>
           </div>
           <div className="mobile-popup-body">
             <div className="popup-section">

@@ -6,7 +6,7 @@ import { Modal } from '../components/ui/Modal';
 import { LoanForm } from '../components/forms/LoanForm';
 import { RepaymentForm } from '../components/forms/RepaymentForm';
 import { api } from '../api';
-import { Edit2, Trash2, Download } from 'lucide-react';
+import { Edit2, Trash2, Download, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Loans = () => {
@@ -216,7 +216,12 @@ export const Loans = () => {
       <header className="page-header mobile-stack" style={{marginBottom: 'var(--space-xl)', gap: 'var(--space-md)'}}>
         <div>
           <h1 style={{marginBottom: 'var(--space-xs)'}}>Loan Management</h1>
-          <p className="text-muted">Overview of your active liabilities and repayment progress.</p>
+          <p className="text-muted">Overview of your liabilities and progress.</p>
+        </div>
+        <div className="mobile-header-actions">
+          <button className="page-header-action-btn" onClick={handleExport} title="Export CSV">
+            <Download size={18} />
+          </button>
         </div>
         <div className="flex gap-sm">
           <Button variant="secondary" onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -410,6 +415,11 @@ export const Loans = () => {
           />
         )}
       </Modal>
+
+      {/* Mobile FAB */}
+      <button className="mobile-fab" onClick={() => setShowLoanModal(true)} title="Add New Loan">
+        <Plus size={24} />
+      </button>
     </div>
   );
 };

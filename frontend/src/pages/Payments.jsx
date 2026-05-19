@@ -184,23 +184,18 @@ export const Payments = () => {
       </header>
 
       {/* Metrics Banner */}
-      <div className="payments-summary-grid" style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', 
-        gap: 'var(--space-sm)',
-        marginBottom: 'var(--space-xl)'
-      }}>
-        <div style={{ backgroundColor: 'var(--warning)', color: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)' }}>
-          <div className="body-sm" style={{ opacity: 0.9 }}>This Month Pending</div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(totalPending)}</div>
+      <div className="payments-summary-grid">
+        <div className="payments-summary-card warning">
+          <div className="summary-label">This Month Pending</div>
+          <div className="summary-value">{formatCurrency(totalPending)}</div>
         </div>
-        <div style={{ backgroundColor: 'var(--primary)', color: 'white', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' }}>
-          <div className="body-sm" style={{ opacity: 0.9 }}>This Month Collected</div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px' }}>{formatCurrency(totalReceived)}</div>
+        <div className="payments-summary-card primary">
+          <div className="summary-label">This Month Collected</div>
+          <div className="summary-value">{formatCurrency(totalReceived)}</div>
         </div>
-        <div style={{ backgroundColor: 'var(--surface-bright)', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
-          <div className="body-sm text-muted">Success Rate</div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '4px', color: 'var(--on-surface)' }}>{Math.round(collectionRate)}%</div>
+        <div className="payments-summary-card neutral">
+          <div className="summary-label">Success Rate</div>
+          <div className="summary-value">{Math.round(collectionRate)}%</div>
         </div>
       </div>
 

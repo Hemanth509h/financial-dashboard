@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
-import { Edit2, Trash2, Download, Search, X } from 'lucide-react';
+import { Edit2, Trash2, Download, Search, X, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const WorkLog = () => {
@@ -164,6 +164,11 @@ export const WorkLog = () => {
         <div>
           <h1 style={{marginBottom: 'var(--space-xs)'}}>Monthly Productivity</h1>
           <p className="text-muted">Showing all work records</p>
+        </div>
+        <div className="mobile-header-actions">
+          <button className="page-header-action-btn" onClick={handleExport} title="Export CSV">
+            <Download size={18} />
+          </button>
         </div>
         <div className="flex gap-sm">
           <Button variant="secondary" onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -339,6 +344,11 @@ export const WorkLog = () => {
           onCancel={handleCloseModal}
         />
       </Modal>
+
+      {/* Mobile FAB */}
+      <button className="mobile-fab" onClick={() => setShowModal(true)} title="Add Work Day">
+        <Plus size={24} />
+      </button>
     </div>
   );
 };

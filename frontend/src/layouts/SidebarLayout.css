@@ -113,29 +113,30 @@
   z-index: 5;
 }
 
-/* Bottom Navigation */
+/* Bottom Navigation - Premium Glassmorphic Bar */
 .bottom-nav {
   display: none;
   position: fixed;
-  bottom: 10px;
-  left: 10px;
-  right: 10px;
-  min-height: 66px;
-  background-color: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 18px;
-  z-index: 50;
-  padding: 6px;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  min-height: 64px;
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
+  z-index: 80;
+  padding: 4px 8px;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.02);
 }
 
 [data-theme='dark'] .bottom-nav {
-  background-color: rgba(15, 23, 42, 0.94);
-  border-color: var(--outline-variant);
+  background-color: rgba(15, 23, 49, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .bottom-nav-link {
@@ -143,31 +144,55 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   color: var(--on-surface-variant);
   text-decoration: none;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
-  padding: 8px 2px;
+  padding: 6px 2px 8px 2px;
   border: none;
   background: none;
   min-width: 0;
   flex: 1;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border-radius: var(--radius-md);
+  position: relative;
+}
+
+.bottom-nav-link svg {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bottom-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .bottom-nav-link.active {
   color: var(--primary);
-  background: var(--primary-container);
+  background: none;
 }
 
 .bottom-nav-link.active svg {
+  transform: translateY(-2px);
   stroke-width: 2.5px;
 }
 
-/* Mobile Popup */
+.bottom-nav-link.active::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Mobile Bottom Sheet Popup */
 .mobile-popup {
   position: fixed;
   inset: 0;
@@ -177,7 +202,7 @@
   justify-content: flex-end;
   visibility: hidden;
   pointer-events: none;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mobile-popup.open {
@@ -190,10 +215,10 @@
   position: absolute;
   inset: 0;
   background-color: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s ease;
 }
 
 .mobile-popup.open::before {
@@ -203,61 +228,85 @@
 .mobile-popup-content {
   position: relative;
   background-color: var(--surface-bright);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: var(--space-lg);
+  border-radius: 24px 24px 0 0;
+  padding: 8px 16px 24px 16px;
   transform: translateY(100%);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.1);
-  max-height: 82vh;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+  max-height: 80vh;
   overflow-y: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mobile-popup.open .mobile-popup-content {
   transform: translateY(0);
 }
 
+.mobile-popup-drag-handle {
+  width: 36px;
+  height: 4px;
+  background-color: var(--outline-variant);
+  border-radius: 2px;
+  margin: 8px auto 16px auto;
+  opacity: 0.7;
+}
+
 .mobile-popup-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
+  padding: 0 4px;
+}
+
+.mobile-popup-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--on-surface);
 }
 
 .mobile-popup-header button {
   background: var(--surface-container-low);
   border: none;
   border-radius: var(--radius-full);
-  padding: 8px;
+  padding: 6px;
   cursor: pointer;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .popup-section {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .section-title {
-  font-size: 12px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--on-surface-variant);
-  margin-bottom: var(--space-md);
-  font-weight: 600;
+  margin-bottom: var(--space-xs);
+  font-weight: 700;
+  padding-left: 8px;
 }
 
 .popup-link {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  padding: var(--space-md);
+  padding: 12px 14px;
   color: var(--on-surface);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 14px;
   border-radius: var(--radius-md);
-  margin-bottom: var(--space-xs);
+  margin-bottom: 4px;
+  transition: background-color 0.2s;
 }
 
 .popup-link:active {
-  background-color: var(--surface-container-low);
+  background-color: var(--surface-container);
 }
 
 @media (max-width: 768px) {
@@ -266,31 +315,30 @@
   }
   .main-content {
     margin-left: 0;
-    padding: 12px;
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+    padding: 16px;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
   }
   .mobile-toggle {
-    display: none; /* Replaced by bottom nav */
+    display: none;
   }
   .bottom-nav {
     display: flex;
   }
 
   .bottom-nav-link svg {
-    width: 19px;
-    height: 19px;
+    width: 20px;
+    height: 20px;
   }
 
   .mobile-popup-content {
-    padding: var(--space-md);
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    padding: 8px 16px calc(24px + env(safe-area-inset-bottom)) 16px;
   }
 
   .popup-section {
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-sm);
   }
 
   .popup-link {
-    padding: var(--space-sm);
+    padding: 10px 12px;
   }
 }
