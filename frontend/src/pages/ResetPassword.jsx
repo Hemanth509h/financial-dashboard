@@ -27,11 +27,42 @@ export const ResetPassword = () => {
   };
 
   return (
+ 
+
+        <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #fcd34d' }}>
+          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600', color: '#92400e' }}>
+            ⚠️ Under Maintenance
+          </p>
+          <p style={{ margin: '0.5rem 0', fontSize: '0.8125rem', color: '#92400e', lineHeight: '1.5' }}>
+            If you need to change your password, please contact the admin at{' '}
+            <a href="mailto:phemanthkumar746@gmail.com" style={{ color: '#b45309', textDecoration: 'underline', fontWeight: '600' }}>
+              phemanthkumar746@gmail.com
+            </a>
+          </p>
+        </div>
+
+  );
+};
+
+export const content= () =>  {
+  return (
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
           <img src="/logo.png" alt="GigFinance" />
           <h2>GigFinance</h2>
+        </div>
+
+        <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #fcd34d' }}>
+          <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600', color: '#92400e' }}>
+            ⚠️ Under Maintenance
+          </p>
+          <p style={{ margin: '0.5rem 0', fontSize: '0.8125rem', color: '#92400e', lineHeight: '1.5' }}>
+            If you need to change your password, please contact the admin at{' '}
+            <a href="mailto:phemanthkumar746@gmail.com" style={{ color: '#b45309', textDecoration: 'underline', fontWeight: '600' }}>
+              phemanthkumar746@gmail.com
+            </a>
+          </p>
         </div>
 
         <div className="auth-title">Reset your password</div>
