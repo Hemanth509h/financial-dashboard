@@ -53,6 +53,7 @@ export const Register = () => {
               value={form.name}
               onChange={handleChange}
               placeholder="Your name"
+              autoComplete="name"
               autoFocus
             />
           </div>
@@ -64,6 +65,7 @@ export const Register = () => {
               value={form.email}
               onChange={handleChange}
               placeholder="you@example.com"
+              autoComplete="email"
               required
             />
           </div>
@@ -75,6 +77,7 @@ export const Register = () => {
               value={form.password}
               onChange={handleChange}
               placeholder="At least 6 characters"
+              autoComplete="new-password"
               required
             />
           </div>
@@ -86,6 +89,7 @@ export const Register = () => {
               value={form.confirm}
               onChange={handleChange}
               placeholder="Repeat your password"
+              autoComplete="new-password"
               required
             />
           </div>

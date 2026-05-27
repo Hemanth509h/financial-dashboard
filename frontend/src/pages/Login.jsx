@@ -47,6 +47,7 @@ export const Login = () => {
               value={form.email}
               onChange={handleChange}
               placeholder="you@example.com"
+              autoComplete="email"
               required
               autoFocus
             />
@@ -59,6 +60,7 @@ export const Login = () => {
               value={form.password}
               onChange={handleChange}
               placeholder="••••••••"
+              autoComplete="current-password"
               required
             />
           </div>
