@@ -12,6 +12,7 @@ import { Settings } from './pages/Settings';
 import { MonthlyHistory } from './pages/MonthlyHistory';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { ResetPassword } from './pages/ResetPassword';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { PageLoading } from './components/ui/Loading';
 import { ScrollToTop } from './components/utils/ScrollToTop';
@@ -38,6 +39,7 @@ function AppContent() {
       <Routes>
         <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
         <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+        <Route path="/reset-password" element={<GuestRoute><ResetPassword /></GuestRoute>} />
         <Route path="/" element={<ProtectedRoute><SidebarLayout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="work-log" element={<WorkLog />} />

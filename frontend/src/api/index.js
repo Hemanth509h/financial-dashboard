@@ -20,6 +20,7 @@ export const api = {
   register: (email, password, name) => post('/auth/register', { email, password, name }),
   login: (email, password) => post('/auth/login', { email, password }),
   forgotPassword: (email) => post('/auth/forgot-password', { email }),
+  resetPassword: (email, password) => post('/auth/reset-password', { email, password }),
   getMe: () => get('/auth/me'),
   updateProfile: (data) => patch('/auth/profile', data),
 

@@ -54,8 +54,29 @@ router.post('/forgot-password', async (req, res) => {
   try {
     await User.findOne({ email });
     res.json({
-      message: 'If an account exists for this email, contact the app owner to reset your password.',
+      message: 'If an account exists for this email, you can now reset your password from the reset page.',
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.post('/reset-password', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and new password are required.' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+  }
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'No account found for this email.' });
+    }
+    user.password = password;
+    await user.save();
+    res.json({ message: 'Your password has been reset successfully. Please sign in.' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -1,28 +1,26 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/useAuth';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 import './Auth.css';
 
-export const Login = () => {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+export const ResetPassword = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const handleChange = (e) =>
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setMessage('');
     setLoading(true);
+
     try {
-      await login(form.email, form.password);
-      navigate('/');
+      const { data } = await api.resetPassword(email, password);
+      setMessage(data.message || 'Your password has been reset successfully.');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Unable to reset password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -35,49 +33,50 @@ export const Login = () => {
           <img src="/logo.png" alt="GigFinance" />
           <h2>GigFinance</h2>
         </div>
-        <div className="auth-title">Welcome back</div>
-        <div className="auth-subtitle">Sign in to your account to continue</div>
+
+        <div className="auth-title">Reset your password</div>
+        <div className="auth-subtitle">Enter your email and a new password to reset your account.</div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {error && <div className="auth-error">{error}</div>}
+          {message && <div className="auth-success">{message}</div>}
+
           <div className="auth-field">
             <label>Email</label>
             <input
               type="email"
               name="email"
-              value={form.email}
-              onChange={handleChange}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               autoComplete="email"
               required
               autoFocus
             />
           </div>
+
           <div className="auth-field">
-            <div className="auth-label-row">
-              <label>Password</label>
-              <Link to="/reset-password" className="auth-link-btn">
-                Forgot password?
-              </Link>
-            </div>
+            <label>New password</label>
             <input
               type="password"
               name="password"
-              value={form.password}
-              onChange={handleChange}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              autoComplete="current-password"
+              autoComplete="new-password"
               required
+              minLength={6}
             />
           </div>
+
           <button className="auth-btn" type="submit" disabled={loading}>
             {loading && <span className="auth-spinner" aria-hidden="true" />}
-            <span>{loading ? 'Signing in...' : 'Sign in'}</span>
+            <span>{loading ? 'Resetting...' : 'Reset password'}</span>
           </button>
         </form>
 
         <div className="auth-switch">
-          Don't have an account? <Link to="/register">Create one</Link>
+          Remembered your password? <Link to="/login">Sign in</Link>
         </div>
       </div>
     </div>
