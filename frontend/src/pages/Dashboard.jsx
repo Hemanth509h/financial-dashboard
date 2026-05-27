@@ -89,7 +89,7 @@ export const Dashboard = () => {
         <>
       <div className="dashboard-metrics">
         <MetricTile 
-          title={`EARNED IN ${getMonthName()}`}
+          title={`COLLECTED IN ${getMonthName()}`}
           value={formatCurrency(summary.totalEarnedThisMonth)}
           subtext={`Goal: ${formatCurrency(monthlyGoal)}`}
           subtextColor="primary"
