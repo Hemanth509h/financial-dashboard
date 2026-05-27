@@ -83,12 +83,35 @@ export const Settings = () => {
         return;
       }
 
+      const [existingWorkLogsRes, existingLoansRes] = await Promise.all([
+        api.getWorkLogs(),
+        api.getLoans(),
+      ]);
+
+      const existingWorkLogs = existingWorkLogsRes.data;
+      const existingLoans = existingLoansRes.data;
+
+      const isSameWorkLog = (a, b) =>
+        new Date(a.date).toDateString() === new Date(b.date).toDateString() &&
+        a.client?.trim().toLowerCase() === b.client?.trim().toLowerCase() &&
+        Number(a.amount) === Number(b.amount) &&
+        (a.description || '').trim() === (b.description || '').trim();
+
+      const isSameLoan = (a, b) =>
+        new Date(a.startDate).toDateString() === new Date(b.startDate).toDateString() &&
+        a.lenderName?.trim().toLowerCase() === b.lenderName?.trim().toLowerCase() &&
+        Number(a.totalAmount) === Number(b.totalAmount);
+
       let workLogsImported = 0;
+      let workLogsSkipped = 0;
       let loansImported = 0;
+      let loansSkipped = 0;
 
       if (Array.isArray(data.workLogs)) {
         for (const entry of data.workLogs) {
           const { _id, __v, createdAt, updatedAt, ...fields } = entry;
+          const duplicate = existingWorkLogs.some((e) => isSameWorkLog(e, fields));
+          if (duplicate) { workLogsSkipped++; continue; }
           await api.createWorkLog(fields);
           workLogsImported++;
         }
@@ -97,6 +120,8 @@ export const Settings = () => {
       if (Array.isArray(data.loans)) {
         for (const loan of data.loans) {
           const { _id, __v, createdAt, updatedAt, repayments, ...loanFields } = loan;
+          const duplicate = existingLoans.some((l) => isSameLoan(l, loanFields));
+          if (duplicate) { loansSkipped++; continue; }
           const res = await api.createLoan(loanFields);
           const newLoanId = res.data._id;
           loansImported++;
@@ -110,7 +135,10 @@ export const Settings = () => {
         }
       }
 
-      toast.success(`Imported ${workLogsImported} work logs and ${loansImported} loans.`);
+      const skippedMsg = (workLogsSkipped + loansSkipped) > 0
+        ? ` (${workLogsSkipped + loansSkipped} duplicate${workLogsSkipped + loansSkipped > 1 ? 's' : ''} skipped)`
+        : '';
+      toast.success(`Imported ${workLogsImported} work logs and ${loansImported} loans.${skippedMsg}`);
     } catch {
       toast.error('Failed to import. Make sure the file is a valid GigFinance export.');
     } finally {
