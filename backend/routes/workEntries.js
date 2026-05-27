@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
       amount,
       status,
       amountPaid,
-      datePaid: status === 'Paid' ? (req.body.datePaid || date) : req.body.datePaid,
+      datePaid: status === 'Paid' ? (req.body.datePaid || new Date()) : req.body.datePaid,
       description,
     });
     await newEntry.save();
@@ -47,7 +47,7 @@ router.patch('/:id', async (req, res) => {
       updateData.amountPaid = entry.amount;
     }
     if (updateData.status === 'Paid' && !updateData.datePaid) {
-      updateData.datePaid = entry.date;
+      updateData.datePaid = new Date();
     }
 
     const updatedEntry = await WorkEntry.findByIdAndUpdate(
