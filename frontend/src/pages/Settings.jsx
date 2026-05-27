@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Target, User, Moon, Save, Download } from 'lucide-react';
+import { Target, User, Moon, Save, Download, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../api/index.js';
 
@@ -30,6 +30,8 @@ export const Settings = () => {
   };
 
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleExport = async () => {
     setExporting(true);
@@ -62,6 +64,57 @@ export const Settings = () => {
       toast.error('Failed to export data. Please try again.');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = '';
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      if (!data.workLogs && !data.loans) {
+        toast.error('Invalid export file.');
+        return;
+      }
+
+      let workLogsImported = 0;
+      let loansImported = 0;
+
+      if (Array.isArray(data.workLogs)) {
+        for (const entry of data.workLogs) {
+          const { _id, __v, createdAt, updatedAt, ...fields } = entry;
+          await api.createWorkLog(fields);
+          workLogsImported++;
+        }
+      }
+
+      if (Array.isArray(data.loans)) {
+        for (const loan of data.loans) {
+          const { _id, __v, createdAt, updatedAt, repayments, ...loanFields } = loan;
+          const res = await api.createLoan(loanFields);
+          const newLoanId = res.data._id;
+          loansImported++;
+
+          if (Array.isArray(repayments)) {
+            for (const repayment of repayments) {
+              const { _id, __v, createdAt, updatedAt, loanId, ...rFields } = repayment;
+              await api.addLoanRepayment(newLoanId, rFields);
+            }
+          }
+        }
+      }
+
+      toast.success(`Imported ${workLogsImported} work logs and ${loansImported} loans.`);
+    } catch {
+      toast.error('Failed to import. Make sure the file is a valid GigFinance export.');
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -178,22 +231,44 @@ export const Settings = () => {
             </div>
           </Card>
 
-          {/* Export Section */}
+          {/* Export / Import Section */}
           <Card>
             <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
               <div style={{ backgroundColor: 'var(--primary-container)', color: 'var(--primary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
                 <Download size={24} />
               </div>
-              <h3>Export Data</h3>
+              <h3>Export &amp; Import Data</h3>
             </div>
-            <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
-              <div style={{ minWidth: 0 }}>
-                <div className="font-semibold">Download All Data</div>
-                <div className="body-sm text-muted">Export all your work logs and loans as a JSON file.</div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+              <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div className="font-semibold">Download All Data</div>
+                  <div className="body-sm text-muted">Export all your work logs and loans as a JSON file.</div>
+                </div>
+                <Button onClick={handleExport} disabled={exporting} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                  <Download size={16} /> {exporting ? 'Exporting…' : 'Export'}
+                </Button>
               </div>
-              <Button onClick={handleExport} disabled={exporting} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                <Download size={16} /> {exporting ? 'Exporting…' : 'Export'}
-              </Button>
+
+              <div style={{ borderTop: '1px solid var(--outline-variant)' }} />
+
+              <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div className="font-semibold">Restore from File</div>
+                  <div className="body-sm text-muted">Import a previously exported JSON file to restore your data.</div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json"
+                  style={{ display: 'none' }}
+                  onChange={handleImport}
+                />
+                <Button onClick={() => fileInputRef.current?.click()} disabled={importing} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                  <Upload size={16} /> {importing ? 'Importing…' : 'Import'}
+                </Button>
+              </div>
             </div>
           </Card>
 
