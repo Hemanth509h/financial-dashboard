@@ -19,6 +19,7 @@ export const api = {
   // Auth
   register: (email, password, name) => post('/auth/register', { email, password, name }),
   login: (email, password) => post('/auth/login', { email, password }),
+  forgotPassword: (email) => post('/auth/forgot-password', { email }),
   getMe: () => get('/auth/me'),
   updateProfile: (data) => patch('/auth/profile', data),
 

@@ -46,6 +46,21 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required.' });
+  }
+  try {
+    await User.findOne({ email });
+    res.json({
+      message: 'If an account exists for this email, contact the app owner to reset your password.',
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 router.get('/me', protect, (req, res) => {
   const u = req.user;
   res.json({ _id: u._id, email: u.email, name: u.name, currency: u.currency, monthlyGoal: u.monthlyGoal, theme: u.theme });
