@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Target, User, Moon, Save } from 'lucide-react';
+import { Target, User, Moon, Save, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { api } from '../api/index.js';
 
 const getInitialSettings = () => {
   return {
@@ -26,6 +27,42 @@ export const Settings = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const [workLogsRes, loansRes] = await Promise.all([
+        api.getWorkLogs(),
+        api.getLoans(),
+      ]);
+
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        settings: {
+          userName: settings.userName,
+          currency: settings.currency,
+          monthlyGoal: settings.monthlyGoal,
+        },
+        workLogs: workLogsRes.data,
+        loans: loansRes.data,
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `gigfinance-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Data exported successfully!');
+    } catch {
+      toast.error('Failed to export data. Please try again.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleSave = () => {
@@ -138,6 +175,25 @@ export const Settings = () => {
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
               </select>
+            </div>
+          </Card>
+
+          {/* Export Section */}
+          <Card>
+            <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
+              <div style={{ backgroundColor: 'var(--primary-container)', color: 'var(--primary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
+                <Download size={24} />
+              </div>
+              <h3>Export Data</h3>
+            </div>
+            <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
+              <div style={{ minWidth: 0 }}>
+                <div className="font-semibold">Download All Data</div>
+                <div className="body-sm text-muted">Export all your work logs and loans as a JSON file.</div>
+              </div>
+              <Button onClick={handleExport} disabled={exporting} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                <Download size={16} /> {exporting ? 'Exporting…' : 'Export'}
+              </Button>
             </div>
           </Card>
 
