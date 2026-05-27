@@ -31,11 +31,19 @@ export const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [summaryRes, analyticsRes] = await Promise.all([
+        const [summaryRes, analyticsRes, workLogsRes] = await Promise.all([
           api.getDashboardSummary(),
-          api.getAnalytics()
+          api.getAnalytics(),
+          api.getWorkLogs()
         ]);
-        setSummary(summaryRes.data);
+        const currentMonth = new Date().toISOString().split('T')[0].substring(0, 7);
+        const totalEarnedThisMonth = workLogsRes.data
+          .filter((log) => new Date(log.date).toISOString().split('T')[0].substring(0, 7) === currentMonth)
+          .reduce((sum, log) => {
+            if (log.status === 'Paid') return sum + Number(log.amount || 0);
+            return sum + Number(log.amountPaid || 0);
+          }, 0);
+        setSummary({ ...summaryRes.data, totalEarnedThisMonth });
         setAnalytics(analyticsRes.data);
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
