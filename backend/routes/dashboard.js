@@ -31,15 +31,13 @@ router.get('/summary', async (req, res) => {
     const uid = req.user._id;
     const { start: startOfMonth, end: startOfNextMonth } = getMonthRange();
 
-    // COLLECTED = money actually received this month (by datePaid)
-    const collectedEntries = await WorkEntry.find({
+    const currentMonthEntries = await WorkEntry.find({
       userId: uid,
-      status: { $in: ['Paid', 'Partially Paid'] },
-      datePaid: { $gte: startOfMonth, $lt: startOfNextMonth },
+      date: { $gte: startOfMonth, $lt: startOfNextMonth },
     });
 
     let totalEarnedThisMonth = 0;
-    collectedEntries.forEach(entry => {
+    currentMonthEntries.forEach(entry => {
       if (entry.status === 'Paid') {
         totalEarnedThisMonth += entry.amount;
       } else {
