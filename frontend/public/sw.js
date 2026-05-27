@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gigfinance-v6';
+const CACHE_NAME = 'gigfinance-v7';
 const urlsToCache = [
   '/',
   '/index.html',
