@@ -1,28 +1,25 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/index.js';
-
-const AuthContext = createContext(null);
+import { AuthContext } from './auth-context.js';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('gf_token'));
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('gf_token')));
 
   useEffect(() => {
-    if (token) {
-      api.getMe()
-        .then((res) => {
-          setUser(res.data);
-          document.documentElement.setAttribute('data-theme', res.data.theme || 'light');
-        })
-        .catch(() => {
-          localStorage.removeItem('gf_token');
-          setToken(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    if (!token) return;
+
+    api.getMe()
+      .then((res) => {
+        setUser(res.data);
+        document.documentElement.setAttribute('data-theme', res.data.theme || 'light');
+      })
+      .catch(() => {
+        localStorage.removeItem('gf_token');
+        setToken(null);
+      })
+      .finally(() => setLoading(false));
   }, [token]);
 
   const login = useCallback(async (email, password) => {
@@ -60,5 +57,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);

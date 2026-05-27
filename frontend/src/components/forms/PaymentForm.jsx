@@ -11,6 +11,7 @@ export const PaymentForm = ({ workEntry, onSubmit, onCancel }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   const remainingAmount = workEntry ? workEntry.amount - (workEntry.amountPaid || 0) : 0;
   const amountMismatch = formData.amountPaid && parseFloat(formData.amountPaid) !== remainingAmount;
@@ -39,8 +40,9 @@ export const PaymentForm = ({ workEntry, onSubmit, onCancel }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -48,11 +50,16 @@ export const PaymentForm = ({ workEntry, onSubmit, onCancel }) => {
     }
 
     const totalAmountPaid = (workEntry.amountPaid || 0) + parseFloat(formData.amountPaid);
-    onSubmit({
-      amountPaid: totalAmountPaid,
-      datePaid: formData.datePaid,
-      status: totalAmountPaid >= workEntry.amount ? 'Paid' : 'Partially Paid'
-    });
+    setSubmitting(true);
+    try {
+      await onSubmit({
+        amountPaid: totalAmountPaid,
+        datePaid: formData.datePaid,
+        status: totalAmountPaid >= workEntry.amount ? 'Paid' : 'Partially Paid'
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -134,10 +141,10 @@ export const PaymentForm = ({ workEntry, onSubmit, onCancel }) => {
       </div>
 
       <div className="form-actions">
-        <Button type="submit" variant="primary">
-          Record Payment
+        <Button type="submit" variant="primary" loading={submitting}>
+          {submitting ? 'Recording...' : 'Record Payment'}
         </Button>
-        <Button type="button" variant="secondary" onClick={onCancel}>
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
           Cancel
         </Button>
       </div>

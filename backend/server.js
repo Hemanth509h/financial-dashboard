@@ -46,9 +46,12 @@ async function connectDatabase() {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('MONGODB_URI must be set in production.');
     }
+
     console.log('MONGODB_URI not set, starting in-memory MongoDB for development...');
     const { MongoMemoryServer } = await import('mongodb-memory-server');
-    const mongod = await MongoMemoryServer.create();
+    const mongod = await MongoMemoryServer.create({
+      binary: { version: '7.0.5' },
+    });
     uri = mongod.getUri();
     console.log('In-memory MongoDB started at', uri);
   }

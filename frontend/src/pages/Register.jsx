@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import './Auth.css';
 
 export const Register = () => {
@@ -94,7 +94,8 @@ export const Register = () => {
             />
           </div>
           <button className="auth-btn" type="submit" disabled={loading}>
-            {loading ? 'Creating account…' : 'Create account'}
+            {loading && <span className="auth-spinner" aria-hidden="true" />}
+            <span>{loading ? 'Creating account...' : 'Create account'}</span>
           </button>
         </form>
 

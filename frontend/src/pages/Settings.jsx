@@ -1,20 +1,28 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Target, User, Moon, Save, Download, Upload, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../api/index.js';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
+
+const serverFields = new Set(['_id', '__v', 'createdAt', 'updatedAt', 'userId']);
+const repaymentServerFields = new Set(['_id', '__v', 'createdAt', 'updatedAt', 'loanId']);
+
+const stripFields = (record, fields) =>
+  Object.fromEntries(Object.entries(record).filter(([key]) => !fields.has(key)));
+
+const getInitialSettings = (user) => ({
+  name: user?.name || '',
+  currency: user?.currency || 'INR',
+  monthlyGoal: user?.monthlyGoal || 50000,
+  theme: user?.theme || 'light',
+});
 
 export const Settings = () => {
   const { user, updateUser } = useAuth();
 
-  const [settings, setSettings] = useState({
-    name: '',
-    currency: 'INR',
-    monthlyGoal: 50000,
-    theme: 'light',
-  });
+  const [settings, setSettings] = useState(() => getInitialSettings(user));
 
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', password: '', confirm: '' });
   const [savingProfile, setSavingProfile] = useState(false);
@@ -22,18 +30,6 @@ export const Settings = () => {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    if (user) {
-      setSettings({
-        name: user.name || '',
-        currency: user.currency || 'INR',
-        monthlyGoal: user.monthlyGoal || 50000,
-        theme: user.theme || 'light',
-      });
-      document.documentElement.setAttribute('data-theme', user.theme || 'light');
-    }
-  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -142,7 +138,7 @@ export const Settings = () => {
 
       if (Array.isArray(data.workLogs)) {
         for (const entry of data.workLogs) {
-          const { _id, __v, createdAt, updatedAt, userId, ...fields } = entry;
+          const fields = stripFields(entry, serverFields);
           if (existingWorkLogs.some((e) => isSameWorkLog(e, fields))) { workLogsSkipped++; continue; }
           await api.createWorkLog(fields);
           workLogsImported++;
@@ -150,14 +146,16 @@ export const Settings = () => {
       }
       if (Array.isArray(data.loans)) {
         for (const loan of data.loans) {
-          const { _id, __v, createdAt, updatedAt, repayments, userId, ...loanFields } = loan;
+          const { repayments } = loan;
+          const loanFields = stripFields(loan, serverFields);
+          delete loanFields.repayments;
           if (existingLoans.some((l) => isSameLoan(l, loanFields))) { loansSkipped++; continue; }
           const res = await api.createLoan(loanFields);
           const newLoanId = res.data._id;
           loansImported++;
           if (Array.isArray(repayments)) {
             for (const repayment of repayments) {
-              const { _id, __v, createdAt, updatedAt, loanId, ...rFields } = repayment;
+              const rFields = stripFields(repayment, repaymentServerFields);
               await api.addLoanRepayment(newLoanId, rFields);
             }
           }
@@ -281,8 +279,8 @@ export const Settings = () => {
           </Card>
 
           <div className="mobile-card-actions" style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button onClick={handleSave} disabled={savingProfile} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: 'var(--space-sm) var(--space-xl)' }}>
-              <Save size={18} /> {savingProfile ? 'Saving…' : 'Save Settings'}
+            <Button onClick={handleSave} loading={savingProfile} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: 'var(--space-sm) var(--space-xl)' }}>
+              <Save size={18} /> {savingProfile ? 'Saving...' : 'Save Settings'}
             </Button>
           </div>
 
@@ -311,8 +309,8 @@ export const Settings = () => {
                 </div>
               ))}
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button onClick={handlePasswordSave} disabled={savingPassword} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Lock size={16} /> {savingPassword ? 'Updating…' : 'Update Password'}
+                <Button onClick={handlePasswordSave} loading={savingPassword} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Lock size={16} /> {savingPassword ? 'Updating...' : 'Update Password'}
                 </Button>
               </div>
             </div>
@@ -332,8 +330,8 @@ export const Settings = () => {
                   <div className="font-semibold">Download All Data</div>
                   <div className="body-sm text-muted">Export all your work logs and loans as a JSON file.</div>
                 </div>
-                <Button onClick={handleExport} disabled={exporting} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                  <Download size={16} /> {exporting ? 'Exporting…' : 'Export'}
+                <Button onClick={handleExport} loading={exporting} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                  <Download size={16} /> {exporting ? 'Exporting...' : 'Export'}
                 </Button>
               </div>
               <div style={{ borderTop: '1px solid var(--outline-variant)' }} />
@@ -343,8 +341,8 @@ export const Settings = () => {
                   <div className="body-sm text-muted">Import a previously exported JSON file to restore your data.</div>
                 </div>
                 <input ref={fileInputRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
-                <Button onClick={() => fileInputRef.current?.click()} disabled={importing} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                  <Upload size={16} /> {importing ? 'Importing…' : 'Import'}
+                <Button onClick={() => fileInputRef.current?.click()} loading={importing} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                  <Upload size={16} /> {importing ? 'Importing...' : 'Import'}
                 </Button>
               </div>
             </div>

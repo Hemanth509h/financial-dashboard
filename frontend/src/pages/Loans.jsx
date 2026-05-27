@@ -8,7 +8,7 @@ import { RepaymentForm } from '../components/forms/RepaymentForm';
 import { api } from '../api';
 import { Edit2, Trash2, Download, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export const Loans = () => {
   const { user } = useAuth();
@@ -79,6 +79,7 @@ export const Loans = () => {
 
   const fetchLoans = async () => {
     try {
+      setLoading(true);
       const { data } = await api.getLoans();
       setLoans(data);
     } catch (error) {
@@ -102,7 +103,7 @@ export const Loans = () => {
         await api.createLoan(formData);
         toast.success('New loan added successfully!');
       }
-      fetchLoans();
+      await fetchLoans();
       setShowLoanModal(false);
       setEditingLoan(null);
     } catch (error) {
@@ -120,7 +121,7 @@ export const Loans = () => {
         await api.addLoanRepayment(selectedLoanForRepayment._id, formData);
         toast.success('Repayment recorded successfully!');
       }
-      fetchLoans();
+      await fetchLoans();
       
       const { data } = await api.getLoanRepayments(selectedLoanForRepayment._id);
       setRepayments(prev => ({ ...prev, [selectedLoanForRepayment._id]: data }));
@@ -145,7 +146,7 @@ export const Loans = () => {
       try {
         await api.deleteLoanRepayment(loanId, repaymentId);
         toast.success('Repayment deleted successfully!');
-        fetchLoans();
+        await fetchLoans();
         const { data } = await api.getLoanRepayments(loanId);
         setRepayments(prev => ({ ...prev, [loanId]: data }));
       } catch (error) {
@@ -165,7 +166,7 @@ export const Loans = () => {
       try {
         await api.deleteLoan(id);
         toast.success('Loan deleted successfully!');
-        fetchLoans();
+        await fetchLoans();
       } catch (error) {
         console.error('Failed to delete loan', error);
         toast.error('Failed to delete loan.');

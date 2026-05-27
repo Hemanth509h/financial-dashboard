@@ -12,6 +12,7 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,17 +37,23 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    onSubmit({
-      ...formData,
-      totalAmount: parseFloat(formData.totalAmount)
-    });
+    setSubmitting(true);
+    try {
+      await onSubmit({
+        ...formData,
+        totalAmount: parseFloat(formData.totalAmount)
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -120,10 +127,10 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
       </div>
 
       <div className="form-actions">
-        <Button type="submit" variant="primary">
-          {initialData ? 'Update Loan' : 'Add Loan'}
+        <Button type="submit" variant="primary" loading={submitting}>
+          {submitting ? (initialData ? 'Updating...' : 'Adding...') : (initialData ? 'Update Loan' : 'Add Loan')}
         </Button>
-        <Button type="button" variant="secondary" onClick={onCancel}>
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
           Cancel
         </Button>
       </div>

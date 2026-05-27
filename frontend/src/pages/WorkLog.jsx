@@ -7,7 +7,7 @@ import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
 import { Edit2, Trash2, Download, Search, X, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export const WorkLog = () => {
   const { user } = useAuth();
@@ -53,6 +53,7 @@ export const WorkLog = () => {
 
   const fetchLogs = async () => {
     try {
+      setLoading(true);
       const { data } = await api.getWorkLogs();
       setLogs(data);
     } catch (error) {
@@ -96,7 +97,7 @@ export const WorkLog = () => {
         await api.createWorkLog(formData);
         toast.success('Work day logged successfully!');
       }
-      fetchLogs();
+      await fetchLogs();
       setShowModal(false);
       setEditingEntry(null);
     } catch (error) {
@@ -115,7 +116,7 @@ export const WorkLog = () => {
       try {
         await api.deleteWorkLog(id);
         toast.success('Work entry deleted successfully!');
-        fetchLogs();
+        await fetchLogs();
       } catch (error) {
         console.error('Failed to delete work entry', error);
         toast.error('Failed to delete work entry.');

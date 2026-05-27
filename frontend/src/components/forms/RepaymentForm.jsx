@@ -12,6 +12,7 @@ export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   const oldAmount = initialData ? parseFloat(initialData.amount) : 0;
   const remainingBalance = loan ? loan.totalAmount - (loan.amountPaid || 0) + oldAmount : 0;
@@ -40,14 +41,20 @@ export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    onSubmit(formData);
+    setSubmitting(true);
+    try {
+      await onSubmit(formData);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -145,10 +152,10 @@ export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
       </div>
 
       <div className="form-actions">
-        <Button type="submit" variant="primary">
-          Record Repayment
+        <Button type="submit" variant="primary" loading={submitting}>
+          {submitting ? 'Recording...' : 'Record Repayment'}
         </Button>
-        <Button type="button" variant="secondary" onClick={onCancel}>
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={submitting}>
           Cancel
         </Button>
       </div>

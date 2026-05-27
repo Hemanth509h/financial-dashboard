@@ -7,7 +7,7 @@ import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
 import { CreditCard, Edit2, Trash2, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export const Payments = () => {
   const { user } = useAuth();
@@ -74,7 +74,7 @@ export const Payments = () => {
     try {
       await api.updateWorkLog(selectedEntry._id, formData);
       toast.success('Payment recorded successfully!');
-      fetchLogs();
+      await fetchLogs();
       setShowPaymentModal(false);
       setSelectedEntry(null);
     } catch (error) {
@@ -106,7 +106,7 @@ export const Payments = () => {
       try {
         await api.deleteWorkLog(id);
         toast.success('Work entry deleted successfully!');
-        fetchLogs();
+        await fetchLogs();
       } catch (error) {
         console.error('Failed to delete work entry', error);
         toast.error('Failed to delete work entry.');
@@ -119,7 +119,7 @@ export const Payments = () => {
     try {
       await api.updateWorkLog(editingWorkEntry._id, formData);
       toast.success('Work entry updated successfully!');
-      fetchLogs();
+      await fetchLogs();
       setShowWorkEntryModal(false);
       setEditingWorkEntry(null);
     } catch (error) {

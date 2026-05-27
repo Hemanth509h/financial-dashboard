@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 import { SidebarLayout } from './layouts/SidebarLayout';
 import { Dashboard } from './pages/Dashboard';
 import { WorkLog } from './pages/WorkLog';
@@ -12,18 +13,19 @@ import { MonthlyHistory } from './pages/MonthlyHistory';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { PageLoading } from './components/ui/Loading';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--on-surface-variant)' }}>Loading…</div>;
+  if (loading) return <PageLoading />;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
 function GuestRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return <PageLoading />;
   if (user) return <Navigate to="/" replace />;
   return children;
 }

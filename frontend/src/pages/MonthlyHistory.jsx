@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Archive, CalendarDays, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { api } from '../api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export const MonthlyHistory = () => {
   const { user } = useAuth();
