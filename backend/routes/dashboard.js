@@ -2,8 +2,10 @@ import express from 'express';
 import WorkEntry from '../models/WorkEntry.js';
 import Loan from '../models/Loan.js';
 import Repayment from '../models/Repayment.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
+router.use(protect);
 
 const getMonthRange = (date = new Date()) => {
   const start = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -26,9 +28,11 @@ const getMonthLabel = (monthKey) => {
 
 router.get('/summary', async (req, res) => {
   try {
+    const uid = req.user._id;
     const { start: startOfMonth, end: startOfNextMonth } = getMonthRange();
 
     const paidEntries = await WorkEntry.find({
+      userId: uid,
       status: { $in: ['Paid', 'Partially Paid'] },
       $or: [
         { datePaid: { $gte: startOfMonth, $lt: startOfNextMonth } },
@@ -46,6 +50,7 @@ router.get('/summary', async (req, res) => {
     });
 
     const pendingEntries = await WorkEntry.find({
+      userId: uid,
       status: { $in: ['Unpaid', 'Partially Paid'] },
       date: { $gte: startOfMonth, $lt: startOfNextMonth }
     });
@@ -56,8 +61,7 @@ router.get('/summary', async (req, res) => {
       pendingPayments += (entry.amount - entry.amountPaid);
     });
 
-    // 3. Total Loan Balance and Health
-    const activeLoans = await Loan.find({ status: 'Active' });
+    const activeLoans = await Loan.find({ userId: uid, status: 'Active' });
     let totalLoanBalance = 0;
     let totalLoanGoal = 0;
     let totalLoanPaid = 0;
@@ -68,7 +72,10 @@ router.get('/summary', async (req, res) => {
       totalLoanPaid += loan.amountPaid;
     });
 
+    const userLoanIds = (await Loan.find({ userId: uid }).select('_id')).map(l => l._id);
+
     const recentRepaymentsThisMonth = await Repayment.find({
+      loanId: { $in: userLoanIds },
       date: { $gte: startOfMonth, $lt: startOfNextMonth }
     });
     
@@ -79,9 +86,8 @@ router.get('/summary', async (req, res) => {
       }
     });
 
-    // 4. Recent Activity (latest 5 work entries or repayments)
-    const recentWork = await WorkEntry.find({}).sort({ createdAt: -1 }).limit(5);
-    const recentRepayments = await Repayment.find({}).sort({ createdAt: -1 }).limit(5).populate('loanId');
+    const recentWork = await WorkEntry.find({ userId: uid }).sort({ createdAt: -1 }).limit(5);
+    const recentRepayments = await Repayment.find({ loanId: { $in: userLoanIds } }).sort({ createdAt: -1 }).limit(5).populate('loanId');
     
     // Merge and sort
     const allActivity = [
@@ -106,9 +112,11 @@ router.get('/summary', async (req, res) => {
 
 router.get('/monthly-history', async (req, res) => {
   try {
+    const uid = req.user._id;
+    const userLoanIds = (await Loan.find({ userId: uid }).select('_id')).map(l => l._id);
     const [entries, repayments] = await Promise.all([
-      WorkEntry.find({}).sort({ date: -1 }),
-      Repayment.find({}).sort({ date: -1 }).populate('loanId'),
+      WorkEntry.find({ userId: uid }).sort({ date: -1 }),
+      Repayment.find({ loanId: { $in: userLoanIds } }).sort({ date: -1 }).populate('loanId'),
     ]);
 
     const months = {};
@@ -156,10 +164,11 @@ router.get('/monthly-history', async (req, res) => {
 
 router.get('/analytics', async (req, res) => {
   try {
+    const uid = req.user._id;
+    const userLoanIds = (await Loan.find({ userId: uid }).select('_id')).map(l => l._id);
     const months = [];
     const now = new Date();
     
-    // Get last 6 months
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       months.push({
@@ -170,8 +179,8 @@ router.get('/analytics', async (req, res) => {
     }
 
     const analyticsData = await Promise.all(months.map(async (m) => {
-      // Earnings: amountPaid from WorkEntries paid in this month
       const entries = await WorkEntry.find({
+        userId: uid,
         status: { $in: ['Paid', 'Partially Paid'] },
         $or: [
           { datePaid: { $gte: m.start, $lte: m.end } },
@@ -181,13 +190,11 @@ router.get('/analytics', async (req, res) => {
 
       let earnings = 0;
       entries.forEach(entry => {
-        // If it was paid in this month, we count the amountPaid
-        // This is a simplification; in a real app we'd track individual payments
         earnings += (entry.amountPaid || 0);
       });
 
-      // Repayments: Repayments in this month
       const repayments = await Repayment.find({
+        loanId: { $in: userLoanIds },
         date: { $gte: m.start, $lte: m.end }
       });
       const repaymentTotal = repayments.reduce((sum, r) => {
@@ -212,7 +219,7 @@ router.get('/analytics', async (req, res) => {
 
 router.get('/clients', async (req, res) => {
   try {
-    const entries = await WorkEntry.find({});
+    const entries = await WorkEntry.find({ userId: req.user._id });
     const clientData = entries.reduce((acc, entry) => {
       const client = entry.client;
       if (!acc[client]) {

@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const loanSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   lenderName: {
     type: String,
     required: true,

@@ -1,19 +1,19 @@
 import express from 'express';
 import WorkEntry from '../models/WorkEntry.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
+router.use(protect);
 
-// Get all work entries
 router.get('/', async (req, res) => {
   try {
-    const entries = await WorkEntry.find({}).sort({ date: -1 });
+    const entries = await WorkEntry.find({ userId: req.user._id }).sort({ date: -1 });
     res.json(entries);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Create a new work entry
 router.post('/', async (req, res) => {
   const { date, client, amount, status, description } = req.body;
   try {
@@ -21,6 +21,7 @@ router.post('/', async (req, res) => {
     if (status === 'Paid') amountPaid = amount;
 
     const newEntry = new WorkEntry({
+      userId: req.user._id,
       date,
       client,
       amount,
@@ -36,13 +37,10 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Update a work entry (e.g., mark as paid)
 router.patch('/:id', async (req, res) => {
   try {
-    const entry = await WorkEntry.findById(req.params.id);
-    if (!entry) {
-      return res.status(404).json({ message: 'Entry not found' });
-    }
+    const entry = await WorkEntry.findOne({ _id: req.params.id, userId: req.user._id });
+    if (!entry) return res.status(404).json({ message: 'Entry not found' });
 
     const updateData = { ...req.body };
     if (updateData.status === 'Paid' && (!updateData.amountPaid || updateData.amountPaid === 0)) {
@@ -63,15 +61,10 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// Delete a work entry
 router.delete('/:id', async (req, res) => {
   try {
-    const entry = await WorkEntry.findById(req.params.id);
-    if (!entry) {
-      return res.status(404).json({ message: 'Entry not found' });
-    }
-
-    const deletedEntry = await WorkEntry.findByIdAndDelete(req.params.id);
+    const entry = await WorkEntry.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    if (!entry) return res.status(404).json({ message: 'Entry not found' });
     res.json({ message: 'Entry deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
