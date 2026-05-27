@@ -6,9 +6,14 @@ import { Button } from '../components/ui/Button';
 import { AnalyticsChart } from '../components/ui/AnalyticsChart';
 import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown } from 'lucide-react';
 import { api } from '../api';
+import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
 export const Dashboard = () => {
+  const { user } = useAuth();
+  const monthlyGoal = Number(user?.monthlyGoal) || 50000;
+  const currency = user?.currency || 'INR';
+
   const [summary, setSummary] = useState({
     totalEarnedThisMonth: 0,
     pendingPayments: 0,
@@ -22,7 +27,6 @@ export const Dashboard = () => {
 
   const [analytics, setAnalytics] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [monthlyGoal, setMonthlyGoal] = useState(50000); // Default goal
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,10 +37,6 @@ export const Dashboard = () => {
         ]);
         setSummary(summaryRes.data);
         setAnalytics(analyticsRes.data);
-        
-        // Get goal from localStorage if it exists
-        const savedGoal = localStorage.getItem('monthlyGoal');
-        if (savedGoal) setMonthlyGoal(Number(savedGoal));
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
       } finally {
@@ -47,7 +47,8 @@ export const Dashboard = () => {
   }, []);
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+    const locale = currency === 'INR' ? 'en-IN' : currency === 'USD' ? 'en-US' : 'en-EU';
+    return new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
   };
 
   const getMonthName = (date = new Date()) => {

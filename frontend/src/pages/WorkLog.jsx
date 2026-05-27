@@ -7,8 +7,11 @@ import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
 import { Edit2, Trash2, Download, Search, X, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 export const WorkLog = () => {
+  const { user } = useAuth();
+  const currency = user?.currency || 'INR';
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -126,7 +129,8 @@ export const WorkLog = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+    const locale = currency === 'INR' ? 'en-IN' : currency === 'USD' ? 'en-US' : 'en-EU';
+    return new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
   };
 
   const getSelectedMonthName = () => {

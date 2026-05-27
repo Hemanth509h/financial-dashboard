@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { Archive, CalendarDays, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { api } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export const MonthlyHistory = () => {
+  const { user } = useAuth();
+  const currency = user?.currency || 'INR';
   const [months, setMonths] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,12 +25,14 @@ export const MonthlyHistory = () => {
     fetchHistory();
   }, []);
 
-  const formatCurrency = (amount) =>
-    new Intl.NumberFormat('en-IN', {
+  const formatCurrency = (amount) => {
+    const locale = currency === 'INR' ? 'en-IN' : currency === 'USD' ? 'en-US' : 'en-EU';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency: 'INR',
+      currency,
       maximumFractionDigits: 0,
     }).format(Number(amount || 0));
+  };
 
   return (
     <div className="page">
