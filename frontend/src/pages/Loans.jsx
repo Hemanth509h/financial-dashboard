@@ -298,30 +298,35 @@ export const Loans = () => {
                 </div>
                 <h2 style={{marginBottom: 'var(--space-lg)', fontSize: '20px'}}>{loan.lenderName}</h2>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-sm)', marginBottom: 'var(--space-lg)' }}>
-                  <div>
-                    <div className="text-muted body-sm" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Principal</div>
-                    <div className="font-semibold" style={{ fontSize: '15px' }}>{formatCurrency(loan.principalAmount || loan.totalAmount)}</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div className="text-muted body-sm" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Total (+ Interest)</div>
-                    <div className="font-semibold" style={{ fontSize: '15px', color: loan.totalAmount > (loan.principalAmount || loan.totalAmount) ? 'var(--error)' : 'inherit' }}>
-                      {formatCurrency(loan.totalAmount)}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div className="text-muted body-sm" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Remaining</div>
-                    <div className="font-semibold" style={{ fontSize: '15px', color: loan.status === 'Repaid' ? 'var(--success)' : 'var(--error)' }}>
-                      {formatCurrency(remaining)}
-                    </div>
-                  </div>
-                </div>
-                {loan.principalAmount && loan.totalAmount > loan.principalAmount && (
-                  <div style={{ marginBottom: 'var(--space-md)', fontSize: '12px', color: 'var(--error)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <TrendingUp size={12} />
-                    Interest added: {formatCurrency(loan.totalAmount - loan.principalAmount)}
-                  </div>
-                )}
+                {(() => {
+                  const principal = loan.principalAmount || loan.totalAmount;
+                  const interestAdded = loan.totalAmount - principal;
+                  const hasInterest = interestAdded > 0;
+                  return (
+                    <>
+                      <div className="flex justify-between" style={{ marginBottom: hasInterest ? 'var(--space-sm)' : 'var(--space-lg)' }}>
+                        <div>
+                          <div className="text-muted body-sm">Principal</div>
+                          <div className="font-semibold" style={{ fontSize: '20px' }}>{formatCurrency(principal)}</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div className="text-muted body-sm">Remaining</div>
+                          <div className="font-semibold" style={{ fontSize: '20px', color: loan.status === 'Repaid' ? 'var(--success)' : 'inherit' }}>
+                            {formatCurrency(remaining)}
+                          </div>
+                        </div>
+                      </div>
+                      {hasInterest && (
+                        <div style={{ marginBottom: 'var(--space-lg)', padding: '6px 10px', backgroundColor: 'rgba(239,68,68,0.07)', borderRadius: 'var(--radius-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                          <span style={{ color: 'var(--error)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <TrendingUp size={12} /> Interest added: {formatCurrency(interestAdded)}
+                          </span>
+                          <span className="text-muted">Total owed: <strong>{formatCurrency(loan.totalAmount)}</strong></span>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 <div style={{marginBottom: 'var(--space-lg)'}}>
                   <div className="flex justify-between body-sm" style={{marginBottom: 'var(--space-xs)'}}>
