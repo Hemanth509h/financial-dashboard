@@ -67,8 +67,37 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
     }
   };
 
+  const isEditing = !!initialData;
+  const principalAmount = initialData?.principalAmount || initialData?.totalAmount;
+  const totalWithInterest = initialData?.totalAmount;
+  const hasInterest = isEditing && totalWithInterest > principalAmount;
+
+  const formatAmount = (amount) => {
+    if (!amount && amount !== 0) return '—';
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="form">
+
+      {isEditing && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: 'var(--space-lg)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--outline-variant)' }}>
+          <div style={{ padding: '10px 14px', backgroundColor: 'var(--surface-container-low)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary, #888)', marginBottom: '4px' }}>Loan Amount</div>
+            <div style={{ fontSize: '16px', fontWeight: 700 }}>{formatAmount(principalAmount)}</div>
+          </div>
+          <div style={{ padding: '10px 14px', backgroundColor: hasInterest ? 'rgba(239,68,68,0.07)' : 'var(--surface-container-low)', borderLeft: '1px solid var(--outline-variant)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: hasInterest ? 'var(--error)' : 'var(--text-secondary, #888)', marginBottom: '4px' }}>Total w/ Interest</div>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: hasInterest ? 'var(--error)' : 'var(--text-secondary, #aaa)' }}>
+              {hasInterest ? formatAmount(totalWithInterest) : '—'}
+            </div>
+            {hasInterest && (
+              <div style={{ fontSize: '10px', color: 'var(--error)', opacity: 0.8, marginTop: '2px' }}>+{formatAmount(totalWithInterest - principalAmount)} interest</div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="form-group">
         <label htmlFor="lenderName">Lender Name *</label>
         <input
