@@ -639,25 +639,30 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 }
 
 .filter-chip {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.1rem;
   border-radius: var(--radius-full);
-  border: 1px solid var(--outline-variant);
+  border: 1.5px solid var(--outline-variant);
   background: var(--surface-container-low);
   color: var(--on-surface-variant);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.18s ease;
+  white-space: nowrap;
 }
 
 .filter-chip:hover {
-  background: var(--surface-container-high);
+  background: var(--primary-container);
+  border-color: var(--primary);
+  color: var(--on-primary-container);
 }
 
 .filter-chip.active {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+  font-weight: 600;
 }
 
 .form-input {
@@ -730,6 +735,62 @@ select.form-input {
   font-size: 24px;
   font-weight: bold;
   margin-top: 4px;
+  letter-spacing: -0.02em;
+}
+
+/* Page header refresh button */
+.page-refresh-btn {
+  background: none;
+  border: 1.5px solid var(--outline-variant);
+  border-radius: 10px;
+  padding: 8px 11px;
+  cursor: pointer;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+.page-refresh-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-container);
+}
+.page-refresh-btn:disabled {
+  cursor: not-allowed;
+  color: var(--primary);
+}
+
+/* Stat card with top accent strip */
+.stat-card-top {
+  position: relative;
+  overflow: hidden;
+}
+.stat-card-top::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--card-accent-from, var(--primary)), var(--card-accent-to, #34d399));
+  border-radius: 3px 3px 0 0;
+}
+
+/* Activity item hover */
+.activity-item {
+  transition: background 0.15s;
+  border-radius: var(--radius-md);
+  padding: 4px 2px;
+}
+.activity-item:hover {
+  background: var(--surface-container-low);
+}
+
+/* History log item hover */
+.work-log-item {
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.work-log-item:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  transform: translateY(-1px);
 }
 
 .mobile-header-actions {

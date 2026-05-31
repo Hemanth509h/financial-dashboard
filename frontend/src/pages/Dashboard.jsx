@@ -83,15 +83,15 @@ export const Dashboard = () => {
     <div className="dashboard-page">
       <header className="page-header mobile-stack" style={{marginBottom: 'var(--space-xl)', gap: 'var(--space-md)'}}>
         <div>
-          <h1>Worker Dashboard</h1>
-          <p className="text-muted">Welcome back. Here is your financial summary.</p>
+          <h1 style={{ marginBottom: '4px' }}>Worker Dashboard</h1>
+          <p className="text-muted">Welcome back — here's your financial snapshot.</p>
         </div>
         <div className="flex gap-sm" style={{ alignItems: 'center' }}>
-          <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" style={{ background: 'none', border: '1.5px solid var(--outline-variant)', borderRadius: '8px', padding: '7px 10px', cursor: refreshing ? 'not-allowed' : 'pointer', color: refreshing ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', transition: 'color 0.2s, border-color 0.2s' }}>
+          <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" className="page-refresh-btn">
             <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
           </button>
           <Button variant="secondary" onClick={() => window.location.href = '/work-log'}>Log Work</Button>
-          <Button variant="secondary" onClick={() => window.location.href = '/loans'}>Record Repayment</Button>
+          <Button onClick={() => window.location.href = '/loans'}>Record Repayment</Button>
         </div>
       </header>
 
@@ -108,139 +108,149 @@ export const Dashboard = () => {
       ) : (
         <>
       <div className="dashboard-metrics">
-        <MetricTile 
-          title={`EARNED IN ${getMonthName()}`}
+        <MetricTile
+          title={`Earned in ${getMonthName()}`}
           value={formatCurrency(summary.totalEarnedThisMonth)}
           subtext={`Goal: ${formatCurrency(monthlyGoal)}`}
           subtextColor="primary"
           icon={TrendingUp}
-          iconBgColor="#d1fae5"
+          gradientFrom="#134e4a"
+          gradientTo="#10b981"
         />
-        <MetricTile 
-          title="PENDING PAYMENTS"
+        <MetricTile
+          title="Pending Payments"
           value={formatCurrency(summary.pendingPayments)}
           subtext={`${summary.pendingCount} entries awaiting payment`}
           subtextColor="pending"
           icon={ClipboardList}
-          iconBgColor="#fef3c7"
+          gradientFrom="#78350f"
+          gradientTo="#f59e0b"
         />
-        <MetricTile 
-          title="LOAN BALANCE"
+        <MetricTile
+          title="Loan Balance"
           value={formatCurrency(summary.totalLoanBalance)}
           subtext={`Repaid ${Math.round(loanProgress)}% of total`}
           subtextColor={summary.totalLoanBalance === 0 ? 'success' : 'error'}
           icon={WalletCards}
-          iconBgColor="#ffe4e6"
+          gradientFrom="#7f1d1d"
+          gradientTo="#ef4444"
         />
-        <MetricTile 
-          title="REPAID THIS MONTH"
+        <MetricTile
+          title="Repaid This Month"
           value={formatCurrency(summary.totalRepaidThisMonth)}
           subtext={summary.totalRepaidThisMonth > 0 ? 'Great progress!' : 'No repayments yet'}
           subtextColor="primary"
           icon={TrendingDown}
-          iconBgColor="#f3e8ff"
+          gradientFrom="#4c1d95"
+          gradientTo="#8b5cf6"
         />
       </div>
 
       <div className="dashboard-grid">
-        <Card className="analytics-section">
-          <div className="section-header">
-            <h3>Earnings vs. Repayments</h3>
-            <div className="flex items-center gap-sm">
-               <div className="flex items-center gap-xs body-sm text-muted">
-                 <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--primary)' }}></span> Earnings
-               </div>
-               <div className="flex items-center gap-xs body-sm text-muted">
-                 <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--error)' }}></span> Repayments
-               </div>
-            </div>
-          </div>
-          <AnalyticsChart data={analytics} />
-        </Card>
 
-        <Card className="goal-progress-card">
-          <div className="section-header">
-            <h3>Monthly Goal</h3>
-            <Target size={20} className="text-primary" />
+        {/* ── Analytics Card ── */}
+        <div className="analytics-section" style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #4f46e5 100%)', padding: '18px 20px 20px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: -30, top: -30, width: 130, height: 130, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ position: 'absolute', right: 40, top: 55, width: 70, height: 70, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                  <TrendingUp size={18} color="#fff" />
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>Earnings vs. Repayments</div>
+              </div>
+              <div style={{ display: 'flex', gap: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#34d399', display: 'inline-block' }}></span>
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>Earnings</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171', display: 'inline-block' }}></span>
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>Repayments</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="goal-content" style={{ textAlign: 'center', padding: 'var(--space-md) 0' }}>
-            <div className="goal-value font-semibold" style={{ fontSize: '32px', marginBottom: 'var(--space-xs)', color: 'var(--on-surface)' }}>
-              {Math.round(goalProgress)}%
-            </div>
-            <div className="text-muted body-sm" style={{ marginBottom: 'var(--space-lg)' }}>
-              {formatCurrency(summary.totalEarnedThisMonth)} / {formatCurrency(monthlyGoal)}
-            </div>
-            
-            <div style={{ width: '100%', height: '12px', backgroundColor: 'var(--surface-container-low)', borderRadius: '6px', overflow: 'hidden', marginBottom: 'var(--space-lg)' }}>
-              <div 
-                style={{ 
-                  width: `${goalProgress}%`, 
-                  height: '100%', 
-                  backgroundColor: 'var(--primary)', 
-                  transition: 'width 1s ease-out',
-                  borderRadius: '6px'
-                }}
-              ></div>
-            </div>
-            
-            <p className="body-sm text-muted">
-              {goalProgress >= 100 
-                ? "Congratulations! You've hit your goal! 🎉" 
-                : `You need ${formatCurrency(monthlyGoal - summary.totalEarnedThisMonth)} more to reach your target.`}
-            </p>
+          <div style={{ padding: '16px 20px 20px' }}>
+            <AnalyticsChart data={analytics} />
           </div>
-        </Card>
+        </div>
 
-        <Card className="recent-activity">
-          <div className="section-header">
-            <h3>Recent Activity</h3>
-            <a href="/work-log" className="text-primary body-sm font-semibold flex items-center gap-xs">
-              View All <ArrowRight size={14} />
-            </a>
+        {/* ── Monthly Goal Card ── */}
+        <div className="goal-progress-card" style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #134e4a 0%, #10b981 100%)', padding: '18px 20px 42px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: -25, top: -25, width: 110, height: 110, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+              <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                <Target size={18} color="#fff" />
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>Monthly Goal</div>
+            </div>
           </div>
-          <div className="activity-list">
+          <div style={{ padding: '0 16px', marginTop: '-28px', position: 'relative', zIndex: 1 }}>
+            <div style={{ background: 'var(--surface-bright)', borderRadius: '14px', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', padding: '16px 20px', border: '1px solid var(--outline-variant)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontSize: '30px', fontWeight: 900, color: 'var(--on-surface)', letterSpacing: '-0.04em', lineHeight: 1 }}>{Math.round(goalProgress)}%</div>
+                  <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)', marginTop: 4 }}>{formatCurrency(summary.totalEarnedThisMonth)} of {formatCurrency(monthlyGoal)}</div>
+                </div>
+              </div>
+              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--surface-container-high)', borderRadius: '99px', overflow: 'hidden', marginBottom: 10 }}>
+                <div style={{ width: `${goalProgress}%`, height: '100%', background: goalProgress >= 100 ? 'linear-gradient(90deg, #059669, #10b981)' : 'linear-gradient(90deg, var(--primary), #34d399)', transition: 'width 1s ease-out', borderRadius: '99px', boxShadow: '0 0 8px rgba(16,185,129,0.35)' }} />
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--on-surface-variant)', margin: 0 }}>
+                {goalProgress >= 100 ? "🎉 Goal reached this month!" : `${formatCurrency(monthlyGoal - summary.totalEarnedThisMonth)} more to hit your target`}
+              </p>
+            </div>
+          </div>
+          <div style={{ height: 16 }} />
+        </div>
+
+        {/* ── Recent Activity Card ── */}
+        <div className="recent-activity" style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #0c4a6e 0%, #0284c7 100%)', padding: '18px 20px 20px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: -25, top: -25, width: 110, height: 110, borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                  <History size={18} color="#fff" />
+                </div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>Recent Activity</div>
+              </div>
+              <a href="/work-log" style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
+                View All <ArrowRight size={12} />
+              </a>
+            </div>
+          </div>
+          <div style={{ padding: '4px 0 0' }}>
             {summary.recentActivity && summary.recentActivity.length > 0 ? (
               summary.recentActivity.map((activity, index) => {
-                if (activity.type === 'work') {
-                  return (
-                    <div className="activity-item" key={index}>
-                      <div className="flex items-center">
-                        <div className="activity-icon"><CheckCircle2 size={20} /></div>
-                        <div className="activity-details">
-                          <div className="font-semibold">Log Work: {activity.data.client}</div>
-                          <div className="body-sm text-muted">{formatDate(activity.date)}</div>
-                        </div>
+                const isWork = activity.type === 'work';
+                return (
+                  <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: index < summary.recentActivity.length - 1 ? '1px solid var(--outline-variant)' : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 38, height: 38, borderRadius: '10px', background: isWork ? 'linear-gradient(135deg, #134e4a, #10b981)' : 'linear-gradient(135deg, #7f1d1d, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {isWork ? <CheckCircle2 size={18} color="#fff" /> : <History size={18} color="#fff" />}
                       </div>
-                      <div className="activity-amount">
-                        <div className="font-semibold text-primary">+ {formatCurrency(activity.data.amount)}</div>
-                        <Badge status={activity.data.status} />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--on-surface)' }}>{isWork ? activity.data.client : activity.data.loanId?.lenderName || 'Loan'}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>{isWork ? 'Work entry' : 'Repayment'} · {formatDate(activity.date)}</div>
                       </div>
                     </div>
-                  );
-                } else if (activity.type === 'repayment') {
-                  return (
-                    <div className="activity-item" key={index}>
-                      <div className="flex items-center">
-                        <div className="activity-icon" style={{backgroundColor: '#ffe4e6', color: 'var(--error)'}}><History size={20} /></div>
-                        <div className="activity-details">
-                          <div className="font-semibold">Repayment: {activity.data.loanId?.lenderName || 'Loan'}</div>
-                          <div className="body-sm text-muted">{formatDate(activity.date)}</div>
-                        </div>
-                      </div>
-                      <div className="activity-amount">
-                        <div className="font-semibold text-error">- {formatCurrency(activity.data.amount)}</div>
-                        <Badge status={activity.data.status || 'Success'} className="badge-default" />
-                      </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 700, fontSize: '14px', color: isWork ? 'var(--primary)' : 'var(--error)' }}>{isWork ? '+' : '-'} {formatCurrency(activity.data.amount)}</div>
+                      <Badge status={isWork ? activity.data.status : (activity.data.status || 'Success')} />
                     </div>
-                  );
-                }
-                return null;
+                  </div>
+                );
               })
             ) : (
-              <p className="text-muted" style={{padding: 'var(--space-md) 0'}}>No recent activity.</p>
+              <p className="text-muted" style={{ padding: 'var(--space-lg)', textAlign: 'center' }}>No recent activity yet.</p>
             )}
           </div>
-        </Card>
+        </div>
+
       </div>
       </>
       )}

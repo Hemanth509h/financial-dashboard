@@ -199,22 +199,67 @@ export const WorkLog = () => {
       <div className="content">
         {/* Monthly Stats */}
         <div className="responsive-grid responsive-grid-3" style={{ marginBottom: 'var(--space-xl)' }}>
-          <Card style={{ textAlign: 'center', padding: 'var(--space-lg)' }}>
-            <div className="body-sm text-muted">Days Worked in {getSelectedMonthName()}</div>
-            <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--primary)' }}>{monthlyStats.totalDays}</div>
-          </Card>
-          <Card style={{ textAlign: 'center', padding: 'var(--space-lg)' }}>
-            <div className="body-sm text-muted">Expected Earnings in {getSelectedMonthName()}</div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary)' }}>
-              {formatCurrency(monthlyStats.totalEarnings)}
+
+          {/* Days Worked */}
+          <div style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }}>
+            <div style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #3b82f6 100%)', padding: '14px 16px 36px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', right: -20, top: -20, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+                <div style={{ width: 34, height: 34, borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                  <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Days Worked</div>
+              </div>
             </div>
-          </Card>
-          <Card style={{ textAlign: 'center', padding: 'var(--space-lg)' }}>
-            <div className="body-sm text-muted">Already Earned in {getSelectedMonthName()}</div>
-            <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--success)' }}>
-              {formatCurrency(monthlyStats.totalEarned)}
+            <div style={{ padding: '0 12px', marginTop: '-24px', position: 'relative', zIndex: 1 }}>
+              <div style={{ background: 'var(--surface-bright)', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.10)', padding: '12px 16px', border: '1px solid var(--outline-variant)' }}>
+                <div style={{ fontSize: '34px', fontWeight: 900, color: '#3b82f6', letterSpacing: '-0.04em', lineHeight: 1 }}>{monthlyStats.totalDays}</div>
+                <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)', marginTop: 4 }}>{getSelectedMonthName()}</div>
+              </div>
             </div>
-          </Card>
+            <div style={{ height: 12 }} />
+          </div>
+
+          {/* Expected Earnings */}
+          <div style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }}>
+            <div style={{ background: 'linear-gradient(135deg, #78350f 0%, #f59e0b 100%)', padding: '14px 16px 36px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', right: -20, top: -20, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+                <div style={{ width: 34, height: 34, borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                  <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Expected</div>
+              </div>
+            </div>
+            <div style={{ padding: '0 12px', marginTop: '-24px', position: 'relative', zIndex: 1 }}>
+              <div style={{ background: 'var(--surface-bright)', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.10)', padding: '12px 16px', border: '1px solid var(--outline-variant)' }}>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: '#f59e0b', letterSpacing: '-0.03em', lineHeight: 1 }}>{formatCurrency(monthlyStats.totalEarnings)}</div>
+                <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)', marginTop: 4 }}>Total billed</div>
+              </div>
+            </div>
+            <div style={{ height: 12 }} />
+          </div>
+
+          {/* Already Collected */}
+          <div style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }}>
+            <div style={{ background: 'linear-gradient(135deg, #134e4a 0%, #10b981 100%)', padding: '14px 16px 36px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', right: -20, top: -20, width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+                <div style={{ width: 34, height: 34, borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                  <svg width="16" height="16" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Collected</div>
+              </div>
+            </div>
+            <div style={{ padding: '0 12px', marginTop: '-24px', position: 'relative', zIndex: 1 }}>
+              <div style={{ background: 'var(--surface-bright)', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.10)', padding: '12px 16px', border: '1px solid var(--outline-variant)' }}>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: '#10b981', letterSpacing: '-0.03em', lineHeight: 1 }}>{formatCurrency(monthlyStats.totalEarned)}</div>
+                <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)', marginTop: 4 }}>Already received</div>
+              </div>
+            </div>
+            <div style={{ height: 12 }} />
+          </div>
+
         </div>
 
         {/* Filters & Search */}
@@ -269,10 +314,18 @@ export const WorkLog = () => {
         </div>
 
         {/* Activity Log */}
-        <Card className="activity-log-card">
-          <div className="section-header" style={{ paddingBottom: 'var(--space-md)', borderBottom: '1px solid var(--outline-variant)' }}>
-            <h3>Activity Log</h3>
+        <div style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }} className="activity-log-card">
+          <div style={{ background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', padding: '18px 20px 20px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: -25, top: -25, width: 110, height: 110, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+            <div style={{ position: 'absolute', right: 50, top: 45, width: 55, height: 55, borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+              <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                <svg width="18" height="18" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>Activity Log</div>
+            </div>
           </div>
+          <div style={{ padding: 'var(--space-md) var(--space-md) 0' }}>
           <div className="activity-list" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', padding: 'var(--space-md) 0' }}>
             {loading ? (
               <div className="skeleton skeleton-text" style={{ height: '64px', margin: 'var(--space-md)' }}></div>
@@ -305,9 +358,9 @@ export const WorkLog = () => {
                         {weekLogs.map((log) => (
                           <div key={log._id} className="work-log-item" style={{ padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
                             <div className="responsive-grid work-log-entry-grid" style={{ gridTemplateColumns: 'auto 1fr auto', gap: 'var(--space-md)', alignItems: 'center' }}>
-                              <div style={{ width: '48px', height: '48px', backgroundColor: 'white', color: 'var(--primary)', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, border: '1px solid var(--outline-variant)' }}>
-                                <span style={{ fontSize: '10px', textTransform: 'uppercase' }}>{new Date(log.date).toLocaleString('default', { month: 'short' })}</span>
-                                <span>{new Date(log.date).getDate()}</span>
+                              <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, var(--primary), #34d399)', color: 'white', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, boxShadow: '0 2px 8px rgba(16,185,129,0.25)' }}>
+                                <span style={{ fontSize: '9px', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.05em' }}>{new Date(log.date).toLocaleString('default', { month: 'short' })}</span>
+                                <span style={{ fontSize: '18px', lineHeight: 1.1 }}>{new Date(log.date).getDate()}</span>
                               </div>
 
                               <div style={{ overflow: 'hidden' }}>
@@ -347,7 +400,8 @@ export const WorkLog = () => {
               ))
             )}
           </div>
-        </Card>
+          </div>
+        </div>
       </div>
 
       <Modal isOpen={showModal} title={editingEntry ? 'Edit Work Entry' : 'Log a Work Day'} onClose={handleCloseModal}>

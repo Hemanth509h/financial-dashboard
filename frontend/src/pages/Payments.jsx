@@ -190,28 +190,77 @@ export const Payments = () => {
     <div className="page" style={{ paddingBottom: '80px' }}>
       <header className="page-header" style={{ marginBottom: 'var(--space-lg)' }}>
         <div>
-          <h1 style={{ fontSize: '28px' }}>Payments Ledger</h1>
+          <h1 style={{ marginBottom: '4px' }}>Payments Ledger</h1>
           <p className="text-muted">Track your earnings and pending collections.</p>
         </div>
-        <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" style={{ background: 'none', border: '1.5px solid var(--outline-variant)', borderRadius: '8px', padding: '7px 10px', cursor: refreshing ? 'not-allowed' : 'pointer', color: refreshing ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}>
+        <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" className="page-refresh-btn">
           <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
         </button>
       </header>
 
-      {/* Metrics Banner */}
+      {/* Metrics Banner — loan-card style */}
       <div className="payments-summary-grid">
-        <div className="payments-summary-card warning">
-          <div className="summary-label">This Month Pending</div>
-          <div className="summary-value">{formatCurrency(totalPending)}</div>
+
+        {/* Pending */}
+        <div style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #78350f 0%, #f59e0b 100%)', padding: '14px 16px 36px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: -18, top: -18, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '9px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                <svg width="15" height="15" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Pending</div>
+            </div>
+          </div>
+          <div style={{ padding: '0 12px', marginTop: '-24px', position: 'relative', zIndex: 1 }}>
+            <div style={{ background: 'var(--surface-bright)', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.10)', padding: '12px 16px', border: '1px solid var(--outline-variant)' }}>
+              <div style={{ fontSize: '22px', fontWeight: 900, color: '#f59e0b', letterSpacing: '-0.03em', lineHeight: 1 }}>{formatCurrency(totalPending)}</div>
+              <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)', marginTop: 4 }}>This month</div>
+            </div>
+          </div>
+          <div style={{ height: 12 }} />
         </div>
-        <div className="payments-summary-card primary">
-          <div className="summary-label">This Month Collected</div>
-          <div className="summary-value">{formatCurrency(totalReceived)}</div>
+
+        {/* Collected */}
+        <div style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #134e4a 0%, #10b981 100%)', padding: '14px 16px 36px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: -18, top: -18, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '9px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                <svg width="15" height="15" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Collected</div>
+            </div>
+          </div>
+          <div style={{ padding: '0 12px', marginTop: '-24px', position: 'relative', zIndex: 1 }}>
+            <div style={{ background: 'var(--surface-bright)', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.10)', padding: '12px 16px', border: '1px solid var(--outline-variant)' }}>
+              <div style={{ fontSize: '22px', fontWeight: 900, color: '#10b981', letterSpacing: '-0.03em', lineHeight: 1 }}>{formatCurrency(totalReceived)}</div>
+              <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)', marginTop: 4 }}>This month</div>
+            </div>
+          </div>
+          <div style={{ height: 12 }} />
         </div>
-        <div className="payments-summary-card neutral">
-          <div className="summary-label">Success Rate</div>
-          <div className="summary-value">{Math.round(collectionRate)}%</div>
+
+        {/* Success Rate */}
+        <div style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #3b82f6 100%)', padding: '14px 16px 36px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: -18, top: -18, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '9px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                <svg width="15" height="15" fill="none" stroke="#fff" strokeWidth="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Success Rate</div>
+            </div>
+          </div>
+          <div style={{ padding: '0 12px', marginTop: '-24px', position: 'relative', zIndex: 1 }}>
+            <div style={{ background: 'var(--surface-bright)', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.10)', padding: '12px 16px', border: '1px solid var(--outline-variant)' }}>
+              <div style={{ fontSize: '22px', fontWeight: 900, color: collectionRate >= 80 ? '#10b981' : collectionRate >= 50 ? '#f59e0b' : '#ef4444', letterSpacing: '-0.03em', lineHeight: 1 }}>{Math.round(collectionRate)}%</div>
+              <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)', marginTop: 4 }}>Collection rate</div>
+            </div>
+          </div>
+          <div style={{ height: 12 }} />
         </div>
+
       </div>
 
       {/* Tab Navigation */}

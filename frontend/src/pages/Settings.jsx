@@ -187,10 +187,10 @@ export const Settings = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
 
           {/* Profile Section */}
-          <Card>
+          <Card className="stat-card-top" style={{ '--card-accent-from': '#6366f1', '--card-accent-to': '#8b5cf6' }}>
             <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
-              <div style={{ backgroundColor: 'var(--primary-container)', color: 'var(--primary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
-                <User size={24} />
+              <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: 'white', padding: '10px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
+                <User size={22} />
               </div>
               <div>
                 <h3>Profile</h3>
@@ -228,12 +228,15 @@ export const Settings = () => {
           </Card>
 
           {/* Financial Goals Section */}
-          <Card>
+          <Card className="stat-card-top" style={{ '--card-accent-from': '#10b981', '--card-accent-to': '#34d399' }}>
             <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
-              <div style={{ backgroundColor: 'var(--primary-container)', color: 'var(--primary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
-                <Target size={24} />
+              <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, #10b981, #34d399)', color: 'white', padding: '10px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
+                <Target size={22} />
               </div>
-              <h3>Financial Goals</h3>
+              <div>
+                <h3>Financial Goals</h3>
+                <div className="body-sm text-muted">Set your monthly earnings target</div>
+              </div>
             </div>
             <div>
               <label className="body-sm font-semibold text-muted" style={{ display: 'block', marginBottom: 'var(--space-xs)' }}>Monthly Earnings Target</label>
@@ -253,12 +256,15 @@ export const Settings = () => {
           </Card>
 
           {/* Preferences */}
-          <Card>
+          <Card className="stat-card-top" style={{ '--card-accent-from': '#64748b', '--card-accent-to': '#94a3b8' }}>
             <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
-              <div style={{ backgroundColor: 'var(--surface-container-high)', color: 'var(--on-surface)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
-                <Moon size={24} />
+              <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, #334155, #64748b)', color: 'white', padding: '10px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(100,116,139,0.3)' }}>
+                <Moon size={22} />
               </div>
-              <h3>Preferences</h3>
+              <div>
+                <h3>Preferences</h3>
+                <div className="body-sm text-muted">Appearance and display settings</div>
+              </div>
             </div>
             <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
               <div style={{ minWidth: 0 }}>
@@ -285,12 +291,15 @@ export const Settings = () => {
           </div>
 
           {/* Change Password */}
-          <Card>
+          <Card className="stat-card-top" style={{ '--card-accent-from': '#ef4444', '--card-accent-to': '#f87171' }}>
             <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
-              <div style={{ backgroundColor: 'var(--surface-container-high)', color: 'var(--on-surface)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
-                <Lock size={24} />
+              <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, #dc2626, #ef4444)', color: 'white', padding: '10px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(239,68,68,0.3)' }}>
+                <Lock size={22} />
               </div>
-              <h3>Change Password</h3>
+              <div>
+                <h3>Change Password</h3>
+                <div className="body-sm text-muted">Update your account password</div>
+              </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
               {['currentPassword', 'password', 'confirm'].map((field) => (
@@ -317,12 +326,15 @@ export const Settings = () => {
           </Card>
 
           {/* Export / Import Section */}
-          <Card>
+          <Card className="stat-card-top" style={{ '--card-accent-from': '#f59e0b', '--card-accent-to': '#fb923c' }}>
             <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
-              <div style={{ backgroundColor: 'var(--primary-container)', color: 'var(--primary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
-                <Download size={24} />
+              <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white', padding: '10px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(245,158,11,0.3)' }}>
+                <Download size={22} />
               </div>
-              <h3>Export &amp; Import Data</h3>
+              <div>
+                <h3>Export &amp; Import Data</h3>
+                <div className="body-sm text-muted">Back up or restore your data</div>
+              </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
               <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
