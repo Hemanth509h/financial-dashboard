@@ -5,7 +5,7 @@ import { Modal } from '../components/ui/Modal';
 import { PaymentForm } from '../components/forms/PaymentForm';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
-import { CreditCard, Edit2, Trash2, Search, X } from 'lucide-react';
+import { CreditCard, Edit2, Trash2, Search, X, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/useAuth';
 
@@ -14,6 +14,7 @@ export const Payments = () => {
   const currency = user?.currency || 'INR';
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState(null);
@@ -30,7 +31,13 @@ export const Payments = () => {
       console.error('Failed to fetch work logs', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchLogs();
   };
 
   useEffect(() => {
@@ -186,6 +193,9 @@ export const Payments = () => {
           <h1 style={{ fontSize: '28px' }}>Payments Ledger</h1>
           <p className="text-muted">Track your earnings and pending collections.</p>
         </div>
+        <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" style={{ background: 'none', border: '1.5px solid var(--outline-variant)', borderRadius: '8px', padding: '7px 10px', cursor: refreshing ? 'not-allowed' : 'pointer', color: refreshing ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}>
+          <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
+        </button>
       </header>
 
       {/* Metrics Banner */}

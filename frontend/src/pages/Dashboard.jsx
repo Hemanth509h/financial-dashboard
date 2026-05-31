@@ -4,7 +4,7 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { AnalyticsChart } from '../components/ui/AnalyticsChart';
-import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown } from 'lucide-react';
+import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown, RefreshCw } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/useAuth';
 import './Dashboard.css';
@@ -27,31 +27,40 @@ export const Dashboard = () => {
 
   const [analytics, setAnalytics] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      const [summaryRes, analyticsRes, workLogsRes] = await Promise.all([
+        api.getDashboardSummary(),
+        api.getAnalytics(),
+        api.getWorkLogs()
+      ]);
+      const currentMonth = new Date().toISOString().split('T')[0].substring(0, 7);
+      const totalEarnedThisMonth = workLogsRes.data
+        .filter((log) => new Date(log.date).toISOString().split('T')[0].substring(0, 7) === currentMonth)
+        .reduce((sum, log) => {
+          if (log.status === 'Paid') return sum + Number(log.amount || 0);
+          return sum + Number(log.amountPaid || 0);
+        }, 0);
+      setSummary({ ...summaryRes.data, totalEarnedThisMonth });
+      setAnalytics(analyticsRes.data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [summaryRes, analyticsRes, workLogsRes] = await Promise.all([
-          api.getDashboardSummary(),
-          api.getAnalytics(),
-          api.getWorkLogs()
-        ]);
-        const currentMonth = new Date().toISOString().split('T')[0].substring(0, 7);
-        const totalEarnedThisMonth = workLogsRes.data
-          .filter((log) => new Date(log.date).toISOString().split('T')[0].substring(0, 7) === currentMonth)
-          .reduce((sum, log) => {
-            if (log.status === 'Paid') return sum + Number(log.amount || 0);
-            return sum + Number(log.amountPaid || 0);
-          }, 0);
-        setSummary({ ...summaryRes.data, totalEarnedThisMonth });
-        setAnalytics(analyticsRes.data);
-      } catch (error) {
-        console.error('Failed to fetch dashboard data', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatCurrency = (amount) => {
@@ -77,7 +86,10 @@ export const Dashboard = () => {
           <h1>Worker Dashboard</h1>
           <p className="text-muted">Welcome back. Here is your financial summary.</p>
         </div>
-        <div className="flex gap-sm">
+        <div className="flex gap-sm" style={{ alignItems: 'center' }}>
+          <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" style={{ background: 'none', border: '1.5px solid var(--outline-variant)', borderRadius: '8px', padding: '7px 10px', cursor: refreshing ? 'not-allowed' : 'pointer', color: refreshing ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', transition: 'color 0.2s, border-color 0.2s' }}>
+            <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
+          </button>
           <Button variant="secondary" onClick={() => window.location.href = '/work-log'}>Log Work</Button>
           <Button variant="secondary" onClick={() => window.location.href = '/loans'}>Record Repayment</Button>
         </div>

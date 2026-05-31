@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Archive, CalendarDays, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Archive, CalendarDays, TrendingDown, TrendingUp, Wallet, RefreshCw } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { api } from '../api';
 import { useAuth } from '../context/useAuth';
@@ -9,20 +9,28 @@ export const MonthlyHistory = () => {
   const currency = user?.currency || 'INR';
   const [months, setMonths] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchHistory = async () => {
+    try {
+      const { data } = await api.getMonthlyHistory();
+      setMonths(data);
+    } catch (error) {
+      console.error('Failed to fetch monthly history', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchHistory();
+  };
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const { data } = await api.getMonthlyHistory();
-        setMonths(data);
-      } catch (error) {
-        console.error('Failed to fetch monthly history', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchHistory();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatCurrency = (amount) => {
@@ -41,6 +49,9 @@ export const MonthlyHistory = () => {
           <h1 style={{ marginBottom: 'var(--space-xs)' }}>Monthly History</h1>
           <p className="text-muted">Previous months are stored here while the current month starts fresh.</p>
         </div>
+        <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" style={{ background: 'none', border: '1.5px solid var(--outline-variant)', borderRadius: '8px', padding: '7px 10px', cursor: refreshing ? 'not-allowed' : 'pointer', color: refreshing ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}>
+          <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
+        </button>
       </header>
 
       <div className="content">

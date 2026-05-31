@@ -7,7 +7,7 @@ import { LoanForm } from '../components/forms/LoanForm';
 import { RepaymentForm } from '../components/forms/RepaymentForm';
 import { InterestForm } from '../components/forms/InterestForm';
 import { api } from '../api';
-import { Edit2, Trash2, Download, Plus, TrendingUp } from 'lucide-react';
+import { Edit2, Trash2, Download, Plus, TrendingUp, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/useAuth';
 
@@ -16,6 +16,7 @@ export const Loans = () => {
   const currency = user?.currency || 'INR';
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showLoanModal, setShowLoanModal] = useState(false);
   const [showRepaymentModal, setShowRepaymentModal] = useState(false);
   const [editingLoan, setEditingLoan] = useState(null);
@@ -89,7 +90,13 @@ export const Loans = () => {
       console.error('Failed to fetch loans', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchLoans();
   };
 
   useEffect(() => {
@@ -247,11 +254,17 @@ export const Loans = () => {
           <p className="text-muted">Overview of your liabilities and progress.</p>
         </div>
         <div className="mobile-header-actions">
+          <button onClick={handleRefresh} disabled={refreshing} title="Refresh" className="page-header-action-btn">
+            <RefreshCw size={18} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
+          </button>
           <button className="page-header-action-btn" onClick={handleExport} title="Export CSV">
             <Download size={18} />
           </button>
         </div>
-        <div className="flex gap-sm">
+        <div className="flex gap-sm" style={{ alignItems: 'center' }}>
+          <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" style={{ background: 'none', border: '1.5px solid var(--outline-variant)', borderRadius: '8px', padding: '7px 10px', cursor: refreshing ? 'not-allowed' : 'pointer', color: refreshing ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}>
+            <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
+          </button>
           <Button variant="secondary" onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Download size={18} /> Export CSV
           </Button>
