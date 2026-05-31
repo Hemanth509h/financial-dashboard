@@ -26,7 +26,11 @@ const loanSchema = new mongoose.Schema({
   amountPaid: {
     type: Number,
     default: 0,
-  }
+  },
+  monthlyInterest: {
+    type: Number,
+    default: 0,
+  },
 }, { timestamps: true });
 
 export default mongoose.model('Loan', loanSchema);

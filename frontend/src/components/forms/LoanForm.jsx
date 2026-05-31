@@ -7,6 +7,7 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState(initialData || {
     lenderName: '',
     totalAmount: '',
+    monthlyInterest: '',
     startDate: new Date().toISOString().split('T')[0],
     status: 'Active'
   });
@@ -49,7 +50,8 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
     try {
       await onSubmit({
         ...formData,
-        totalAmount: parseFloat(formData.totalAmount)
+        totalAmount: parseFloat(formData.totalAmount),
+        monthlyInterest: formData.monthlyInterest ? parseFloat(formData.monthlyInterest) : 0,
       });
     } finally {
       setSubmitting(false);
@@ -94,6 +96,23 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
             <span>{errors.totalAmount}</span>
           </div>
         )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="monthlyInterest">Monthly Interest Amount <span className="text-muted">(optional)</span></label>
+        <input
+          type="number"
+          id="monthlyInterest"
+          name="monthlyInterest"
+          placeholder="0 — set once, add each month with one tap"
+          min="0"
+          step="0.01"
+          value={formData.monthlyInterest}
+          onChange={handleChange}
+        />
+        <p className="text-muted body-sm" style={{ marginTop: '4px', fontSize: '12px' }}>
+          If set, a one-tap button appears on the loan card to add this amount as interest each month.
+        </p>
       </div>
 
       <div className="form-group">

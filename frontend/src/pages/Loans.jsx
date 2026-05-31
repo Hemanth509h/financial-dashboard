@@ -325,6 +325,47 @@ export const Loans = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+                  {/* One-tap monthly interest button */}
+                  {loan.monthlyInterest > 0 && loan.status !== 'Repaid' && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await api.addLoanInterest(loan._id, {
+                            amount: loan.monthlyInterest,
+                            date: new Date().toISOString().split('T')[0],
+                            note: `Monthly interest — ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}`,
+                          });
+                          toast.success(`${formatCurrency(loan.monthlyInterest)} interest added for ${new Date().toLocaleString('default', { month: 'long' })}!`);
+                          await fetchLoans();
+                          if (expandedLoan === loan._id) {
+                            const { data } = await api.getLoanRepayments(loan._id);
+                            setRepayments(prev => ({ ...prev, [loan._id]: data }));
+                          }
+                        } catch {
+                          toast.error('Failed to add monthly interest.');
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: 'var(--space-sm) var(--space-md)',
+                        backgroundColor: 'rgba(239,68,68,0.08)',
+                        border: '1.5px dashed var(--error)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--error)',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <TrendingUp size={14} />
+                      Add This Month's Interest — {formatCurrency(loan.monthlyInterest)}
+                    </button>
+                  )}
+
                   <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
                     <Button
                       variant="secondary"
@@ -437,6 +478,7 @@ export const Loans = () => {
           initialData={editingLoan ? {
             lenderName: editingLoan.lenderName,
             totalAmount: editingLoan.totalAmount,
+            monthlyInterest: editingLoan.monthlyInterest || '',
             startDate: editingLoan.startDate.split('T')[0],
             status: editingLoan.status
           } : undefined}
