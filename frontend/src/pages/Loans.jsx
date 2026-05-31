@@ -300,20 +300,28 @@ export const Loans = () => {
                 
                 {(() => {
                   const principal = loan.principalAmount || loan.totalAmount;
+                  const interestAdded = loan.totalAmount - principal;
                   const totalWithInterest = loan.totalAmount;
                   return (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-sm)', marginBottom: 'var(--space-lg)', padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-sm)' }}>
-                      <div style={{ textAlign: 'center' }}>
-                        <div className="text-muted body-sm" style={{ fontSize: '11px', marginBottom: '4px' }}>Loan Amount</div>
-                        <div className="font-semibold" style={{ fontSize: '15px' }}>{formatCurrency(principal)}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: 'var(--space-lg)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--outline-variant)' }}>
+                      <div style={{ textAlign: 'center', padding: '10px 6px', backgroundColor: 'var(--surface-container-low)' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary, #888)', marginBottom: '5px' }}>Loan Amount</div>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--on-surface)' }}>{formatCurrency(principal)}</div>
                       </div>
-                      <div style={{ textAlign: 'center', borderLeft: '1px solid var(--outline-variant)', borderRight: '1px solid var(--outline-variant)' }}>
-                        <div className="text-muted body-sm" style={{ fontSize: '11px', marginBottom: '4px' }}>Amount + Interest</div>
-                        <div className="font-semibold" style={{ fontSize: '15px', color: totalWithInterest > principal ? 'var(--error)' : 'inherit' }}>{formatCurrency(totalWithInterest)}</div>
+                      <div style={{ textAlign: 'center', padding: '10px 6px', backgroundColor: interestAdded > 0 ? 'rgba(239,68,68,0.07)' : 'var(--surface-container-low)', borderLeft: '1px solid var(--outline-variant)', borderRight: '1px solid var(--outline-variant)' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: interestAdded > 0 ? 'var(--error)' : 'var(--text-secondary, #888)', marginBottom: '5px' }}>
+                          {interestAdded > 0 ? 'Total w/ Interest' : 'Interest Added'}
+                        </div>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: interestAdded > 0 ? 'var(--error)' : 'var(--text-secondary, #aaa)' }}>
+                          {interestAdded > 0 ? formatCurrency(totalWithInterest) : '—'}
+                        </div>
+                        {interestAdded > 0 && (
+                          <div style={{ fontSize: '10px', color: 'var(--error)', opacity: 0.8, marginTop: '2px' }}>+{formatCurrency(interestAdded)}</div>
+                        )}
                       </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <div className="text-muted body-sm" style={{ fontSize: '11px', marginBottom: '4px' }}>Remaining</div>
-                        <div className="font-semibold" style={{ fontSize: '15px', color: loan.status === 'Repaid' ? 'var(--success)' : 'var(--primary)' }}>{formatCurrency(remaining)}</div>
+                      <div style={{ textAlign: 'center', padding: '10px 6px', backgroundColor: loan.status === 'Repaid' ? 'rgba(34,197,94,0.07)' : 'var(--surface-container-low)' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary, #888)', marginBottom: '5px' }}>Remaining</div>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: loan.status === 'Repaid' ? 'var(--success)' : 'var(--primary)' }}>{formatCurrency(remaining)}</div>
                       </div>
                     </div>
                   );
