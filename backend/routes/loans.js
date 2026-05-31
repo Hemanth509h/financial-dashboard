@@ -154,8 +154,25 @@ router.patch('/:id', async (req, res) => {
   try {
     const loan = await Loan.findOne({ _id: req.params.id, userId: req.user._id });
     if (!loan) return res.status(404).json({ message: 'Loan not found' });
-    const updatedLoan = await Loan.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    res.json(updatedLoan);
+
+    const { lenderName, totalAmount, monthlyInterest, startDate, status } = req.body;
+
+    if (lenderName !== undefined) loan.lenderName = lenderName;
+    if (monthlyInterest !== undefined) loan.monthlyInterest = parseFloat(monthlyInterest) || 0;
+    if (startDate !== undefined) loan.startDate = startDate;
+    if (status !== undefined) loan.status = status;
+
+    if (totalAmount !== undefined) {
+      const newPrincipal = parseFloat(totalAmount);
+      const interestAccrued = (loan.principalAmount > 0)
+        ? loan.totalAmount - loan.principalAmount
+        : 0;
+      loan.principalAmount = newPrincipal;
+      loan.totalAmount = newPrincipal + interestAccrued;
+    }
+
+    await loan.save();
+    res.json(loan);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

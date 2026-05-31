@@ -4,12 +4,21 @@ import { AlertCircle } from 'lucide-react';
 import './Form.css';
 
 export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState(initialData || {
-    lenderName: '',
-    totalAmount: '',
-    monthlyInterest: '',
-    startDate: new Date().toISOString().split('T')[0],
-    status: 'Active'
+  const [formData, setFormData] = useState(() => {
+    if (!initialData) {
+      return {
+        lenderName: '',
+        totalAmount: '',
+        monthlyInterest: '',
+        startDate: new Date().toISOString().split('T')[0],
+        status: 'Active',
+      };
+    }
+    return {
+      ...initialData,
+      // Always show the original principal (not the interest-inflated totalAmount)
+      totalAmount: initialData.principalAmount || initialData.totalAmount,
+    };
   });
 
   const [errors, setErrors] = useState({});
