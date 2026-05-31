@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const { lenderName, totalAmount, startDate, status } = req.body;
   try {
-    const newLoan = new Loan({ userId: req.user._id, lenderName, totalAmount, startDate, status });
+    const newLoan = new Loan({ userId: req.user._id, lenderName, totalAmount, principalAmount: totalAmount, startDate, status });
     await newLoan.save();
     res.status(201).json(newLoan);
   } catch (error) {

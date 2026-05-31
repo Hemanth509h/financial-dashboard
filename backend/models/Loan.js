@@ -14,6 +14,9 @@ const loanSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  principalAmount: {
+    type: Number,
+  },
   startDate: {
     type: Date,
     required: true,
