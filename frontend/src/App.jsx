@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -14,7 +13,7 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ResetPassword } from './pages/ResetPassword';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
-import { PageLoading } from './components/ui/Loading';
+import { PageLoading, SplashScreen } from './components/ui/Loading';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 
 function ProtectedRoute({ children }) {
@@ -54,16 +53,18 @@ function AppContent() {
   );
 }
 
-function App() {
-  useEffect(() => {
-    fetch('/api/health').catch(() => {});
-  }, []);
+function AppWithSplash() {
+  const { loading } = useAuth();
+  if (loading) return <SplashScreen />;
+  return <AppContent />;
+}
 
+function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <AppContent />
+          <AppWithSplash />
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
