@@ -69,7 +69,7 @@ export const LoanForm = ({ initialData, onSubmit, onCancel }) => {
 
   const isEditing = !!initialData;
   const principalAmount = initialData?.principalAmount || initialData?.totalAmount;
-  const totalWithInterest = initialData?.totalAmount;
+  const totalWithInterest = initialData?.totalAmountWithInterest || initialData?.totalAmount;
   const hasInterest = isEditing && totalWithInterest > principalAmount;
 
   const formatAmount = (amount) => {

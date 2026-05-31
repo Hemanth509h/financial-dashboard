@@ -493,7 +493,9 @@ export const Loans = () => {
         <LoanForm 
           initialData={editingLoan ? {
             lenderName: editingLoan.lenderName,
-            totalAmount: editingLoan.totalAmount,
+            totalAmount: editingLoan.principalAmount || editingLoan.totalAmount,
+            principalAmount: editingLoan.principalAmount || editingLoan.totalAmount,
+            totalAmountWithInterest: editingLoan.totalAmount,
             monthlyInterest: editingLoan.monthlyInterest || '',
             startDate: editingLoan.startDate.split('T')[0],
             status: editingLoan.status
