@@ -43,6 +43,7 @@ export const api = {
   deleteLoan: (id) => del(`/loans/${id}`),
   getLoanRepayments: (id) => get(`/loans/${id}/repayments`),
   addLoanRepayment: (id, data) => post(`/loans/${id}/repayments`, data),
+  addLoanInterest: (id, data) => post(`/loans/${id}/repayments`, { ...data, type: 'Interest' }),
   updateLoanRepayment: (loanId, repaymentId, data) =>
     patch(`/loans/${loanId}/repayments/${repaymentId}`, data),
   deleteLoanRepayment: (loanId, repaymentId) =>

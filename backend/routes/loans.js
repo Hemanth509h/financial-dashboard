@@ -43,31 +43,26 @@ router.get('/:id/repayments', async (req, res) => {
   }
 });
 
-// Add a repayment to a loan
+// Add a repayment or interest charge to a loan
 router.post('/:id/repayments', async (req, res) => {
-  const { amount, date, method, status } = req.body;
+  const { amount, date, method, status, type, note } = req.body;
+  const entryType = type || 'Repayment';
   try {
     const loan = await Loan.findOne({ _id: req.params.id, userId: req.user._id });
     if (!loan) return res.status(404).json({ message: 'Loan not found' });
 
-    const newRepayment = new Repayment({
-      loanId: req.params.id,
-      amount,
-      date,
-      method,
-      status
-    });
-    
+    const newRepayment = new Repayment({ loanId: req.params.id, amount, date, method, status, type: entryType, note });
     await newRepayment.save();
 
-    // Update loan's amountPaid
-    if (status === 'Success' || !status) {
+    if (entryType === 'Interest') {
+      // Interest increases total owed
+      loan.totalAmount += Number(amount);
+    } else if (status === 'Success' || !status) {
+      // Repayment reduces balance
       loan.amountPaid += Number(amount);
-      if (loan.amountPaid >= loan.totalAmount) {
-        loan.status = 'Repaid';
-      }
-      await loan.save();
+      if (loan.amountPaid >= loan.totalAmount) loan.status = 'Repaid';
     }
+    await loan.save();
 
     res.status(201).json(newRepayment);
   } catch (error) {
@@ -75,7 +70,7 @@ router.post('/:id/repayments', async (req, res) => {
   }
 });
 
-// Update a repayment
+// Update a repayment or interest entry
 router.patch('/:id/repayments/:repaymentId', async (req, res) => {
   try {
     const loan = await Loan.findOne({ _id: req.params.id, userId: req.user._id });
@@ -84,35 +79,33 @@ router.patch('/:id/repayments/:repaymentId', async (req, res) => {
     const repayment = await Repayment.findOne({ _id: req.params.repaymentId, loanId: req.params.id });
     if (!repayment) return res.status(404).json({ message: 'Repayment not found' });
 
-    const oldAmount = repayment.amount;
-    const oldStatus = repayment.status;
+    const oldAmount = Number(repayment.amount);
+    const oldType = repayment.type || 'Repayment';
 
-    // Remove old amount from loan if it was successful
-    if (oldStatus === 'Success' || !oldStatus) {
-      loan.amountPaid -= Number(oldAmount);
+    // Reverse old effect on loan
+    if (oldType === 'Interest') {
+      loan.totalAmount -= oldAmount;
+    } else if (repayment.status === 'Success' || !repayment.status) {
+      loan.amountPaid -= oldAmount;
     }
 
-    const { amount, date, method, status } = req.body;
-    
-    // Update repayment fields
+    const { amount, date, method, status, note } = req.body;
     if (amount !== undefined) repayment.amount = amount;
     if (date !== undefined) repayment.date = date;
     if (method !== undefined) repayment.method = method;
     if (status !== undefined) repayment.status = status;
+    if (note !== undefined) repayment.note = note;
 
     await repayment.save();
 
-    // Add new amount to loan if successful
-    if (repayment.status === 'Success' || !repayment.status) {
+    // Apply new effect
+    if (oldType === 'Interest') {
+      loan.totalAmount += Number(repayment.amount);
+    } else if (repayment.status === 'Success' || !repayment.status) {
       loan.amountPaid += Number(repayment.amount);
     }
 
-    // Update loan status
-    if (loan.amountPaid >= loan.totalAmount) {
-      loan.status = 'Repaid';
-    } else {
-      loan.status = 'Active';
-    }
+    loan.status = loan.amountPaid >= loan.totalAmount ? 'Repaid' : 'Active';
     await loan.save();
 
     res.json(repayment);
@@ -121,7 +114,7 @@ router.patch('/:id/repayments/:repaymentId', async (req, res) => {
   }
 });
 
-// Delete a repayment
+// Delete a repayment or interest entry
 router.delete('/:id/repayments/:repaymentId', async (req, res) => {
   try {
     const loan = await Loan.findOne({ _id: req.params.id, userId: req.user._id });
@@ -130,17 +123,17 @@ router.delete('/:id/repayments/:repaymentId', async (req, res) => {
     const repayment = await Repayment.findOne({ _id: req.params.repaymentId, loanId: req.params.id });
     if (!repayment) return res.status(404).json({ message: 'Repayment not found' });
 
-    if (repayment.status === 'Success' || !repayment.status) {
+    const entryType = repayment.type || 'Repayment';
+    if (entryType === 'Interest') {
+      loan.totalAmount -= Number(repayment.amount);
+    } else if (repayment.status === 'Success' || !repayment.status) {
       loan.amountPaid -= Number(repayment.amount);
-      if (loan.amountPaid < loan.totalAmount) {
-        loan.status = 'Active';
-      }
-      await loan.save();
+      if (loan.amountPaid < loan.totalAmount) loan.status = 'Active';
     }
+    await loan.save();
 
     await Repayment.findByIdAndDelete(req.params.repaymentId);
-    
-    res.json({ message: 'Repayment deleted' });
+    res.json({ message: 'Deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -16,13 +16,24 @@ const repaymentSchema = new mongoose.Schema({
   },
   method: {
     type: String,
-    default: 'Cash', // Auto-Debit, UPI Transfer, Cash, etc.
+    default: 'Cash',
   },
   status: {
     type: String,
     enum: ['Pending', 'Success'],
     default: 'Success',
-  }
+  },
+  type: {
+    type: String,
+    enum: ['Repayment', 'Interest'],
+    default: 'Repayment',
+  },
+  note: {
+    type: String,
+    default: '',
+    trim: true,
+    maxlength: 300,
+  },
 }, { timestamps: true });
 
 export default mongoose.model('Repayment', repaymentSchema);
