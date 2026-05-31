@@ -459,7 +459,7 @@ export const Loans = () => {
                 </div>
 
                 {expandedLoan === loan._id && (
-                  <div style={{ marginTop: 'var(--space-lg)', paddingTop: 'var(--space-lg)', borderTop: '1px solid var(--outline-variant)' }}>
+                  <div style={{ marginTop: 'var(--space-lg)', paddingTop: 'var(--space-lg)', borderTop: '1px solid var(--outline-variant)',padding:'25px' }}>
                     <h4 style={{ marginBottom: 'var(--space-md)' }}>History</h4>
 
                     {loadingRepayments[loan._id] ? (
