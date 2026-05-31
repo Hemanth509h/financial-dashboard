@@ -59,9 +59,9 @@ export const Payments = () => {
     .filter(l => l.status !== 'Paid')
     .reduce((sum, log) => sum + (Number(log.amount || 0) - Number(log.amountPaid || 0)), 0);
 
-  // "Collected" = payments whose datePaid falls in the current month
-  const totalReceived = logs
-    .filter(l => l && (l.status === 'Paid' || l.status === 'Partially Paid') && isCurrentMonth(l.datePaid))
+  // "Collected" = amount actually received for work done this month
+  const totalReceived = currentMonthWorkLogs
+    .filter(l => l.status === 'Paid' || l.status === 'Partially Paid')
     .reduce((sum, log) => {
       const paid = Number(log.amountPaid || 0);
       return sum + (paid > 0 ? paid : Number(log.amount || 0));
