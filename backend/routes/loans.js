@@ -18,9 +18,18 @@ router.get('/', async (req, res) => {
 
 // Create a new loan
 router.post('/', async (req, res) => {
-  const { lenderName, totalAmount, startDate, status } = req.body;
+  const { lenderName, totalAmount, monthlyInterest, startDate, status } = req.body;
   try {
-    const newLoan = new Loan({ userId: req.user._id, lenderName, totalAmount, principalAmount: totalAmount, startDate, status });
+    const amount = parseFloat(totalAmount);
+    const newLoan = new Loan({
+      userId: req.user._id,
+      lenderName,
+      totalAmount: amount,
+      principalAmount: amount,
+      monthlyInterest: monthlyInterest ? parseFloat(monthlyInterest) : 0,
+      startDate,
+      status,
+    });
     await newLoan.save();
     res.status(201).json(newLoan);
   } catch (error) {
@@ -55,7 +64,8 @@ router.post('/:id/repayments', async (req, res) => {
     await newRepayment.save();
 
     if (entryType === 'Interest') {
-      // Interest increases total owed
+      // Lock in principalAmount before raising totalAmount (safety net for older records)
+      if (!loan.principalAmount) loan.principalAmount = loan.totalAmount;
       loan.totalAmount += Number(amount);
     } else if (status === 'Success' || !status) {
       // Repayment reduces balance
