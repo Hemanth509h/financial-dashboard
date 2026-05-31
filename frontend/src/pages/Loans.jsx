@@ -277,56 +277,67 @@ export const Loans = () => {
             const remaining = loan.totalAmount - loan.amountPaid;
             
             return (
-              <Card key={loan._id} style={{ borderTop: '4px solid ' + (loan.status === 'Repaid' ? 'var(--success)' : 'var(--primary)') }}>
-                <div className="flex justify-between items-center" style={{marginBottom: 'var(--space-md)'}}>
-                  <div className="text-muted body-sm" style={{textTransform: 'uppercase', letterSpacing: '0.05em'}}>LENDER</div>
-                  <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                    <Badge status={loan.status === 'Repaid' ? 'Paid' : 'Unpaid'} />
-                    <button 
-                      onClick={() => handleEditLoan(loan)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: 0 }}
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteLoan(loan._id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: 0 }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+              <Card key={loan._id} style={{
+                borderTop: '4px solid ' + (loan.status === 'Repaid' ? 'var(--success)' : 'var(--primary)'),
+                padding: '0',
+                overflow: 'hidden',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
+              }}>
+                {/* Card Header */}
+                <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--outline-variant)' }}>
+                  <div className="flex justify-between items-center" style={{ marginBottom: '10px' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary, #999)' }}>LENDER</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Badge status={loan.status === 'Repaid' ? 'Paid' : 'Unpaid'} />
+                      <button onClick={() => handleEditLoan(loan)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary, #aaa)', padding: '2px', borderRadius: '4px', display: 'flex', transition: 'color 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--primary)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary, #aaa)'}
+                      ><Edit2 size={15} /></button>
+                      <button onClick={() => handleDeleteLoan(loan._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary, #aaa)', padding: '2px', borderRadius: '4px', display: 'flex', transition: 'color 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--error)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary, #aaa)'}
+                      ><Trash2 size={15} /></button>
+                    </div>
                   </div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--on-surface)', letterSpacing: '-0.3px' }}>{loan.lenderName}</div>
                 </div>
-                <h2 style={{marginBottom: 'var(--space-lg)', fontSize: '20px'}}>{loan.lenderName}</h2>
-                
+
+                {/* Stats Grid */}
                 {(() => {
                   const principal = loan.principalAmount || loan.totalAmount;
                   const interestAdded = loan.totalAmount - principal;
                   const totalWithInterest = loan.totalAmount;
+                  const remainingExclInterest = Math.max(0, remaining - interestAdded);
                   return (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', marginBottom: 'var(--space-lg)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--outline-variant)' }}>
-                      <div style={{ textAlign: 'center', padding: '10px 6px', backgroundColor: 'var(--surface-container-low)' }}>
-                        <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary, #888)', marginBottom: '5px' }}>Loan Amount</div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--on-surface)' }}>{formatCurrency(principal)}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', borderBottom: '1px solid var(--outline-variant)' }}>
+                      {/* Loan Amount */}
+                      <div style={{ padding: '14px 10px', textAlign: 'center', background: 'var(--surface-container-lowest, #fafafa)' }}>
+                        <div style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-secondary, #999)', marginBottom: '6px' }}>Loan Amount</div>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--on-surface)' }}>{formatCurrency(principal)}</div>
                       </div>
-                      <div style={{ textAlign: 'center', padding: '10px 6px', backgroundColor: interestAdded > 0 ? 'rgba(239,68,68,0.07)' : 'var(--surface-container-low)', borderLeft: '1px solid var(--outline-variant)', borderRight: '1px solid var(--outline-variant)' }}>
-                        <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: interestAdded > 0 ? 'var(--error)' : 'var(--text-secondary, #888)', marginBottom: '5px' }}>
-                          {interestAdded > 0 ? 'Total w/ Interest' : 'Interest Added'}
+
+                      {/* Total w/ Interest */}
+                      <div style={{ padding: '14px 10px', textAlign: 'center', background: interestAdded > 0 ? 'rgba(239,68,68,0.05)' : 'var(--surface-container-lowest, #fafafa)', borderLeft: '1px solid var(--outline-variant)', borderRight: '1px solid var(--outline-variant)' }}>
+                        <div style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: interestAdded > 0 ? 'var(--error)' : 'var(--text-secondary, #999)', marginBottom: '6px' }}>
+                          {interestAdded > 0 ? 'Total w/ Interest' : 'Interest'}
                         </div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: interestAdded > 0 ? 'var(--error)' : 'var(--text-secondary, #aaa)' }}>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: interestAdded > 0 ? 'var(--error)' : 'var(--text-secondary, #bbb)' }}>
                           {interestAdded > 0 ? formatCurrency(totalWithInterest) : '—'}
                         </div>
                         {interestAdded > 0 && (
-                          <div style={{ fontSize: '10px', color: 'var(--error)', opacity: 0.8, marginTop: '2px' }}>+{formatCurrency(interestAdded)}</div>
+                          <div style={{ fontSize: '10px', color: 'var(--error)', opacity: 0.75, marginTop: '3px', fontWeight: 600 }}>+{formatCurrency(interestAdded)}</div>
                         )}
                       </div>
-                      <div style={{ textAlign: 'center', padding: '10px 6px', backgroundColor: loan.status === 'Repaid' ? 'rgba(34,197,94,0.07)' : 'var(--surface-container-low)' }}>
-                        <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary, #888)', marginBottom: '5px' }}>Remaining</div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: loan.status === 'Repaid' ? 'var(--success)' : 'var(--primary)' }}>{formatCurrency(remaining)}</div>
+
+                      {/* Remaining (split into two) */}
+                      <div style={{ padding: '14px 10px', textAlign: 'center', background: loan.status === 'Repaid' ? 'rgba(34,197,94,0.06)' : 'var(--surface-container-lowest, #fafafa)' }}>
+                        <div style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-secondary, #999)', marginBottom: '6px' }}>Remaining</div>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: loan.status === 'Repaid' ? 'var(--success)' : 'var(--primary)' }}>{formatCurrency(remaining)}</div>
                         {interestAdded > 0 && (
-                          <div style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed var(--outline-variant)' }}>
-                            <div style={{ fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary, #888)', marginBottom: '2px' }}>excl. Interest</div>
+                          <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed rgba(0,0,0,0.1)' }}>
+                            <div style={{ fontSize: '8.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-secondary, #bbb)', marginBottom: '3px' }}>excl. interest</div>
                             <div style={{ fontSize: '12px', fontWeight: 700, color: loan.status === 'Repaid' ? 'var(--success)' : 'var(--on-surface)' }}>
-                              {formatCurrency(Math.max(0, remaining - interestAdded))}
+                              {formatCurrency(remainingExclInterest)}
                             </div>
                           </div>
                         )}
@@ -335,21 +346,20 @@ export const Loans = () => {
                   );
                 })()}
 
-                <div style={{marginBottom: 'var(--space-lg)'}}>
-                  <div className="flex justify-between body-sm" style={{marginBottom: 'var(--space-xs)'}}>
-                    <span className="text-muted">Repayment Progress</span>
-                    <span className="font-semibold">{formatCurrency(loan.amountPaid)} paid</span>
+                {/* Progress Section */}
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--outline-variant)', background: 'var(--surface)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #888)' }}>Repayment Progress</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--on-surface)' }}>{formatCurrency(loan.amountPaid)} paid</span>
                   </div>
-                  <div style={{width: '100%', height: '8px', backgroundColor: 'var(--surface-container-low)', borderRadius: '4px', marginBottom: 'var(--space-xs)'}}>
-                    <div style={{width: `${progress}%`, height: '100%', backgroundColor: progress === 100 ? 'var(--success)' : 'var(--primary)', borderRadius: '4px', transition: 'width 0.3s'}}></div>
+                  <div style={{ width: '100%', height: '7px', backgroundColor: 'var(--surface-container-low)', borderRadius: '99px', overflow: 'hidden', marginBottom: '6px' }}>
+                    <div style={{ width: `${progress}%`, height: '100%', background: progress === 100 ? 'var(--success)' : 'linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 70%, var(--success)))', borderRadius: '99px', transition: 'width 0.4s ease' }}></div>
                   </div>
-                  <div className="flex justify-between body-sm" style={{fontSize: '12px'}}>
-                    <span className="text-muted">{Math.round(progress)}% Complete</span>
-                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary, #aaa)', fontWeight: 500 }}>{Math.round(progress)}% complete</div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                  {/* One-tap monthly interest button */}
+                {/* Actions */}
+                <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: '10px', background: 'var(--surface)' }}>
                   {loan.monthlyInterest > 0 && loan.status !== 'Repaid' && (
                     <button
                       onClick={async () => {
@@ -371,49 +381,75 @@ export const Loans = () => {
                       }}
                       style={{
                         width: '100%',
-                        padding: 'var(--space-sm) var(--space-md)',
-                        backgroundColor: 'rgba(239,68,68,0.08)',
-                        border: '1.5px dashed var(--error)',
-                        borderRadius: 'var(--radius-sm)',
+                        padding: '10px 16px',
+                        backgroundColor: 'rgba(239,68,68,0.07)',
+                        border: '1.5px dashed rgba(239,68,68,0.5)',
+                        borderRadius: '8px',
                         color: 'var(--error)',
-                        fontWeight: 600,
-                        fontSize: '14px',
+                        fontWeight: 700,
+                        fontSize: '13px',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 6,
+                        transition: 'background 0.15s',
                       }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.12)'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.07)'}
                     >
                       <TrendingUp size={14} />
                       Add This Month's Interest — {formatCurrency(loan.monthlyInterest)}
                     </button>
                   )}
 
-                  <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                    <Button
-                      variant="secondary"
-                      style={{ flex: 1 }}
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
                       disabled={loan.status === 'Repaid'}
                       onClick={() => { setSelectedLoanForRepayment(loan); setShowRepaymentModal(true); }}
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: loan.status === 'Repaid' ? 'not-allowed' : 'pointer',
+                        border: '1.5px solid var(--outline-variant)',
+                        background: loan.status === 'Repaid' ? 'var(--surface-container-low)' : 'var(--surface)',
+                        color: loan.status === 'Repaid' ? 'var(--text-secondary, #aaa)' : 'var(--on-surface)',
+                        transition: 'background 0.15s, border-color 0.15s',
+                      }}
+                      onMouseEnter={e => { if (loan.status !== 'Repaid') { e.currentTarget.style.background = 'var(--surface-container-low)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}}
+                      onMouseLeave={e => { e.currentTarget.style.background = loan.status === 'Repaid' ? 'var(--surface-container-low)' : 'var(--surface)'; e.currentTarget.style.borderColor = 'var(--outline-variant)'; }}
                     >
-                      {loan.status === 'Repaid' ? 'Fully Repaid' : '+ Repayment'}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      style={{ flex: 1, color: 'var(--error)', borderColor: 'var(--error)' }}
+                      {loan.status === 'Repaid' ? '✓ Fully Repaid' : '+ Repayment'}
+                    </button>
+                    <button
                       onClick={() => { setSelectedLoanForInterest(loan); setShowInterestModal(true); }}
+                      style={{
+                        flex: 1, padding: '10px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                        border: '1.5px solid rgba(239,68,68,0.4)',
+                        background: 'rgba(239,68,68,0.05)',
+                        color: 'var(--error)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.05)'}
                     >
-                      <TrendingUp size={14} style={{ marginRight: 4 }} /> Interest
-                    </Button>
+                      <TrendingUp size={13} /> Interest
+                    </button>
                   </div>
-                  <Button
-                    variant="secondary"
-                    style={{ width: '100%', backgroundColor: 'var(--surface-container-high)', border: 'none' }}
+
+                  <button
                     onClick={() => toggleExpandLoan(loan._id)}
+                    style={{
+                      width: '100%', padding: '9px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
+                      border: 'none',
+                      background: 'var(--surface-container-low)',
+                      color: 'var(--text-secondary, #777)',
+                      transition: 'background 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-container)'; e.currentTarget.style.color = 'var(--on-surface)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-container-low)'; e.currentTarget.style.color = 'var(--text-secondary, #777)'; }}
                   >
-                    {expandedLoan === loan._id ? 'Hide History' : 'View History'}
-                  </Button>
+                    {expandedLoan === loan._id ? '↑ Hide History' : '↓ View History'}
+                  </button>
                 </div>
 
                 {expandedLoan === loan._id && (
