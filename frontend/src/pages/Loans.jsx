@@ -322,6 +322,14 @@ export const Loans = () => {
                       <div style={{ textAlign: 'center', padding: '10px 6px', backgroundColor: loan.status === 'Repaid' ? 'rgba(34,197,94,0.07)' : 'var(--surface-container-low)' }}>
                         <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary, #888)', marginBottom: '5px' }}>Remaining</div>
                         <div style={{ fontSize: '14px', fontWeight: 700, color: loan.status === 'Repaid' ? 'var(--success)' : 'var(--primary)' }}>{formatCurrency(remaining)}</div>
+                        {interestAdded > 0 && (
+                          <div style={{ marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed var(--outline-variant)' }}>
+                            <div style={{ fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary, #888)', marginBottom: '2px' }}>excl. Interest</div>
+                            <div style={{ fontSize: '12px', fontWeight: 700, color: loan.status === 'Repaid' ? 'var(--success)' : 'var(--on-surface)' }}>
+                              {formatCurrency(Math.max(0, remaining - interestAdded))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
