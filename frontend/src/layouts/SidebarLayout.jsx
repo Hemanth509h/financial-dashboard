@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Archive, LayoutDashboard, CalendarDays, Wallet, Building2, Menu, X, Settings, LogOut, User } from 'lucide-react';
+import { Archive, LayoutDashboard, CalendarDays, Wallet, Building2, Menu, X, Settings, LogOut, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/useAuth';
 import './SidebarLayout.css';
 
@@ -15,40 +15,41 @@ export const SidebarLayout = () => {
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Work Log', path: '/work-log', icon: CalendarDays },
-    { name: 'Payments', path: '/payments', icon: Wallet },
-    { name: 'Loans', path: '/loans', icon: Building2 },
-    { name: 'History', path: '/monthly-history', icon: Archive },
+    { name: 'Dashboard',  path: '/',                icon: LayoutDashboard, gradient: 'linear-gradient(135deg,#134e4a,#10b981)' },
+    { name: 'Work Log',   path: '/work-log',         icon: CalendarDays,    gradient: 'linear-gradient(135deg,#1e3a5f,#3b82f6)' },
+    { name: 'Payments',   path: '/payments',         icon: Wallet,          gradient: 'linear-gradient(135deg,#78350f,#f59e0b)' },
+    { name: 'Loans',      path: '/loans',            icon: Building2,       gradient: 'linear-gradient(135deg,#4c1d95,#8b5cf6)' },
+    { name: 'History',    path: '/monthly-history',  icon: Archive,         gradient: 'linear-gradient(135deg,#0c4a6e,#0284c7)' },
   ];
   const bottomNavItems = navItems.slice(0, 4);
 
-  const footerItems = [
-    { name: 'Settings', path: '/settings', icon: Settings },
-  ];
-
-  const displayName = user?.name || user?.email?.split('@')[0] || 'Account';
+  const displayName  = user?.name || user?.email?.split('@')[0] || 'Account';
   const displayEmail = user?.email || '';
+  const initials     = displayName.slice(0, 2).toUpperCase();
 
   return (
     <div className="layout">
-      <button className="mobile-toggle" onClick={() => setIsMobileOpen(!isMobileOpen)}>
-        <Menu size={24} />
-      </button>
+      {isMobileOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsMobileOpen(false)} />
+      )}
 
-      {isMobileOpen && <div className="sidebar-overlay" onClick={() => setIsMobileOpen(false)}></div>}
-
-      <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo flex items-center gap-sm">
-            <img src="/logo.png" alt="GigFinance Logo" style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }} />
+      {/* ── Desktop Sidebar ── */}
+      <aside className="sidebar">
+        {/* Branding */}
+        <div className="sidebar-brand">
+          <div className="sidebar-brand-inner">
+            <div className="sidebar-logo-wrap">
+              <img src="/logo.png" alt="GigFinance" style={{ width: 28, height: 28, borderRadius: 7, objectFit: 'cover' }} />
+            </div>
             <div>
-              <h2 className="text-primary">GigFinance</h2>
-              <span className="text-muted body-sm" style={{ textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.05em' }}>Worker Portal v3.1</span>
+              <div className="sidebar-app-name">GigFinance</div>
+              <div className="sidebar-app-sub">Worker Portal</div>
             </div>
           </div>
         </div>
 
+        {/* Main nav */}
+        <div className="sidebar-section-label">Navigation</div>
         <nav className="sidebar-nav">
           <ul>
             {navItems.map((item) => (
@@ -56,48 +57,50 @@ export const SidebarLayout = () => {
                 <NavLink
                   to={item.path}
                   end={item.path === '/'}
-                  onClick={() => setIsMobileOpen(false)}
                   className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 >
-                  <item.icon size={20} />
-                  {item.name}
+                  <span className="nav-icon-wrap" style={{ background: item.gradient }}>
+                    <item.icon size={15} color="#fff" strokeWidth={2.2} />
+                  </span>
+                  <span className="nav-label">{item.name}</span>
+                  <ChevronRight size={14} className="nav-chevron" />
                 </NavLink>
               </li>
             ))}
           </ul>
         </nav>
 
-        <div className="sidebar-footer">
-          <nav className="sidebar-nav">
-            <ul>
-              {footerItems.map((item) => (
-                <li key={item.name}>
-                  <NavLink
-                    to={item.path}
-                    onClick={() => setIsMobileOpen(false)}
-                    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''} text-muted`}
-                  >
-                    <item.icon size={20} />
-                    {item.name}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </nav>
+        <div className="sidebar-spacer" />
 
-          {/* User info + logout */}
-          <div style={{ borderTop: '1px solid var(--outline-variant)', marginTop: '0.5rem', paddingTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--primary-container)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <User size={18} />
-            </div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: '0.8125rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayEmail}</div>
-            </div>
-            <button onClick={handleLogout} title="Sign out" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)', padding: '4px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
-              <LogOut size={17} />
-            </button>
+        {/* Settings */}
+        <div className="sidebar-section-label">Account</div>
+        <nav className="sidebar-nav sidebar-nav-bottom">
+          <ul>
+            <li>
+              <NavLink
+                to="/settings"
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              >
+                <span className="nav-icon-wrap" style={{ background: 'linear-gradient(135deg,#374151,#6b7280)' }}>
+                  <Settings size={15} color="#fff" strokeWidth={2.2} />
+                </span>
+                <span className="nav-label">Settings</span>
+                <ChevronRight size={14} className="nav-chevron" />
+              </NavLink>
+            </li>
+          </ul>
+        </nav>
+
+        {/* User profile */}
+        <div className="sidebar-profile">
+          <div className="sidebar-profile-avatar">{initials}</div>
+          <div className="sidebar-profile-info">
+            <div className="sidebar-profile-name">{displayName}</div>
+            <div className="sidebar-profile-email">{displayEmail}</div>
           </div>
+          <button onClick={handleLogout} className="sidebar-logout-btn" title="Sign out">
+            <LogOut size={15} />
+          </button>
         </div>
       </aside>
 
@@ -105,7 +108,7 @@ export const SidebarLayout = () => {
         <Outlet />
       </main>
 
-      {/* Bottom Navigation for Mobile */}
+      {/* ── Mobile Bottom Nav ── */}
       <nav className="bottom-nav">
         {bottomNavItems.map((item) => (
           <NavLink
@@ -115,8 +118,14 @@ export const SidebarLayout = () => {
             onClick={() => setIsMobileOpen(false)}
             className={({ isActive }) => `bottom-nav-link ${isActive ? 'active' : ''}`}
           >
-            <item.icon size={24} />
-            <span>{item.name}</span>
+            {({ isActive }) => (
+              <>
+                <span className="bnl-icon" style={isActive ? { background: item.gradient } : {}}>
+                  <item.icon size={18} strokeWidth={isActive ? 2.4 : 2} />
+                </span>
+                <span className="bnl-label">{item.name}</span>
+              </>
+            )}
           </NavLink>
         ))}
         <button
@@ -124,68 +133,67 @@ export const SidebarLayout = () => {
           className={`bottom-nav-link ${isMobileOpen ? 'active' : ''}`}
           onClick={() => setIsMobileOpen(true)}
         >
-          <Menu size={24} />
-          <span>Menu</span>
+          <span className="bnl-icon" style={isMobileOpen ? { background: 'linear-gradient(135deg,#374151,#6b7280)' } : {}}>
+            <Menu size={18} strokeWidth={2} />
+          </span>
+          <span className="bnl-label">More</span>
         </button>
       </nav>
 
-      {/* Mobile Menu Popup */}
-      <div className={`mobile-popup ${isMobileOpen ? 'open' : ''}`}>
+      {/* ── Mobile Bottom Sheet ── */}
+      <div className={`mobile-popup ${isMobileOpen ? 'open' : ''}`} onClick={(e) => e.target === e.currentTarget && setIsMobileOpen(false)}>
         <div className="mobile-popup-content">
-          <div className="mobile-popup-drag-handle"></div>
-          <div className="mobile-popup-header">
-            <h3>Menu</h3>
-            <button onClick={() => setIsMobileOpen(false)}><X size={20} /></button>
+          <div className="mobile-popup-drag-handle" />
+
+          {/* User banner inside popup */}
+          <div className="popup-user-banner">
+            <div className="popup-user-avatar">{initials}</div>
+            <div className="popup-user-info">
+              <div className="popup-user-name">{displayName}</div>
+              <div className="popup-user-email">{displayEmail}</div>
+            </div>
+            <button onClick={() => setIsMobileOpen(false)} className="popup-close-btn">
+              <X size={16} />
+            </button>
           </div>
+
           <div className="mobile-popup-body">
-            <div className="popup-section">
-              <p className="section-title">Navigation</p>
+            <p className="section-title">Pages</p>
+            <div className="popup-nav-grid">
               {navItems.map((item) => (
                 <NavLink
                   key={item.name}
                   to={item.path}
                   end={item.path === '/'}
                   onClick={() => setIsMobileOpen(false)}
-                  className="popup-link"
+                  className={({ isActive }) => `popup-nav-tile ${isActive ? 'active' : ''}`}
                 >
-                  <item.icon size={20} />
-                  {item.name}
+                  <span className="popup-tile-icon" style={{ background: item.gradient }}>
+                    <item.icon size={20} color="#fff" strokeWidth={2} />
+                  </span>
+                  <span className="popup-tile-label">{item.name}</span>
                 </NavLink>
               ))}
-            </div>
-            <div className="popup-section">
-              <p className="section-title">Others</p>
-              {footerItems.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.path}
-                  onClick={() => setIsMobileOpen(false)}
-                  className="popup-link text-muted"
-                >
-                  <item.icon size={20} />
-                  {item.name}
-                </NavLink>
-              ))}
-              <button
-                className="popup-link text-muted"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0' }}
-                onClick={handleLogout}
-              >
-                <LogOut size={20} />
-                Sign out
-              </button>
             </div>
 
-            {/* User info in popup */}
-            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--outline-variant)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--primary-container)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <User size={20} />
-              </div>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{displayName}</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--on-surface-variant)' }}>{displayEmail}</div>
-              </div>
-            </div>
+            <div className="popup-divider" />
+
+            <NavLink
+              to="/settings"
+              onClick={() => setIsMobileOpen(false)}
+              className={({ isActive }) => `popup-action-row ${isActive ? 'active' : ''}`}
+            >
+              <span className="popup-action-icon" style={{ background: 'linear-gradient(135deg,#374151,#6b7280)' }}>
+                <Settings size={16} color="#fff" />
+              </span>
+              Settings
+            </NavLink>
+            <button onClick={handleLogout} className="popup-action-row popup-signout">
+              <span className="popup-action-icon" style={{ background: 'linear-gradient(135deg,#7f1d1d,#ef4444)' }}>
+                <LogOut size={16} color="#fff" />
+              </span>
+              Sign out
+            </button>
           </div>
         </div>
       </div>
