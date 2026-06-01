@@ -10,7 +10,30 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-const get = (path) => client.get(path);
+const CACHE_TTL = 30_000;
+const cache = new Map();
+
+function cachedGet(path) {
+  const entry = cache.get(path);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) {
+    return Promise.resolve(entry.data);
+  }
+  return client.get(path).then((res) => {
+    cache.set(path, { ts: Date.now(), data: res });
+    return res;
+  });
+}
+
+function invalidate(...prefixes) {
+  for (const key of cache.keys()) {
+    if (prefixes.some((p) => key.startsWith(p))) cache.delete(key);
+  }
+}
+
+function invalidateAll() {
+  cache.clear();
+}
+
 const post = (path, data) => client.post(path, data);
 const patch = (path, data) => client.patch(path, data);
 const del = (path) => client.delete(path);
@@ -21,31 +44,62 @@ export const api = {
   login: (email, password) => post('/auth/login', { email, password }),
   forgotPassword: (email) => post('/auth/forgot-password', { email }),
   resetPassword: (email, password) => post('/auth/reset-password', { email, password }),
-  getMe: () => get('/auth/me'),
-  updateProfile: (data) => patch('/auth/profile', data),
+  getMe: () => client.get('/auth/me'),
+  updateProfile: (data) => {
+    invalidateAll();
+    return patch('/auth/profile', data);
+  },
 
   // Dashboard
-  getDashboardSummary: () => get('/dashboard/summary'),
-  getAnalytics: () => get('/dashboard/analytics'),
-  getClientAnalytics: () => get('/dashboard/clients'),
-  getMonthlyHistory: () => get('/dashboard/monthly-history'),
+  getDashboardSummary: () => cachedGet('/dashboard/summary'),
+  getAnalytics: () => cachedGet('/dashboard/analytics'),
+  getClientAnalytics: () => cachedGet('/dashboard/clients'),
+  getMonthlyHistory: () => cachedGet('/dashboard/monthly-history'),
 
   // Work Logs
-  getWorkLogs: () => get('/work-logs'),
-  createWorkLog: (data) => post('/work-logs', data),
-  updateWorkLog: (id, data) => patch(`/work-logs/${id}`, data),
-  deleteWorkLog: (id) => del(`/work-logs/${id}`),
+  getWorkLogs: () => cachedGet('/work-logs'),
+  createWorkLog: (data) => {
+    invalidate('/work-logs', '/dashboard');
+    return post('/work-logs', data);
+  },
+  updateWorkLog: (id, data) => {
+    invalidate('/work-logs', '/dashboard');
+    return patch(`/work-logs/${id}`, data);
+  },
+  deleteWorkLog: (id) => {
+    invalidate('/work-logs', '/dashboard');
+    return del(`/work-logs/${id}`);
+  },
 
   // Loans
-  getLoans: () => get('/loans'),
-  createLoan: (data) => post('/loans', data),
-  updateLoan: (id, data) => patch(`/loans/${id}`, data),
-  deleteLoan: (id) => del(`/loans/${id}`),
-  getLoanRepayments: (id) => get(`/loans/${id}/repayments`),
-  addLoanRepayment: (id, data) => post(`/loans/${id}/repayments`, data),
-  addLoanInterest: (id, data) => post(`/loans/${id}/repayments`, { ...data, type: 'Interest' }),
-  updateLoanRepayment: (loanId, repaymentId, data) =>
-    patch(`/loans/${loanId}/repayments/${repaymentId}`, data),
-  deleteLoanRepayment: (loanId, repaymentId) =>
-    del(`/loans/${loanId}/repayments/${repaymentId}`),
+  getLoans: () => cachedGet('/loans'),
+  createLoan: (data) => {
+    invalidate('/loans', '/dashboard');
+    return post('/loans', data);
+  },
+  updateLoan: (id, data) => {
+    invalidate('/loans', '/dashboard');
+    return patch(`/loans/${id}`, data);
+  },
+  deleteLoan: (id) => {
+    invalidate('/loans', '/dashboard');
+    return del(`/loans/${id}`);
+  },
+  getLoanRepayments: (id) => cachedGet(`/loans/${id}/repayments`),
+  addLoanRepayment: (id, data) => {
+    invalidate('/loans', '/dashboard');
+    return post(`/loans/${id}/repayments`, data);
+  },
+  addLoanInterest: (id, data) => {
+    invalidate('/loans', '/dashboard');
+    return post(`/loans/${id}/repayments`, { ...data, type: 'Interest' });
+  },
+  updateLoanRepayment: (loanId, repaymentId, data) => {
+    invalidate('/loans', '/dashboard');
+    return patch(`/loans/${loanId}/repayments/${repaymentId}`, data);
+  },
+  deleteLoanRepayment: (loanId, repaymentId) => {
+    invalidate('/loans', '/dashboard');
+    return del(`/loans/${loanId}/repayments/${repaymentId}`);
+  },
 };
