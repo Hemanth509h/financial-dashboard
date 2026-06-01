@@ -77,7 +77,7 @@ router.get('/summary', async (req, res) => {
     
     let totalRepaidThisMonth = 0;
     recentRepaymentsThisMonth.forEach(r => {
-      if (!r.status || r.status === 'Success') {
+      if ((!r.status || r.status === 'Success') && r.type !== 'Interest') {
         totalRepaidThisMonth += r.amount;
       }
     });
