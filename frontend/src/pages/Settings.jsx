@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Target, User, Moon, Save, Download, Upload, Lock } from 'lucide-react';
+import { Target, User, Moon, Save, Download, Upload, Lock, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../api/index.js';
 import { useAuth } from '../context/useAuth';
@@ -29,7 +29,22 @@ export const Settings = () => {
   const [savingPassword, setSavingPassword] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const fileInputRef = useRef(null);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const res = await api.get('/auth/me');
+      updateUser(res.data);
+      setSettings(getInitialSettings(res.data));
+      toast.success('Settings refreshed');
+    } catch {
+      toast.error('Failed to refresh');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -181,6 +196,9 @@ export const Settings = () => {
           <h1>Settings</h1>
           <p className="text-muted">Manage your profile and app preferences.</p>
         </div>
+        <button className="page-refresh-btn" onClick={handleRefresh} disabled={refreshing} title="Refresh">
+          <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
+        </button>
       </header>
 
       <div className="content" style={{ maxWidth: '800px' }}>
