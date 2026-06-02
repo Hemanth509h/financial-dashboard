@@ -2,6 +2,7 @@ import express from 'express';
 import WorkEntry from '../models/WorkEntry.js';
 import Loan from '../models/Loan.js';
 import Repayment from '../models/Repayment.js';
+import Expense from '../models/Expense.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -82,17 +83,29 @@ router.get('/summary', async (req, res) => {
       }
     });
 
+    const currentMonthExpenses = await Expense.find({
+      userId: uid,
+      date: { $gte: startOfMonth, $lt: startOfNextMonth },
+    });
+    const totalExpensesThisMonth = currentMonthExpenses.reduce((sum, expense) => {
+      return sum + Number(expense.amount || 0);
+    }, 0);
+
     const recentWork = await WorkEntry.find({ userId: uid }).sort({ createdAt: -1 }).limit(5);
     const recentRepayments = await Repayment.find({ loanId: { $in: userLoanIds } }).sort({ createdAt: -1 }).limit(5).populate('loanId');
+    const recentExpenses = await Expense.find({ userId: uid }).sort({ createdAt: -1 }).limit(5);
     
     // Merge and sort
     const allActivity = [
       ...recentWork.map(w => ({ type: 'work', data: w, date: w.createdAt })),
-      ...recentRepayments.map(r => ({ type: 'repayment', data: r, date: r.createdAt }))
+      ...recentRepayments.map(r => ({ type: 'repayment', data: r, date: r.createdAt })),
+      ...recentExpenses.map(e => ({ type: 'expense', data: e, date: e.createdAt }))
     ].sort((a, b) => b.date - a.date).slice(0, 5);
 
     res.json({
       totalEarnedThisMonth,
+      totalExpensesThisMonth,
+      netIncomeThisMonth: totalEarnedThisMonth - totalExpensesThisMonth,
       pendingPayments,
       pendingCount,
       totalLoanBalance,
@@ -110,9 +123,10 @@ router.get('/monthly-history', async (req, res) => {
   try {
     const uid = req.user._id;
     const userLoanIds = (await Loan.find({ userId: uid }).select('_id')).map(l => l._id);
-    const [entries, repayments] = await Promise.all([
+    const [entries, repayments, expenses] = await Promise.all([
       WorkEntry.find({ userId: uid }).sort({ date: -1 }),
       Repayment.find({ loanId: { $in: userLoanIds } }).sort({ date: -1 }).populate('loanId'),
+      Expense.find({ userId: uid }).sort({ date: -1 }),
     ]);
 
     const months = {};
@@ -128,6 +142,8 @@ router.get('/monthly-history', async (req, res) => {
           workCount: 0,
           repaymentTotal: 0,
           repaymentCount: 0,
+          expenseTotal: 0,
+          expenseCount: 0,
         };
       }
       return months[key];
@@ -148,6 +164,12 @@ router.get('/monthly-history', async (req, res) => {
       const bucket = ensureMonth(repayment.date);
       bucket.repaymentTotal += Number(repayment.amount || 0);
       bucket.repaymentCount += 1;
+    });
+
+    expenses.forEach((expense) => {
+      const bucket = ensureMonth(expense.date);
+      bucket.expenseTotal += Number(expense.amount || 0);
+      bucket.expenseCount += 1;
     });
 
     res.json(
@@ -200,10 +222,17 @@ router.get('/analytics', async (req, res) => {
         return sum;
       }, 0);
 
+      const expenses = await Expense.find({
+        userId: uid,
+        date: { $gte: m.start, $lte: m.end }
+      });
+      const expenseTotal = expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+
       return {
         month: m.name,
         earnings,
-        repayments: repaymentTotal
+        repayments: repaymentTotal,
+        expenses: expenseTotal
       };
     }));
 

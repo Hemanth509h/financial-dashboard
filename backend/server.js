@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import workEntryRoutes from './routes/workEntries.js';
 import loanRoutes from './routes/loans.js';
+import expenseRoutes from './routes/expenses.js';
 import dashboardRoutes from './routes/dashboard.js';
 import authRoutes from './routes/auth.js';
 
@@ -69,6 +70,7 @@ connectDatabase().catch((err) => {
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/work-logs', workEntryRoutes);
+app.use('/api/expenses', expenseRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Archive, CalendarDays, TrendingDown, TrendingUp, Wallet, RefreshCw } from 'lucide-react';
+import { Archive, CalendarDays, ReceiptText, TrendingDown, TrendingUp, Wallet, RefreshCw } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { api } from '../api';
 import { useAuth } from '../context/useAuth';
@@ -29,8 +29,8 @@ export const MonthlyHistory = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchHistory();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatCurrency = (amount) => {
@@ -47,7 +47,7 @@ export const MonthlyHistory = () => {
       <header className="page-header mobile-stack" style={{ marginBottom: 'var(--space-xl)', gap: 'var(--space-md)' }}>
         <div>
           <h1 style={{ marginBottom: '4px' }}>Monthly History</h1>
-          <p className="text-muted">A snapshot of each previous month's earnings and repayments.</p>
+          <p className="text-muted">A snapshot of each previous month's earnings, expenses, and repayments.</p>
         </div>
         <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" className="page-refresh-btn">
           <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
@@ -82,13 +82,13 @@ export const MonthlyHistory = () => {
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Net Earned</div>
-                    <div style={{ color: 'white', fontWeight: '700', fontSize: '22px', letterSpacing: '-0.02em' }}>{formatCurrency(month.earned)}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Net After Expenses</div>
+                    <div style={{ color: 'white', fontWeight: '700', fontSize: '22px', letterSpacing: '-0.02em' }}>{formatCurrency(month.earned - month.expenseTotal)}</div>
                   </div>
                 </div>
 
                 {/* Stats row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', padding: 'var(--space-md) var(--space-lg)', gap: 'var(--space-md)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', padding: 'var(--space-md) var(--space-lg)', gap: 'var(--space-md)' }}>
                   <div>
                     <div className="flex items-center gap-xs body-sm text-muted" style={{ marginBottom: '4px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       <TrendingUp size={12} /> Expected
@@ -107,6 +107,16 @@ export const MonthlyHistory = () => {
                       {formatCurrency(month.pending)}
                     </div>
                     <div className="body-sm text-muted" style={{ fontSize: '11px' }}>Uncollected</div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-xs body-sm text-muted" style={{ marginBottom: '4px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <ReceiptText size={12} /> Expenses
+                    </div>
+                    <div className="font-semibold" style={{ fontSize: '17px', color: 'var(--error)' }}>
+                      {formatCurrency(month.expenseTotal)}
+                    </div>
+                    <div className="body-sm text-muted" style={{ fontSize: '11px' }}>{month.expenseCount} record{month.expenseCount !== 1 ? 's' : ''}</div>
                   </div>
 
                   <div>

@@ -22,7 +22,7 @@ export const AnalyticsChart = ({ data }) => {
   const chartData = useMemo(() => {
     if (!data || data.length === 0) {
       return [
-        { month: 'No Data', earnings: 0, repayments: 0 }
+        { month: 'No Data', earnings: 0, repayments: 0, expenses: 0 }
       ];
     }
     return data;
@@ -43,6 +43,10 @@ export const AnalyticsChart = ({ data }) => {
             <linearGradient id="colorRepayments" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
               <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+            </linearGradient>
+            <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#f97316" stopOpacity={0.24}/>
+              <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -77,6 +81,16 @@ export const AnalyticsChart = ({ data }) => {
             strokeWidth={3}
             fillOpacity={1} 
             fill="url(#colorEarnings)" 
+            animationDuration={1000}
+          />
+          <Area 
+            type="monotone" 
+            dataKey="expenses" 
+            name="Expenses"
+            stroke="#f97316" 
+            strokeWidth={3}
+            fillOpacity={1} 
+            fill="url(#colorExpenses)" 
             animationDuration={1000}
           />
           <Area 

@@ -5,6 +5,7 @@ import { useAuth } from './context/useAuth';
 import { SidebarLayout } from './layouts/SidebarLayout';
 import { Dashboard } from './pages/Dashboard';
 import { WorkLog } from './pages/WorkLog';
+import { Expenses } from './pages/Expenses';
 import { Payments } from './pages/Payments';
 import { Loans } from './pages/Loans';
 import { Settings } from './pages/Settings';
@@ -42,6 +43,7 @@ function AppContent() {
         <Route path="/" element={<ProtectedRoute><SidebarLayout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="work-log" element={<WorkLog />} />
+          <Route path="expenses" element={<Expenses />} />
           <Route path="payments" element={<Payments />} />
           <Route path="loans" element={<Loans />} />
           <Route path="monthly-history" element={<MonthlyHistory />} />

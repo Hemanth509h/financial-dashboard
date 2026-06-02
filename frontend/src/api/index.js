@@ -71,6 +71,21 @@ export const api = {
     return del(`/work-logs/${id}`);
   },
 
+  // Expenses
+  getExpenses: () => cachedGet('/expenses'),
+  createExpense: (data) => {
+    invalidate('/expenses', '/dashboard');
+    return post('/expenses', data);
+  },
+  updateExpense: (id, data) => {
+    invalidate('/expenses', '/dashboard');
+    return patch(`/expenses/${id}`, data);
+  },
+  deleteExpense: (id) => {
+    invalidate('/expenses', '/dashboard');
+    return del(`/expenses/${id}`);
+  },
+
   // Loans
   getLoans: () => cachedGet('/loans'),
   createLoan: (data) => {

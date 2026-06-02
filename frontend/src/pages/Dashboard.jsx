@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { MetricTile } from '../components/ui/MetricTile';
-import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { AnalyticsChart } from '../components/ui/AnalyticsChart';
-import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown, RefreshCw } from 'lucide-react';
+import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown, RefreshCw, ReceiptText } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/useAuth';
 import './Dashboard.css';
@@ -16,6 +15,8 @@ export const Dashboard = () => {
 
   const [summary, setSummary] = useState({
     totalEarnedThisMonth: 0,
+    totalExpensesThisMonth: 0,
+    netIncomeThisMonth: 0,
     pendingPayments: 0,
     pendingCount: 0,
     totalLoanBalance: 0,
@@ -43,7 +44,11 @@ export const Dashboard = () => {
           if (log.status === 'Paid') return sum + Number(log.amount || 0);
           return sum + Number(log.amountPaid || 0);
         }, 0);
-      setSummary({ ...summaryRes.data, totalEarnedThisMonth });
+      setSummary({
+        ...summaryRes.data,
+        totalEarnedThisMonth,
+        netIncomeThisMonth: totalEarnedThisMonth - Number(summaryRes.data.totalExpensesThisMonth || 0),
+      });
       setAnalytics(analyticsRes.data);
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
@@ -59,8 +64,8 @@ export const Dashboard = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatCurrency = (amount) => {
@@ -91,7 +96,7 @@ export const Dashboard = () => {
             <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
           </button>
           <Button variant="secondary" onClick={() => window.location.href = '/work-log'}>Log Work</Button>
-          <Button onClick={() => window.location.href = '/loans'}>Record Repayment</Button>
+          <Button onClick={() => window.location.href = '/expenses'}>Add Expense</Button>
         </div>
       </header>
 
@@ -116,6 +121,15 @@ export const Dashboard = () => {
           icon={TrendingUp}
           gradientFrom="#134e4a"
           gradientTo="#10b981"
+        />
+        <MetricTile
+          title="Expenses This Month"
+          value={formatCurrency(summary.totalExpensesThisMonth)}
+          subtext={`Net: ${formatCurrency(summary.netIncomeThisMonth)}`}
+          subtextColor={summary.netIncomeThisMonth >= 0 ? 'success' : 'error'}
+          icon={ReceiptText}
+          gradientFrom="#9a3412"
+          gradientTo="#f97316"
         />
         <MetricTile
           title="Pending Payments"
@@ -158,12 +172,16 @@ export const Dashboard = () => {
                 <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
                   <TrendingUp size={18} color="#fff" />
                 </div>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>Earnings vs. Repayments</div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>Earnings, Expenses, Repayments</div>
               </div>
               <div style={{ display: 'flex', gap: 14 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#34d399', display: 'inline-block' }}></span>
                   <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>Earnings</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f97316', display: 'inline-block' }}></span>
+                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>Expenses</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f87171', display: 'inline-block' }}></span>
@@ -227,20 +245,21 @@ export const Dashboard = () => {
             {summary.recentActivity && summary.recentActivity.length > 0 ? (
               summary.recentActivity.map((activity, index) => {
                 const isWork = activity.type === 'work';
+                const isExpense = activity.type === 'expense';
                 return (
                   <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: index < summary.recentActivity.length - 1 ? '1px solid var(--outline-variant)' : 'none' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 38, height: 38, borderRadius: '10px', background: isWork ? 'linear-gradient(135deg, #134e4a, #10b981)' : 'linear-gradient(135deg, #7f1d1d, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {isWork ? <CheckCircle2 size={18} color="#fff" /> : <History size={18} color="#fff" />}
+                      <div style={{ width: 38, height: 38, borderRadius: '10px', background: isWork ? 'linear-gradient(135deg, #134e4a, #10b981)' : isExpense ? 'linear-gradient(135deg, #9a3412, #f97316)' : 'linear-gradient(135deg, #7f1d1d, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {isWork ? <CheckCircle2 size={18} color="#fff" /> : isExpense ? <ReceiptText size={18} color="#fff" /> : <History size={18} color="#fff" />}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--on-surface)' }}>{isWork ? activity.data.client : activity.data.loanId?.lenderName || 'Loan'}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>{isWork ? 'Work entry' : 'Repayment'} · {formatDate(activity.date)}</div>
+                        <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--on-surface)' }}>{isWork ? activity.data.client : isExpense ? (activity.data.merchant || activity.data.category) : activity.data.loanId?.lenderName || 'Loan'}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)' }}>{isWork ? 'Work entry' : isExpense ? 'Expense' : 'Repayment'} · {formatDate(activity.date)}</div>
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontWeight: 700, fontSize: '14px', color: isWork ? 'var(--primary)' : 'var(--error)' }}>{isWork ? '+' : '-'} {formatCurrency(activity.data.amount)}</div>
-                      <Badge status={isWork ? activity.data.status : (activity.data.status || 'Success')} />
+                      <Badge status={isWork ? activity.data.status : isExpense ? activity.data.category : (activity.data.status || 'Success')} />
                     </div>
                   </div>
                 );
