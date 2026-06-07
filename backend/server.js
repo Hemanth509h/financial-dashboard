@@ -10,6 +10,8 @@ import loanRoutes from './routes/loans.js';
 import expenseRoutes from './routes/expenses.js';
 import dashboardRoutes from './routes/dashboard.js';
 import authRoutes from './routes/auth.js';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 
 dotenv.config();
 
@@ -17,6 +19,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+app.use(helmet());
 
 app.set('trust proxy', 1);
 
@@ -37,6 +41,7 @@ app.use((req, res, next) => {
     }
   }
 
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
@@ -47,6 +52,19 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 app.use(express.json());
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: { message: 'Too many attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/reset-password', authLimiter);
 
 // Request logging middleware
 app.use((req, res, next) => {

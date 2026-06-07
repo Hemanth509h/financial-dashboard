@@ -43,6 +43,7 @@ const api = {
   forgotPassword: (email) => post('/auth/forgot-password', { email }),
   resetPassword: (email, password) => post('/auth/reset-password', { email, password }),
   getMe: () => client.get('/auth/me'),
+  refresh: () => post('/auth/refresh', {}),
   updateProfile: (data) => {
     invalidateAll();
     return patch('/auth/profile', data);

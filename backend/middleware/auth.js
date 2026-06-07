@@ -1,7 +1,10 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'gigfinance_dev_secret_change_in_prod';
+export const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error('JWT_SECRET environment variable is required.');
 
 export const setAuthCookie = (res, userId) => {
   const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '15m' });

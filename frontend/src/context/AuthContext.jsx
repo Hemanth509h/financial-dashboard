@@ -32,6 +32,33 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const refreshSession = async () => {
+      try {
+        await api.refresh();
+      } catch (err) {
+        console.warn('Session refresh failed:', err.message);
+        setUser(null);
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', systemTheme);
+      }
+    };
+
+    const handleFocus = () => {
+      refreshSession();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    const interval = setInterval(refreshSession, 10 * 60 * 1000);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(interval);
+    };
+  }, [user]);
+
   const login = useCallback(async (email, password) => {
     const res = await api.login(email, password);
     const { user: u } = res.data;

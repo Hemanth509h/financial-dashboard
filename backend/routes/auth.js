@@ -1,6 +1,7 @@
 import express from 'express';
 import User from '../models/User.js';
-import { protect, setAuthCookie } from '../middleware/auth.js';
+import { protect, setAuthCookie, JWT_SECRET } from '../middleware/auth.js';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
@@ -51,6 +52,20 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => {
   res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'strict' });
   res.json({ message: 'Logged out successfully.' });
+});
+
+router.post('/refresh', async (req, res) => {
+  const token = req.cookies?.token;
+  if (!token) return res.status(401).json({ message: 'Not authenticated.' });
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) return res.status(401).json({ message: 'User not found.' });
+    setAuthCookie(res, user._id); // issues a fresh 15-min cookie
+    res.json({ message: 'Token refreshed.' });
+  } catch {
+    res.status(401).json({ message: 'Session expired. Please sign in again.' });
+  }
 });
 
 router.post('/forgot-password', async (req, res) => {
