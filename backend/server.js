@@ -23,10 +23,27 @@ app.set('trust proxy', 1);
 app.use(cookieParser());
 
 app.use(cors({
-  origin: '*',
+  origin: (origin, callback) => {
+    // Allow specific origins that need credentials
+    const allowedOrigins = [
+      'https://financial-dashboard-dut2pm4vy-hemanth509hs-projects.vercel.app',
+      'https://financial-dashboard-git-main-hemanth509hs-projects.vercel.app',
+      'https://gitfinance.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+    ];
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // For non-browser requests (no origin header)
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false,
+  credentials: true,
 }));
 app.use(express.json());
 
