@@ -12,58 +12,40 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
     let isRefreshing = false;
-    let failedQueue = [];
-
-    const processQueue = (error, token = null) => {
-      failedQueue.forEach(prom => {
-        if (error) {
-          prom.reject(error);
-        } else {
-          prom.resolve(token);
-        }
-      });
-      failedQueue = [];
-    };
 
     // Interceptor to handle 401 and refresh token
     const interceptor = client.interceptors.response.use(
-      response => response,
+      response => {
+        console.log('[API] Response:', response.config.method.toUpperCase(), response.config.url);
+        return response;
+      },
       error => {
+        console.log('[API] Error:', error.config?.method?.toUpperCase(), error.config?.url, error.response?.status);
+        
         const originalRequest = error.config;
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-          if (!originalRequest._retry) {
-            originalRequest._retry = true;
-            
-            if (!isRefreshing) {
-              isRefreshing = true;
-              return api.refresh()
-                .then(res => {
-                  isRefreshing = false;
-                  processQueue(null, res.data.token);
-                  return client(originalRequest);
-                })
-                .catch(err => {
-                  isRefreshing = false;
-                  processQueue(err, null);
-                  localStorage.removeItem('gf_user');
-                  if (mounted) {
-                    setUser(null);
-                  }
-                  return Promise.reject(err);
-                });
-            } else if (isRefreshing) {
-              return new Promise((resolve, reject) => {
-                failedQueue.push({ resolve, reject });
+        
+        // Only attempt refresh for 401 on first attempt
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+          
+          if (!isRefreshing) {
+            isRefreshing = true;
+            return api.refresh()
+              .then(res => {
+                isRefreshing = false;
+                console.log('[AUTH] Token refreshed, retrying original request');
+                return client(originalRequest);
               })
-                .then(token => client(originalRequest))
-                .catch(err => Promise.reject(err));
-            }
-          }
-          localStorage.removeItem('gf_user');
-          if (mounted) {
-            setUser(null);
+              .catch(err => {
+                isRefreshing = false;
+                console.log('[AUTH] Refresh failed, clearing user');
+                localStorage.removeItem('gf_user');
+                if (mounted) setUser(null);
+                return Promise.reject(err);
+              });
           }
         }
+        
         return Promise.reject(error);
       }
     );
@@ -81,37 +63,19 @@ export const AuthProvider = ({ children }) => {
           }
           connected = true;
         } catch (err) {
-          if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-            // Try refresh
-            try {
-              await api.refresh();
-              try {
-                const meRes = await api.getMe();
-                if (mounted) {
-                  setUser(meRes.data);
-                  localStorage.setItem('gf_user', JSON.stringify(meRes.data));
-                  document.documentElement.setAttribute('data-theme', meRes.data.theme || 'light');
-                  setLoading(false);
-                }
-                connected = true;
-              } catch (meErr) {
-                localStorage.removeItem('gf_user');
-                if (mounted) {
-                  setUser(null);
-                  setLoading(false);
-                }
-                connected = true;
-              }
-            } catch (refreshErr) {
-              localStorage.removeItem('gf_user');
-              if (mounted) {
-                setUser(null);
-                setLoading(false);
-              }
-              connected = true;
+          console.log('[AUTH] Init failed:', err.message);
+          
+          // If it's an auth error after interceptor handling, mark as not authenticated
+          if (err.response?.status === 401 || err.response?.status === 403) {
+            localStorage.removeItem('gf_user');
+            if (mounted) {
+              setUser(null);
+              setLoading(false);
             }
+            connected = true;
           } else {
-            console.warn('Backend server not reachable or loading. Retrying...', err.message);
+            // Connection issue, retry
+            console.log('[AUTH] Retrying in 2s...');
             await new Promise((resolve) => setTimeout(resolve, 2000));
           }
         }
