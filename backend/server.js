@@ -20,9 +20,23 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-// CORS middleware to allow all origins and handle preflight requests
+// CORS middleware to restrict allowed origins
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  const allowedOrigins = ['https://gitfinance.vercel.app', 'https://gitfinance.vercel.app/'];
+
+  if (process.env.NODE_ENV !== 'production') {
+    if (origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+  } else {
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+  }
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
