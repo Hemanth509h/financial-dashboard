@@ -9,6 +9,8 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (!token) {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', systemTheme);
       setLoading(false);
       return;
     }
@@ -65,6 +67,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('gf_token');
     setToken(null);
     setUser(null);
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', systemTheme);
   }, []);
 
   const updateUser = useCallback((updated) => {

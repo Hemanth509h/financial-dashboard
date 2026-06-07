@@ -3,8 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-// Initialize theme with a safe default until user loads
-document.documentElement.setAttribute('data-theme', 'light');
+// Initialize theme using system preference
+const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+document.documentElement.setAttribute('data-theme', systemTheme);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
