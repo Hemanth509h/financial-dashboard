@@ -7,7 +7,7 @@ import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
 import { CreditCard, Edit2, Trash2, Search, X, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../context/useAuth';
+import { useAuth } from '../context/AuthContext';
 
 export const Payments = () => {
   const { user } = useAuth();

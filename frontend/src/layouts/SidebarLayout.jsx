@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Archive, LayoutDashboard, CalendarDays, Wallet, Building2, Menu, X, Settings, LogOut, User, ReceiptText } from 'lucide-react';
-import { useAuth } from '../context/useAuth';
+import { useAuth } from '../context/AuthContext';
 import './SidebarLayout.css';
 
 export const SidebarLayout = () => {

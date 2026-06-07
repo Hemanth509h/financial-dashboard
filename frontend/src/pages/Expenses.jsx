@@ -7,7 +7,7 @@ import { MetricTile } from '../components/ui/MetricTile';
 import { Modal } from '../components/ui/Modal';
 import { ExpenseForm } from '../components/forms/ExpenseForm';
 import { api } from '../api';
-import { useAuth } from '../context/useAuth';
+import { useAuth } from '../context/AuthContext';
 
 const categoryOptions = ['All', 'Food', 'Travel', 'Rent', 'Utilities', 'Supplies', 'Loan', 'Personal', 'Other'];
 

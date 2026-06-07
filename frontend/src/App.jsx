@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
-import { useAuth } from './context/useAuth';
+import { useAuth } from './context/AuthContext';
 import { SidebarLayout } from './layouts/SidebarLayout';
 import { Dashboard } from './pages/Dashboard';
 import { WorkLog } from './pages/WorkLog';

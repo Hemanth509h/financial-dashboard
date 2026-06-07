@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Target, User, Moon, Save, Download, Upload, Lock, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../api/index.js';
-import { useAuth } from '../context/useAuth';
+import { useAuth } from '../context/AuthContext';
 
 const serverFields = new Set(['_id', '__v', 'createdAt', 'updatedAt', 'userId']);
 const repaymentServerFields = new Set(['_id', '__v', 'createdAt', 'updatedAt', 'loanId']);

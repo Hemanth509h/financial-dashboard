@@ -9,7 +9,7 @@ import { InterestForm } from '../components/forms/InterestForm';
 import { api } from '../api';
 import { Edit2, Trash2, Download, Plus, TrendingUp, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../context/useAuth';
+import { useAuth } from '../context/AuthContext';
 
 export const Loans = () => {
   const { user } = useAuth();

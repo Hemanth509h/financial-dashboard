@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { api, client } from '../api/index.js';
-import { AuthContext } from './auth-context.js';
+import { createContext, useState, useEffect, useCallback, useContext } from 'react';
+import { api } from '../api/index.js';
 
+// Create the AuthContext
+export const AuthContext = createContext(null);
+
+// AuthProvider Component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(() => localStorage.getItem('gf_token'));
@@ -81,4 +84,13 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+// Custom Hook for using AuthContext
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
