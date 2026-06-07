@@ -4,46 +4,49 @@ import { AuthContext } from './auth-context.js';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem('gf_token'));
-  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('gf_token')));
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) return;
-
-    api.getMe()
-      .then((res) => {
-        setUser(res.data);
-        document.documentElement.setAttribute('data-theme', res.data.theme || 'light');
-      })
-      .catch(() => {
-        localStorage.removeItem('gf_token');
-        setToken(null);
-      })
-      .finally(() => setLoading(false));
-  }, [token]);
+    let mounted = true;
+    const initializeAuth = async () => {
+      let connected = false;
+      while (mounted && !connected) {
+        try {
+          const res = await api.getMe();
+          if (mounted) {
+            setUser(res.data);
+            document.documentElement.setAttribute('data-theme', res.data.theme || 'light');
+            setLoading(false);
+          }
+          connected = true;
+        } catch (err) {
+          console.warn('Backend server not reachable or loading. Retrying...', err.message);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
+    };
+    initializeAuth();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const login = useCallback(async (email, password) => {
     const res = await api.login(email, password);
-    const { token: t, user: u } = res.data;
-    localStorage.setItem('gf_token', t);
-    setToken(t);
+    const { user: u } = res.data;
     setUser(u);
     document.documentElement.setAttribute('data-theme', u.theme || 'light');
   }, []);
 
   const register = useCallback(async (email, password, name) => {
     const res = await api.register(email, password, name);
-    const { token: t, user: u } = res.data;
-    localStorage.setItem('gf_token', t);
-    setToken(t);
+    const { user: u } = res.data;
     setUser(u);
     document.documentElement.setAttribute('data-theme', u.theme || 'light');
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('gf_token');
-    setToken(null);
-    setUser(null);
+    console.log('Logout requested, but authentication is disabled.');
   }, []);
 
   const updateUser = useCallback((updated) => {
@@ -52,7 +55,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token: null, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -23,14 +23,13 @@
     }
 
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        // App shell / offline cache worker.
-        navigator.serviceWorker.register('/sw.js').then((reg) => {
-          console.log('App SW registered');
-          reg.update().catch(() => {});
-        }).catch((err) => console.warn('App SW failed', err));
-
-      });
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister().then((unregistered) => {
+            if (unregistered) console.log('Active SW unregistered successfully.');
+          });
+        }
+      }).catch((err) => console.warn('Failed to unregister SW:', err));
     }
   </script>
 </head>

@@ -44,7 +44,7 @@ export function InstallBanner() {
           <div className="install-banner__text">
             <div className="install-banner__title">Install GigFinance</div>
             <div className="install-banner__instruction">
-              Get instant access and offline support
+              Get instant access from your home screen
             </div>
           </div>
           <button
