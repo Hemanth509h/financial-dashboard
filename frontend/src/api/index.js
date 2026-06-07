@@ -2,7 +2,10 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-const client = axios.create({ baseURL: API_URL });
+const client = axios.create({ 
+  baseURL: API_URL,
+  withCredentials: true 
+});
 
 const CACHE_TTL = 30_000;
 const cache = new Map();
@@ -36,6 +39,8 @@ export const api = {
   // Auth
   register: (email, password, name) => post('/auth/register', { email, password, name }),
   login: (email, password) => post('/auth/login', { email, password }),
+  logout: () => post('/auth/logout', {}),
+  refresh: () => post('/auth/refresh', {}),
   forgotPassword: (email) => post('/auth/forgot-password', { email }),
   resetPassword: (email, password) => post('/auth/reset-password', { email, password }),
   getMe: () => client.get('/auth/me'),
@@ -112,3 +117,5 @@ export const api = {
     return del(`/loans/${loanId}/repayments/${repaymentId}`);
   },
 };
+
+export { api, client };
