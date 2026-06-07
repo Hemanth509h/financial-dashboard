@@ -30,6 +30,11 @@ export const Login = () => {
 
   return (
     <div className="auth-page">
+      <div className="auth-bg-blobs">
+        <div className="auth-blob auth-blob-1"></div>
+        <div className="auth-blob auth-blob-2"></div>
+        <div className="auth-blob auth-blob-3"></div>
+      </div>
       <div className="auth-card">
         <div className="auth-logo">
           <img src="/logo.png" alt="GigFinance" />
