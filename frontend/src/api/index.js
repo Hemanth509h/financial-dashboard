@@ -3,8 +3,13 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const client = axios.create({ 
-  baseURL: API_URL,
-  withCredentials: true 
+  baseURL: API_URL
+});
+
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('gf_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
 const CACHE_TTL = 30_000;
@@ -40,7 +45,6 @@ const api = {
   register: (email, password, name) => post('/auth/register', { email, password, name }),
   login: (email, password) => post('/auth/login', { email, password }),
   logout: () => post('/auth/logout', {}),
-  refresh: () => post('/auth/refresh', {}),
   forgotPassword: (email) => post('/auth/forgot-password', { email }),
   resetPassword: (email, password) => post('/auth/reset-password', { email, password }),
   getMe: () => client.get('/auth/me'),

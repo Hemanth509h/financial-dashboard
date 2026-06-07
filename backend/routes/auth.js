@@ -1,46 +1,8 @@
 import express from 'express';
 import User from '../models/User.js';
-import { generateToken, generateRefreshToken, protect } from '../middleware/auth.js';
-import jwt from 'jsonwebtoken';
+import { protect, generateToken } from '../middleware/auth.js';
 
 const router = express.Router();
-
-const setAuthCookies = (res, req, token, refreshToken) => {
-  const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-  const cookieOptions = {
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: isSecure ? 'none' : 'lax',
-    path: '/',
-  };
-
-  if (token) {
-    res.cookie('gf_token', token, {
-      ...cookieOptions,
-      maxAge: 15 * 60 * 1000,
-    });
-  }
-
-  if (refreshToken) {
-    res.cookie('gf_refresh', refreshToken, {
-      ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-  }
-};
-
-const clearAuthCookies = (res, req) => {
-  const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-  const cookieOptions = {
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: isSecure ? 'none' : 'lax',
-    path: '/',
-  };
-
-  res.clearCookie('gf_token', cookieOptions);
-  res.clearCookie('gf_refresh', cookieOptions);
-};
 
 router.post('/register', async (req, res) => {
   const { email, password, name } = req.body;
@@ -54,12 +16,11 @@ router.post('/register', async (req, res) => {
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ message: 'Email already registered.' });
     const user = await User.create({ email, password, name: name || '' });
-    const token = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
     
-    setAuthCookies(res, req, token, refreshToken);
+    const token = generateToken(user._id);
     
     res.status(201).json({
+      token,
       user: { _id: user._id, email: user.email, name: user.name, currency: user.currency, monthlyGoal: user.monthlyGoal, theme: user.theme },
     });
   } catch (err) {
@@ -77,12 +38,11 @@ router.post('/login', async (req, res) => {
     if (!user) return res.status(401).json({ message: 'Invalid email or password.' });
     const match = await user.comparePassword(password);
     if (!match) return res.status(401).json({ message: 'Invalid email or password.' });
+    
     const token = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
-
-    setAuthCookies(res, req, token, refreshToken);
 
     res.json({
+      token,
       user: { _id: user._id, email: user.email, name: user.name, currency: user.currency, monthlyGoal: user.monthlyGoal, theme: user.theme },
     });
   } catch (err) {
@@ -91,26 +51,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
-  clearAuthCookies(res, req);
   res.json({ message: 'Logged out successfully.' });
-});
-
-router.post('/refresh', async (req, res) => {
-  const refreshToken = req.cookies?.gf_refresh;
-  if (!refreshToken) return res.status(401).json({ message: 'No refresh token.' });
-  try {
-    const REFRESH_SECRET = process.env.REFRESH_SECRET || 'gigfinance_dev_secret_change_in_prod';
-    const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(401).json({ message: 'User not found.' });
-    const newToken = generateToken(user._id);
-
-    setAuthCookies(res, req, newToken, null);
-
-    res.json({ success: true });
-  } catch (err) {
-    res.status(401).json({ message: 'Invalid or expired refresh token.' });
-  }
 });
 
 router.post('/forgot-password', async (req, res) => {

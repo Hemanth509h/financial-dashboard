@@ -18,13 +18,17 @@ import { PageLoading, SplashScreen } from './components/ui/Loading';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 
 function ProtectedRoute({ children }) {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
   if (loading) return <PageLoading />;
+  if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
 function GuestRoute({ children }) {
-  return <Navigate to="/" replace />;
+  const { user, loading } = useAuth();
+  if (loading) return <PageLoading />;
+  if (user) return <Navigate to="/" replace />;
+  return children;
 }
 
 function AppContent() {
