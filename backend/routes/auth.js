@@ -1,6 +1,6 @@
 import express from 'express';
 import User from '../models/User.js';
-import { protect, generateToken } from '../middleware/auth.js';
+import { protect, setAuthCookie } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -17,10 +17,9 @@ router.post('/register', async (req, res) => {
     if (existing) return res.status(409).json({ message: 'Email already registered.' });
     const user = await User.create({ email, password, name: name || '' });
     
-    const token = generateToken(user._id);
+    setAuthCookie(res, user._id);
     
     res.status(201).json({
-      token,
       user: { _id: user._id, email: user.email, name: user.name, currency: user.currency, monthlyGoal: user.monthlyGoal, theme: user.theme },
     });
   } catch (err) {
@@ -39,10 +38,9 @@ router.post('/login', async (req, res) => {
     const match = await user.comparePassword(password);
     if (!match) return res.status(401).json({ message: 'Invalid email or password.' });
     
-    const token = generateToken(user._id);
+    setAuthCookie(res, user._id);
 
     res.json({
-      token,
       user: { _id: user._id, email: user.email, name: user.name, currency: user.currency, monthlyGoal: user.monthlyGoal, theme: user.theme },
     });
   } catch (err) {
@@ -51,6 +49,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
+  res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'strict' });
   res.json({ message: 'Logged out successfully.' });
 });
 

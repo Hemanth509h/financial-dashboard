@@ -3,13 +3,8 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const client = axios.create({
-  baseURL: API_URL + '/api'
-});
-
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('gf_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+  baseURL: API_URL + '/api',
+  withCredentials: true
 });
 
 const CACHE_TTL = 30_000;
