@@ -19,7 +19,7 @@ export const ResetPassword = () => {
     try {
       //const { data } = await api.resetPassword(email, password);
       //setMessage(data.message || 'Your password has been reset successfully.');
-      setError(err.response?.data?.message || ' Under Maintenance.If you need to change your password, please contact the admin at phemanthkumar746@gmail.com');
+      setError('Under Maintenance.If you need to change your password, please contact the admin at phemanthkumar746@gmail.com');
 
     } catch (err) {
       setError(err.response?.data?.message || 'Unable to reset password. Please try again.');
