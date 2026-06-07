@@ -35,7 +35,7 @@ const post = (path, data) => client.post(path, data);
 const patch = (path, data) => client.patch(path, data);
 const del = (path) => client.delete(path);
 
-export const api = {
+const api = {
   // Auth
   register: (email, password, name) => post('/auth/register', { email, password, name }),
   login: (email, password) => post('/auth/login', { email, password }),
