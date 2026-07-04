@@ -7,7 +7,7 @@ import { LoanForm } from '../components/forms/LoanForm';
 import { RepaymentForm } from '../components/forms/RepaymentForm';
 import { InterestForm } from '../components/forms/InterestForm';
 import { api } from '../api';
-import { Edit2, Trash2, Download, Plus, TrendingUp, RefreshCw } from 'lucide-react';
+import { Edit2, Trash2, Download, Plus, TrendingUp, RefreshCw, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
@@ -27,6 +27,14 @@ export const Loans = () => {
   const [loadingRepayments, setLoadingRepayments] = useState({});
   const [showInterestModal, setShowInterestModal] = useState(false);
   const [selectedLoanForInterest, setSelectedLoanForInterest] = useState(null);
+  const [expandedRepayments, setExpandedRepayments] = useState({});
+
+  const toggleExpandRepayment = (id) => {
+    setExpandedRepayments(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   const handleExport = () => {
     if (loans.length === 0) {
@@ -490,34 +498,121 @@ export const Loans = () => {
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                                     {weekReps.map(rep => {
                                       const isInterest = rep.type === 'Interest';
+                                      const isExpanded = !!expandedRepayments[rep._id];
                                       return (
-                                        <div key={rep._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-sm)', backgroundColor: isInterest ? 'rgba(239,68,68,0.05)' : 'var(--surface-container-lowest)', borderRadius: 'var(--radius-sm)', border: `1px solid ${isInterest ? 'rgba(239,68,68,0.2)' : 'var(--outline-variant)'}` }}>
-                                          <div style={{ flex: 1 }}>
-                                            <div className="flex items-center gap-xs">
-                                              {isInterest && <TrendingUp size={13} style={{ color: 'var(--error)', flexShrink: 0 }} />}
-                                              <span className="font-semibold" style={{ color: isInterest ? 'var(--error)' : 'var(--success)', fontSize: '14px' }}>
-                                                {isInterest ? '+ ' : '- '}{formatCurrency(rep.amount)}
-                                              </span>
-                                              <span className="body-sm text-muted" style={{ fontSize: '12px' }}>
-                                                {isInterest ? 'Interest' : rep.method || 'Cash'}
-                                              </span>
+                                        <div 
+                                          key={rep._id} 
+                                          onClick={() => toggleExpandRepayment(rep._id)}
+                                          role="button"
+                                          tabIndex={0}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                              e.preventDefault();
+                                              toggleExpandRepayment(rep._id);
+                                            }
+                                          }}
+                                          style={{ 
+                                            display: 'flex', 
+                                            flexDirection: 'column',
+                                            padding: 'var(--space-md)', 
+                                            backgroundColor: isExpanded ? 'var(--surface-container)' : (isInterest ? 'rgba(239,68,68,0.05)' : 'var(--surface-container-lowest)'), 
+                                            borderRadius: 'var(--radius-sm)', 
+                                            border: isExpanded ? '1px solid var(--primary)' : `1px solid ${isInterest ? 'rgba(239,68,68,0.2)' : 'var(--outline-variant)'}`,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            outline: 'none',
+                                            boxShadow: isExpanded ? '0 4px 20px rgba(0, 0, 0, 0.08)' : 'none'
+                                          }}
+                                        >
+                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+                                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                {isInterest && <TrendingUp size={13} style={{ color: 'var(--error)', flexShrink: 0 }} />}
+                                                <span className="font-semibold" style={{ color: isInterest ? 'var(--error)' : 'var(--success)', fontSize: '14px' }}>
+                                                  {isInterest ? '+ ' : '- '}{formatCurrency(rep.amount)}
+                                                </span>
+                                              </div>
+                                              <div className="text-muted body-sm" style={{ fontSize: '11px' }}>{formatDate(rep.date)}</div>
                                             </div>
-                                            <div className="text-muted body-sm">{formatDate(rep.date)}</div>
-                                            {rep.note && <div className="text-muted body-sm" style={{ fontSize: '12px', fontStyle: 'italic' }}>{rep.note}</div>}
+
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+                                              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+                                                {!isInterest && <Badge status={rep.status || 'Success'} />}
+                                                <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
+                                                  {!isInterest && (
+                                                    <button onClick={(e) => { e.stopPropagation(); handleEditRepayment(loan, rep); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}>
+                                                      <Edit2 size={14} />
+                                                    </button>
+                                                  )}
+                                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteRepayment(loan._id, rep._id); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}>
+                                                    <Trash2 size={14} />
+                                                  </button>
+                                                </div>
+                                              </div>
+
+                                              <div style={{ color: isExpanded ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s' }}>
+                                                <ChevronDown 
+                                                  size={16} 
+                                                  style={{ 
+                                                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', 
+                                                    transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)' 
+                                                  }} 
+                                                />
+                                              </div>
+                                            </div>
                                           </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-                                            {!isInterest && <Badge status={rep.status || 'Success'} />}
-                                            <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                                              {!isInterest && (
-                                                <button onClick={() => handleEditRepayment(loan, rep)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: 0 }}>
-                                                  <Edit2 size={16} />
-                                                </button>
+
+                                          {isExpanded && (
+                                            <div 
+                                              style={{ 
+                                                marginTop: 'var(--space-md)', 
+                                                paddingTop: 'var(--space-md)', 
+                                                borderTop: '1px dashed var(--outline-variant)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: 'var(--space-sm)',
+                                                animation: 'fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                width: '100%'
+                                              }}
+                                              onClick={(e) => e.stopPropagation()}
+                                            >
+                                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 'var(--space-md)' }}>
+                                                <div>
+                                                  <span className="text-muted body-sm" style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</span>
+                                                  <span className="font-semibold body-sm">{new Date(rep.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                                </div>
+                                                <div>
+                                                  <span className="text-muted body-sm" style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Transaction Type</span>
+                                                  <span className="font-semibold body-sm">{isInterest ? 'Interest Addition' : 'Repayment Payment'}</span>
+                                                </div>
+                                                {!isInterest && (
+                                                  <div>
+                                                    <span className="text-muted body-sm" style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Method</span>
+                                                    <span className="font-semibold body-sm">{rep.method || 'Cash'}</span>
+                                                  </div>
+                                                )}
+                                              </div>
+
+                                              {rep.note && (
+                                                <div style={{ marginTop: '4px' }}>
+                                                  <span className="text-muted body-sm" style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Note</span>
+                                                  <p className="body-sm" style={{ 
+                                                    margin: 0, 
+                                                    padding: '8px 10px', 
+                                                    backgroundColor: 'var(--surface-container-low)', 
+                                                    borderRadius: 'var(--radius-sm)', 
+                                                    whiteSpace: 'pre-wrap', 
+                                                    wordBreak: 'break-word',
+                                                    color: 'var(--on-surface)',
+                                                    borderLeft: `3px solid ${isInterest ? 'var(--error)' : 'var(--success)'}`,
+                                                    lineHeight: '1.4'
+                                                  }}>
+                                                    {rep.note}
+                                                  </p>
+                                                </div>
                                               )}
-                                              <button onClick={() => handleDeleteRepayment(loan._id, rep._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: 0 }}>
-                                                <Trash2 size={16} />
-                                              </button>
                                             </div>
-                                          </div>
+                                          )}
                                         </div>
                                       );
                                     })}

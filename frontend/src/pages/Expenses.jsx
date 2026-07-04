@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, Edit2, Plus, RefreshCw, Search, Trash2, X, ReceiptText, Tags, Wallet } from 'lucide-react';
+import { Download, Edit2, Plus, RefreshCw, Search, Trash2, X, ReceiptText, Tags, Wallet, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -22,6 +22,14 @@ export const Expenses = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0].substring(0, 7));
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [expandedExpenses, setExpandedExpenses] = useState({});
+
+  const toggleExpand = (id) => {
+    setExpandedExpenses(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   const formatCurrency = (amount) => {
     const locale = currency === 'INR' ? 'en-IN' : currency === 'USD' ? 'en-US' : 'en-EU';
@@ -261,35 +269,128 @@ export const Expenses = () => {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                      {dayExpenses.map((expense) => (
-                        <div key={expense._id} className="work-log-item" style={{ padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
-                          <div className="responsive-grid work-log-entry-grid" style={{ gridTemplateColumns: 'auto 1fr auto', gap: 'var(--space-md)', alignItems: 'center' }}>
-                            <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #7f1d1d, #ef4444)', color: 'white', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, boxShadow: '0 2px 8px rgba(239,68,68,0.25)' }}>
-                              <span style={{ fontSize: '9px', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.05em' }}>{new Date(expense.date).toLocaleString('default', { month: 'short' })}</span>
-                              <span style={{ fontSize: '18px', lineHeight: 1.1 }}>{new Date(expense.date).getDate()}</span>
-                            </div>
+                      {dayExpenses.map((expense) => {
+                        const isExpanded = !!expandedExpenses[expense._id];
+                        return (
+                          <div 
+                            key={expense._id} 
+                            className="work-log-item" 
+                            onClick={() => toggleExpand(expense._id)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                toggleExpand(expense._id);
+                              }
+                            }}
+                            style={{ 
+                              padding: 'var(--space-md)', 
+                              backgroundColor: isExpanded ? 'var(--surface-container)' : 'var(--surface-container-low)', 
+                              borderRadius: 'var(--radius-md)', 
+                              border: isExpanded ? '1px solid var(--primary)' : '1px solid var(--outline-variant)',
+                              cursor: 'pointer',
+                              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                              outline: 'none',
+                              boxShadow: isExpanded ? '0 4px 20px rgba(0, 0, 0, 0.08)' : 'none'
+                            }}
+                          >
+                            <div className="responsive-grid work-log-entry-grid" style={{ gridTemplateColumns: 'auto 1fr auto auto', gap: 'var(--space-md)', alignItems: 'center' }}>
+                              <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #7f1d1d, #ef4444)', color: 'white', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, boxShadow: '0 2px 8px rgba(239,68,68,0.25)' }}>
+                                <span style={{ fontSize: '9px', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.05em' }}>{new Date(expense.date).toLocaleString('default', { month: 'short' })}</span>
+                                <span style={{ fontSize: '18px', lineHeight: 1.1 }}>{new Date(expense.date).getDate()}</span>
+                              </div>
 
-                            <div style={{ overflow: 'hidden' }}>
-                              <div className="font-semibold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{expense.merchant || expense.category}</div>
-                              <div className="body-sm text-muted">{expense.category} · {expense.paymentMethod}</div>
-                              {expense.description && <div className="body-sm text-muted" style={{ marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{expense.description}</div>}
-                            </div>
+                              <div style={{ overflow: 'hidden' }}>
+                                <div className="font-semibold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{expense.merchant || expense.category}</div>
+                                <div className="body-sm text-muted">{expense.category} · {expense.paymentMethod}</div>
+                              </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                              <div className="font-semibold" style={{ color: 'var(--error)' }}>- {formatCurrency(expense.amount)}</div>
-                              <Badge status={expense.category} />
-                              <div style={{ display: 'flex', gap: 'var(--space-xs)', marginTop: '4px' }}>
-                                <button onClick={() => handleEdit(expense)} title="Edit expense" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}>
-                                  <Edit2 size={16} />
-                                </button>
-                                <button onClick={() => handleDelete(expense._id)} title="Delete expense" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}>
-                                  <Trash2 size={16} />
-                                </button>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                <div className="font-semibold" style={{ color: 'var(--error)' }}>- {formatCurrency(expense.amount)}</div>
+                                <div style={{ display: 'flex', gap: 'var(--space-xs)', marginTop: '4px' }}>
+                                  <button onClick={(e) => { e.stopPropagation(); handleEdit(expense); }} title="Edit expense" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}>
+                                    <Edit2 size={16} />
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDelete(expense._id); }} title="Delete expense" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}>
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div style={{ color: isExpanded ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s' }}>
+                                <ChevronDown 
+                                  size={20} 
+                                  style={{ 
+                                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', 
+                                    transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)' 
+                                  }} 
+                                />
                               </div>
                             </div>
+
+                            {isExpanded && (
+                              <div 
+                                style={{ 
+                                  marginTop: 'var(--space-md)', 
+                                  paddingTop: 'var(--space-md)', 
+                                  borderTop: '1px dashed var(--outline-variant)',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 'var(--space-md)',
+                                  animation: 'fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 'var(--space-md)' }}>
+                                  <div>
+                                    <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Date</span>
+                                    <span className="font-semibold body-sm">{new Date(expense.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Details</span>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+                                      <span className="font-semibold body-sm">Amount: {formatCurrency(expense.amount)}</span>
+                                      <span className="body-sm text-muted" style={{ fontWeight: '500' }}>
+                                        Method: {expense.paymentMethod}
+                                      </span>
+                                      {expense.merchant && (
+                                        <span className="body-sm text-muted" style={{ fontWeight: '500' }}>
+                                          Merchant: {expense.merchant}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</span>
+                                    <div style={{ marginTop: '4px' }}>
+                                      <Badge status={expense.category} />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Description</span>
+                                  <p className="body-sm" style={{ 
+                                    margin: 0, 
+                                    padding: '10px 12px', 
+                                    backgroundColor: 'var(--surface-container-low)', 
+                                    borderRadius: 'var(--radius-sm)', 
+                                    whiteSpace: 'pre-wrap', 
+                                    wordBreak: 'break-word',
+                                    color: expense.description ? 'var(--on-surface)' : 'var(--on-surface-variant)',
+                                    fontStyle: expense.description ? 'normal' : 'italic',
+                                    borderLeft: '3px solid var(--error)',
+                                    lineHeight: '1.4'
+                                  }}>
+                                    {expense.description || 'No description provided.'}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ))

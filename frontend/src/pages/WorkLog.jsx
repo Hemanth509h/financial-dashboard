@@ -34,13 +34,14 @@ export const WorkLog = () => {
       toast.error('No logs to export for this month.');
       return;
     }
-    const headers = ['Date', 'Client', 'Amount', 'Amount Paid', 'Status'];
+    const headers = ['Date', 'Client', 'Amount', 'Amount Paid', 'Status', 'Description'];
     const csvData = filteredLogs.map(log => [
       `"${new Date(log.date).toLocaleDateString()}"`,
       `"${log.client.replace(/"/g, '""')}"`,
       log.amount,
       log.amountPaid || 0,
-      log.status
+      log.status,
+      `"${(log.description || '').replace(/"/g, '""')}"`
     ]);
 
     const csvContent = [
@@ -370,13 +371,23 @@ export const WorkLog = () => {
                               key={log._id} 
                               className="work-log-item" 
                               onClick={() => toggleExpand(log._id)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  toggleExpand(log._id);
+                                }
+                              }}
                               style={{ 
                                 padding: 'var(--space-md)', 
-                                backgroundColor: 'var(--surface-container-low)', 
+                                backgroundColor: isExpanded ? 'var(--surface-container)' : 'var(--surface-container-low)', 
                                 borderRadius: 'var(--radius-md)', 
-                                border: '1px solid var(--outline-variant)',
+                                border: isExpanded ? '1px solid var(--primary)' : '1px solid var(--outline-variant)',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s ease'
+                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                outline: 'none',
+                                boxShadow: isExpanded ? '0 4px 20px rgba(0, 0, 0, 0.08)' : 'none'
                               }}
                             >
                               <div className="responsive-grid work-log-entry-grid" style={{ gridTemplateColumns: 'auto 1fr auto auto', gap: 'var(--space-md)', alignItems: 'center' }}>
@@ -413,8 +424,14 @@ export const WorkLog = () => {
                                   </div>
                                 </div>
 
-                                <div style={{ color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                <div style={{ color: isExpanded ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s' }}>
+                                  <ChevronDown 
+                                    size={20} 
+                                    style={{ 
+                                      transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', 
+                                      transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)' 
+                                    }} 
+                                  />
                                 </div>
                               </div>
 
@@ -427,7 +444,7 @@ export const WorkLog = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: 'var(--space-md)',
-                                    animation: 'fadeIn 0.2s ease-out'
+                                    animation: 'fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
@@ -439,7 +456,7 @@ export const WorkLog = () => {
                                     <div>
                                       <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Earnings & Status</span>
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
-                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                                           <Badge status={log.status} />
                                           <span className="font-semibold body-sm">Expected: {formatCurrency(log.amount)}</span>
                                         </div>
@@ -452,6 +469,49 @@ export const WorkLog = () => {
                                           <span className="body-sm text-error" style={{ fontWeight: '500' }}>
                                             Balance: {formatCurrency(log.amount - log.amountPaid)}
                                           </span>
+                                        )}
+                                        {log.status !== 'Paid' && (
+                                          <button
+                                            onClick={async (e) => {
+                                              e.stopPropagation();
+                                              try {
+                                                const formData = {
+                                                  ...log,
+                                                  status: 'Paid',
+                                                  amountPaid: log.amount,
+                                                  datePaid: new Date().toISOString().split('T')[0]
+                                                };
+                                                await api.updateWorkLog(log._id, formData);
+                                                toast.success('Marked entry as Paid!');
+                                                fetchLogs();
+                                              } catch (err) {
+                                                toast.error('Failed to update status.');
+                                              }
+                                            }}
+                                            style={{ 
+                                              alignSelf: 'flex-start',
+                                              padding: '4px 10px', 
+                                              fontSize: '11px', 
+                                              borderRadius: '16px', 
+                                              backgroundColor: 'var(--primary-container)', 
+                                              color: 'var(--on-primary-container)',
+                                              border: '1px solid var(--primary)',
+                                              cursor: 'pointer',
+                                              marginTop: '6px',
+                                              fontWeight: '600',
+                                              transition: 'all 0.2s ease'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                              e.currentTarget.style.backgroundColor = 'var(--primary)';
+                                              e.currentTarget.style.color = '#ffffff';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                              e.currentTarget.style.backgroundColor = 'var(--primary-container)';
+                                              e.currentTarget.style.color = 'var(--on-primary-container)';
+                                            }}
+                                          >
+                                            Quick Mark Paid
+                                          </button>
                                         )}
                                       </div>
                                     </div>

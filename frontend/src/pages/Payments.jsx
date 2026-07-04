@@ -5,7 +5,7 @@ import { Modal } from '../components/ui/Modal';
 import { PaymentForm } from '../components/forms/PaymentForm';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
-import { CreditCard, Edit2, Trash2, Search, X, RefreshCw } from 'lucide-react';
+import { CreditCard, Edit2, Trash2, Download, Search, X, RefreshCw, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,6 +21,14 @@ export const Payments = () => {
   const [showWorkEntryModal, setShowWorkEntryModal] = useState(false);
   const [editingWorkEntry, setEditingWorkEntry] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedLogs, setExpandedLogs] = useState({});
+
+  const toggleExpand = (id) => {
+    setExpandedLogs(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   const fetchLogs = async () => {
     try {
@@ -346,31 +354,69 @@ export const Payments = () => {
               pendingLogs.map((log) => {
                 const remaining = log.amount - log.amountPaid;
                 const isPartiallyPaid = log.amountPaid > 0;
+                const isExpanded = !!expandedLogs[log._id];
                 
                 return (
-                  <Card key={log._id} style={{ padding: 'var(--space-sm)', overflow: 'hidden', borderLeft: `4px solid ${isPartiallyPaid ? 'var(--primary)' : 'var(--warning)'}` }}>
-                    <div className="flex justify-between items-start mobile-card-row" style={{ marginBottom: '10px' }}>
+                  <Card 
+                    key={log._id} 
+                    onClick={() => toggleExpand(log._id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleExpand(log._id);
+                      }
+                    }}
+                    style={{ 
+                      padding: 'var(--space-md)', 
+                      overflow: 'hidden', 
+                      borderLeft: `4px solid ${isPartiallyPaid ? 'var(--primary)' : 'var(--warning)'}`,
+                      borderTop: isExpanded ? '1px solid var(--primary)' : '1px solid var(--outline-variant)',
+                      borderRight: isExpanded ? '1px solid var(--primary)' : '1px solid var(--outline-variant)',
+                      borderBottom: isExpanded ? '1px solid var(--primary)' : '1px solid var(--outline-variant)',
+                      backgroundColor: isExpanded ? 'var(--surface-container)' : 'var(--surface-bright)',
+                      cursor: 'pointer',
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      outline: 'none',
+                      boxShadow: isExpanded ? '0 4px 20px rgba(0, 0, 0, 0.08)' : 'none'
+                    }}
+                  >
+                    <div className="flex justify-between items-center mobile-card-row" style={{ gap: 'var(--space-md)' }}>
                       <div style={{ flex: 1 }}>
                         <div className="font-semibold" style={{ fontSize: '15px', lineHeight: '1.2' }}>{log.client}</div>
                         <div className="body-sm text-muted" style={{ fontSize: '11px' }}>{formatDate(log.date)}</div>
                       </div>
-                      <div className="flex flex-col items-end gap-xs mobile-card-actions">
-                        <div className="flex gap-xs mobile-card-actions">
-                          <button 
-                            onClick={() => handleOpenPaymentModal(log)} 
-                            title="Record Payment"
-                            style={{ background: 'var(--primary)', border: 'none', padding: '6px', borderRadius: '6px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                          >
-                            <CreditCard size={14} />
-                          </button>
-                          <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--on-surface-variant)', cursor: 'pointer' }}>
-                            <Edit2 size={14} />
-                          </button>
-                          <button onClick={() => handleDeleteWorkEntry(log._id)} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--error)', cursor: 'pointer' }}>
-                            <Trash2 size={14} />
-                          </button>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+                        <div className="flex flex-col items-end gap-xs mobile-card-actions">
+                          <div className="flex gap-xs mobile-card-actions">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleOpenPaymentModal(log); }} 
+                              title="Record Payment"
+                              style={{ background: 'var(--primary)', border: 'none', padding: '6px', borderRadius: '6px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              <CreditCard size={14} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleEditWorkEntry(log); }} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--on-surface-variant)', cursor: 'pointer' }}>
+                              <Edit2 size={14} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteWorkEntry(log._id); }} style={{ background: 'var(--surface-container)', border: 'none', padding: '6px', borderRadius: '6px', color: 'var(--error)', cursor: 'pointer' }}>
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                          <Badge status={log.status} />
                         </div>
-                        <Badge status={log.status} />
+
+                        <div style={{ color: isExpanded ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s' }}>
+                          <ChevronDown 
+                            size={20} 
+                            style={{ 
+                              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', 
+                              transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)' 
+                            }} 
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -380,7 +426,8 @@ export const Payments = () => {
                       borderRadius: 'var(--radius-sm)',
                       display: 'grid',
                       gridTemplateColumns: 'repeat(3, 1fr)',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      marginTop: '10px'
                     }}>
                       <div style={{ flex: 1 }}>
                         <div className="body-sm text-muted" style={{ fontSize: '9px', textTransform: 'uppercase' }}>Amount</div>
@@ -395,8 +442,66 @@ export const Payments = () => {
                         <div className="font-semibold" style={{ fontSize: '13px', color: 'var(--error)' }}>{formatCurrency(remaining)}</div>
                       </div>
                     </div>
+
+                    {isExpanded && (
+                      <div 
+                        style={{ 
+                          marginTop: 'var(--space-md)', 
+                          paddingTop: 'var(--space-md)', 
+                          borderTop: '1px dashed var(--outline-variant)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 'var(--space-md)',
+                          animation: 'fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 'var(--space-md)' }}>
+                          <div>
+                            <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Date</span>
+                            <span className="font-semibold body-sm">{new Date(log.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Details</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+                              <span className="body-sm text-muted">Expected: {formatCurrency(log.amount)}</span>
+                              <span className="body-sm text-success" style={{ fontWeight: '500' }}>
+                                Amount Received: {formatCurrency(log.amountPaid || 0)}
+                              </span>
+                              <span className="body-sm text-error" style={{ fontWeight: '500' }}>
+                                Remaining Balance: {formatCurrency(remaining)}
+                              </span>
+                            </div>
+                          </div>
+                          {log.datePaid && (
+                            <div>
+                              <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last Payment Date</span>
+                              <span className="font-semibold body-sm">{new Date(log.datePaid).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Description</span>
+                          <p className="body-sm" style={{ 
+                            margin: 0, 
+                            padding: '10px 12px', 
+                            backgroundColor: 'var(--surface-container-low)', 
+                            borderRadius: 'var(--radius-sm)', 
+                            whiteSpace: 'pre-wrap', 
+                            wordBreak: 'break-word',
+                            color: log.description ? 'var(--on-surface)' : 'var(--on-surface-variant)',
+                            fontStyle: log.description ? 'normal' : 'italic',
+                            borderLeft: '3px solid var(--primary)',
+                            lineHeight: '1.4'
+                          }}>
+                            {log.description || 'No description provided.'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </Card>
-                )
+                );
               })
             )}
           </div>
@@ -423,23 +528,115 @@ export const Payments = () => {
                         </span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                        {weekLogs.map(log => (
-                          <Card key={log._id} style={{ padding: 'var(--space-sm)' }}>
-                            <div className="flex justify-between items-center mobile-card-row">
-                              <div style={{ flex: 1 }}>
-                                <div className="font-semibold" style={{ fontSize: '15px' }}>{log.client}</div>
-                                <div className="body-sm text-muted" style={{ fontSize: '11px' }}>Paid {log.datePaid ? formatDate(log.datePaid) : formatDate(log.date)}</div>
-                              </div>
-                              <div className="flex flex-col items-end gap-xs mobile-card-actions">
-                                <div className="font-semibold" style={{ color: 'var(--success)', fontSize: '14px' }}>{formatCurrency(log.amountPaid || log.amount)}</div>
-                                <div className="flex gap-xs">
-                                  <button onClick={() => handleEditWorkEntry(log)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer' }}><Edit2 size={12} /></button>
-                                  <button onClick={() => handleDeleteWorkEntry(log._id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}><Trash2 size={12} /></button>
+                        {weekLogs.map((log) => {
+                          const isExpanded = !!expandedLogs[log._id];
+                          return (
+                            <Card 
+                              key={log._id} 
+                              onClick={() => toggleExpand(log._id)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  toggleExpand(log._id);
+                                }
+                              }}
+                              style={{ 
+                                padding: 'var(--space-md)', 
+                                borderTop: isExpanded ? '1px solid var(--primary)' : '1px solid var(--outline-variant)',
+                                borderRight: isExpanded ? '1px solid var(--primary)' : '1px solid var(--outline-variant)',
+                                borderBottom: isExpanded ? '1px solid var(--primary)' : '1px solid var(--outline-variant)',
+                                borderLeft: isExpanded ? '4px solid var(--success)' : '1px solid var(--outline-variant)',
+                                backgroundColor: isExpanded ? 'var(--surface-container)' : 'var(--surface-bright)',
+                                cursor: 'pointer',
+                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                outline: 'none',
+                                boxShadow: isExpanded ? '0 4px 20px rgba(0, 0, 0, 0.08)' : 'none'
+                              }}
+                            >
+                              <div className="flex justify-between items-center mobile-card-row" style={{ gap: 'var(--space-md)' }}>
+                                <div style={{ flex: 1 }}>
+                                  <div className="font-semibold" style={{ fontSize: '15px' }}>{log.client}</div>
+                                  <div className="body-sm text-muted" style={{ fontSize: '11px' }}>Paid {log.datePaid ? formatDate(log.datePaid) : formatDate(log.date)}</div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+                                  <div className="flex flex-col items-end gap-xs mobile-card-actions">
+                                    <div className="font-semibold" style={{ color: 'var(--success)', fontSize: '14px' }}>{formatCurrency(log.amountPaid || log.amount)}</div>
+                                    <div className="flex gap-xs">
+                                      <button onClick={(e) => { e.stopPropagation(); handleEditWorkEntry(log); }} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer' }}><Edit2 size={12} /></button>
+                                      <button onClick={(e) => { e.stopPropagation(); handleDeleteWorkEntry(log._id); }} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}><Trash2 size={12} /></button>
+                                    </div>
+                                  </div>
+                                  <div style={{ color: isExpanded ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'color 0.2s' }}>
+                                    <ChevronDown 
+                                      size={20} 
+                                      style={{ 
+                                        transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', 
+                                        transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)' 
+                                      }} 
+                                    />
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </Card>
-                        ))}
+
+                              {isExpanded && (
+                                <div 
+                                  style={{ 
+                                    marginTop: 'var(--space-md)', 
+                                    paddingTop: 'var(--space-md)', 
+                                    borderTop: '1px dashed var(--outline-variant)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 'var(--space-md)',
+                                    animation: 'fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 'var(--space-md)' }}>
+                                    <div>
+                                      <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Work Date</span>
+                                      <span className="font-semibold body-sm">{new Date(log.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Details</span>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+                                        <span className="body-sm text-muted">Expected: {formatCurrency(log.amount)}</span>
+                                        <span className="body-sm text-success" style={{ fontWeight: '500' }}>
+                                          Amount Paid: {formatCurrency(log.amountPaid || log.amount)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    {log.datePaid && (
+                                      <div>
+                                        <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date Paid</span>
+                                        <span className="font-semibold body-sm">{new Date(log.datePaid).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  <div>
+                                    <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Description</span>
+                                    <p className="body-sm" style={{ 
+                                      margin: 0, 
+                                      padding: '10px 12px', 
+                                      backgroundColor: 'var(--surface-container-low)', 
+                                      borderRadius: 'var(--radius-sm)', 
+                                      whiteSpace: 'pre-wrap', 
+                                      wordBreak: 'break-word',
+                                      color: log.description ? 'var(--on-surface)' : 'var(--on-surface-variant)',
+                                      fontStyle: log.description ? 'normal' : 'italic',
+                                      borderLeft: '3px solid var(--success)',
+                                      lineHeight: '1.4'
+                                    }}>
+                                      {log.description || 'No description provided.'}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </Card>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
