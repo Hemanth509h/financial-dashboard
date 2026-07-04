@@ -467,7 +467,10 @@ export const Payments = () => {
               date: editingWorkEntry.date.split('T')[0],
               client: editingWorkEntry.client,
               amount: editingWorkEntry.amount,
-              status: editingWorkEntry.status
+              status: editingWorkEntry.status,
+              description: editingWorkEntry.description || '',
+              amountPaid: editingWorkEntry.amountPaid || 0,
+              datePaid: editingWorkEntry.datePaid ? editingWorkEntry.datePaid.split('T')[0] : ''
             }}
             onSubmit={handleUpdateWorkEntry}
             onCancel={handleCloseWorkEntryModal}

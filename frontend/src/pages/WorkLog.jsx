@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
-import { Edit2, Trash2, Download, Search, X, Plus, RefreshCw } from 'lucide-react';
+import { Edit2, Trash2, Download, Search, X, Plus, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,6 +20,14 @@ export const WorkLog = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0].substring(0, 7));
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [expandedLogs, setExpandedLogs] = useState({});
+
+  const toggleExpand = (id) => {
+    setExpandedLogs(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   const handleExport = () => {
     if (filteredLogs.length === 0) {
@@ -355,44 +363,128 @@ export const WorkLog = () => {
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                        {weekLogs.map((log) => (
-                          <div key={log._id} className="work-log-item" style={{ padding: 'var(--space-md)', backgroundColor: 'var(--surface-container-low)', borderRadius: 'var(--radius-md)', border: '1px solid var(--outline-variant)' }}>
-                            <div className="responsive-grid work-log-entry-grid" style={{ gridTemplateColumns: 'auto 1fr auto', gap: 'var(--space-md)', alignItems: 'center' }}>
-                              <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, var(--primary), #34d399)', color: 'white', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, boxShadow: '0 2px 8px rgba(16,185,129,0.25)' }}>
-                                <span style={{ fontSize: '9px', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.05em' }}>{new Date(log.date).toLocaleString('default', { month: 'short' })}</span>
-                                <span style={{ fontSize: '18px', lineHeight: 1.1 }}>{new Date(log.date).getDate()}</span>
-                              </div>
+                        {weekLogs.map((log) => {
+                          const isExpanded = !!expandedLogs[log._id];
+                          return (
+                            <div 
+                              key={log._id} 
+                              className="work-log-item" 
+                              onClick={() => toggleExpand(log._id)}
+                              style={{ 
+                                padding: 'var(--space-md)', 
+                                backgroundColor: 'var(--surface-container-low)', 
+                                borderRadius: 'var(--radius-md)', 
+                                border: '1px solid var(--outline-variant)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              <div className="responsive-grid work-log-entry-grid" style={{ gridTemplateColumns: 'auto 1fr auto auto', gap: 'var(--space-md)', alignItems: 'center' }}>
+                                <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, var(--primary), #34d399)', color: 'white', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, boxShadow: '0 2px 8px rgba(16,185,129,0.25)' }}>
+                                  <span style={{ fontSize: '9px', textTransform: 'uppercase', opacity: 0.85, letterSpacing: '0.05em' }}>{new Date(log.date).toLocaleString('default', { month: 'short' })}</span>
+                                  <span style={{ fontSize: '18px', lineHeight: 1.1 }}>{new Date(log.date).getDate()}</span>
+                                </div>
 
-                              <div style={{ overflow: 'hidden' }}>
-                                <div className="font-semibold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.client}</div>
-                                <div className="body-sm text-muted">{formatCurrency(log.amount)}</div>
-                              </div>
+                                <div style={{ overflow: 'hidden' }}>
+                                  <div className="font-semibold" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.client}</div>
+                                  <div className="body-sm text-muted">{formatCurrency(log.amount)}</div>
+                                </div>
 
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                                <Badge status={log.status} />
-                                {log.amountPaid > 0 && log.amountPaid < log.amount && (
-                                  <div className="body-sm text-success font-semibold" style={{ fontSize: '11px' }}>
-                                    Paid: {formatCurrency(log.amountPaid)}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                  <Badge status={log.status} />
+                                  {log.amountPaid > 0 && log.amountPaid < log.amount && (
+                                    <div className="body-sm text-success font-semibold" style={{ fontSize: '11px' }}>
+                                      Paid: {formatCurrency(log.amountPaid)}
+                                    </div>
+                                  )}
+                                  <div style={{ display: 'flex', gap: 'var(--space-xs)', marginTop: '4px' }}>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleEdit(log); }}
+                                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}
+                                    >
+                                      <Edit2 size={16} />
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleDelete(log._id); }}
+                                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
                                   </div>
-                                )}
-                                <div style={{ display: 'flex', gap: 'var(--space-xs)', marginTop: '4px' }}>
-                                  <button
-                                    onClick={() => handleEdit(log)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '4px' }}
-                                  >
-                                    <Edit2 size={16} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(log._id)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px' }}
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
+                                </div>
+
+                                <div style={{ color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                                 </div>
                               </div>
+
+                              {isExpanded && (
+                                <div 
+                                  style={{ 
+                                    marginTop: 'var(--space-md)', 
+                                    paddingTop: 'var(--space-md)', 
+                                    borderTop: '1px dashed var(--outline-variant)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 'var(--space-md)',
+                                    animation: 'fadeIn 0.2s ease-out'
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 'var(--space-md)' }}>
+                                    <div>
+                                      <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Date</span>
+                                      <span className="font-semibold body-sm">{new Date(log.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Earnings & Status</span>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                          <Badge status={log.status} />
+                                          <span className="font-semibold body-sm">Expected: {formatCurrency(log.amount)}</span>
+                                        </div>
+                                        {log.amountPaid > 0 && (
+                                          <span className="body-sm text-success" style={{ fontWeight: '500' }}>
+                                            Amount Paid: {formatCurrency(log.amountPaid)}
+                                          </span>
+                                        )}
+                                        {log.amount - log.amountPaid > 0 && log.amountPaid > 0 && (
+                                          <span className="body-sm text-error" style={{ fontWeight: '500' }}>
+                                            Balance: {formatCurrency(log.amount - log.amountPaid)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {log.datePaid && (
+                                      <div>
+                                        <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date Paid</span>
+                                        <span className="font-semibold body-sm">{new Date(log.datePaid).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  <div>
+                                    <span className="text-muted body-sm" style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>Description</span>
+                                    <p className="body-sm" style={{ 
+                                      margin: 0, 
+                                      padding: '10px 12px', 
+                                      backgroundColor: 'var(--surface-container-low)', 
+                                      borderRadius: 'var(--radius-sm)', 
+                                      whiteSpace: 'pre-wrap', 
+                                      wordBreak: 'break-word',
+                                      color: log.description ? 'var(--on-surface)' : 'var(--on-surface-variant)',
+                                      fontStyle: log.description ? 'normal' : 'italic',
+                                      borderLeft: '3px solid var(--primary)',
+                                      lineHeight: '1.4'
+                                    }}>
+                                      {log.description || 'No description provided.'}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -410,7 +502,10 @@ export const WorkLog = () => {
             date: editingEntry.date.split('T')[0],
             client: editingEntry.client,
             amount: editingEntry.amount,
-            status: editingEntry.status
+            status: editingEntry.status,
+            description: editingEntry.description || '',
+            amountPaid: editingEntry.amountPaid || 0,
+            datePaid: editingEntry.datePaid ? editingEntry.datePaid.split('T')[0] : ''
           } : undefined}
           onSubmit={handleAddOrUpdate}
           onCancel={handleCloseModal}
