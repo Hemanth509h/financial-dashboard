@@ -173,9 +173,9 @@ export const Payments = () => {
     const sortedLogs = [...logList].sort((a, b) => new Date(b.datePaid || b.date) - new Date(a.datePaid || a.date));
 
     return sortedLogs.reduce((groups, log) => {
-      if (!log || !log.date) return groups;
+      if (!log) return groups;
       try {
-        const date = new Date(log.date);
+        const date = new Date(log.datePaid || log.date);
         if (isNaN(date.getTime())) return groups;
         const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
         
