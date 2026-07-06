@@ -7,7 +7,7 @@ import { LoanForm } from '../components/forms/LoanForm';
 import { RepaymentForm } from '../components/forms/RepaymentForm';
 import { InterestForm } from '../components/forms/InterestForm';
 import { api } from '../api';
-import { Edit2, Trash2, Download, Plus, TrendingUp, RefreshCw, ChevronDown } from 'lucide-react';
+import { Edit2, Trash2, Plus, TrendingUp, RefreshCw, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,38 +34,6 @@ export const Loans = () => {
       ...prev,
       [id]: !prev[id]
     }));
-  };
-
-  const handleExport = () => {
-    if (loans.length === 0) {
-      toast.error('No loans to export.');
-      return;
-    }
-    const headers = ['Lender', 'Total Amount', 'Amount Paid', 'Remaining', 'Start Date', 'Status'];
-    const csvData = loans.map(loan => [
-      `"${loan.lenderName.replace(/"/g, '""')}"`,
-      loan.totalAmount,
-      loan.amountPaid,
-      loan.totalAmount - loan.amountPaid,
-      `"${new Date(loan.startDate).toLocaleDateString()}"`,
-      loan.status
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...csvData.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'loans_summary.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Loans exported successfully!');
   };
 
   const toggleExpandLoan = async (loanId) => {
@@ -265,17 +233,11 @@ export const Loans = () => {
           <button onClick={handleRefresh} disabled={refreshing} title="Refresh" className="page-header-action-btn">
             <RefreshCw size={18} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
           </button>
-          <button className="page-header-action-btn" onClick={handleExport} title="Export CSV">
-            <Download size={18} />
-          </button>
         </div>
         <div className="flex gap-sm" style={{ alignItems: 'center' }}>
           <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" style={{ background: 'none', border: '1.5px solid var(--outline-variant)', borderRadius: '8px', padding: '7px 10px', cursor: refreshing ? 'not-allowed' : 'pointer', color: refreshing ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}>
             <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
           </button>
-          <Button variant="secondary" onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Download size={18} /> Export CSV
-          </Button>
           <Button onClick={() => setShowLoanModal(true)}>+ Add New Loan</Button>
         </div>
       </header>
@@ -669,7 +631,8 @@ export const Loans = () => {
               amount: editingRepayment.amount,
               date: editingRepayment.date.split('T')[0],
               method: editingRepayment.method || 'Cash',
-              status: editingRepayment.status || 'Success'
+              status: editingRepayment.status || 'Success',
+              workEntryId: editingRepayment.workEntryId || ''
             } : undefined}
             onSubmit={handleAddOrUpdateRepayment}
             onCancel={handleCloseRepaymentModal}

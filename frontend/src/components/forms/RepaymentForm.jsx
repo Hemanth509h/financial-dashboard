@@ -1,18 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../ui/Button';
 import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { api } from '../../api';
 import './Form.css';
 
 export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState(initialData || {
-    amount: '',
-    date: new Date().toISOString().split('T')[0],
-    method: 'Cash',
-    status: 'Success'
+  const [formData, setFormData] = useState({
+    amount: initialData?.amount || '',
+    date: initialData?.date || new Date().toISOString().split('T')[0],
+    method: initialData?.method || 'Cash',
+    status: initialData?.status || 'Success',
+    workEntryId: initialData?.workEntryId || ''
   });
+  const [workEntries, setWorkEntries] = useState([]);
+  const [loadingWorkEntries, setLoadingWorkEntries] = useState(false);
 
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchWorkEntries = async () => {
+      try {
+        setLoadingWorkEntries(true);
+        const { data } = await api.getWorkLogs();
+        if (mounted) setWorkEntries(data || []);
+      } catch (error) {
+        console.error('Failed to load work logs', error);
+      } finally {
+        if (mounted) setLoadingWorkEntries(false);
+      }
+    };
+
+    fetchWorkEntries();
+    return () => { mounted = false; };
+  }, []);
 
   const oldAmount = initialData ? parseFloat(initialData.amount) : 0;
   const remainingBalance = loan ? loan.totalAmount - (loan.amountPaid || 0) + oldAmount : 0;
@@ -133,6 +155,24 @@ export const RepaymentForm = ({ loan, initialData, onSubmit, onCancel }) => {
             <span>{errors.date}</span>
           </div>
         )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="workEntryId">Link to work log (optional)</label>
+        <select
+          id="workEntryId"
+          name="workEntryId"
+          value={formData.workEntryId}
+          onChange={handleChange}
+        >
+          <option value="">No work log selected</option>
+          {workEntries.map((entry) => (
+            <option key={entry._id} value={entry._id}>
+              {new Date(entry.date).toLocaleDateString()} • {entry.client} • ₹{entry.amount}
+            </option>
+          ))}
+        </select>
+        {loadingWorkEntries && <div className="body-sm text-muted" style={{ marginTop: '6px' }}>Loading work logs...</div>}
       </div>
 
       <div className="form-group">

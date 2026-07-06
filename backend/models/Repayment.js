@@ -34,6 +34,11 @@ const repaymentSchema = new mongoose.Schema({
     trim: true,
     maxlength: 300,
   },
+  workEntryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'WorkEntry',
+    default: null,
+  },
 }, { timestamps: true });
 
 export default mongoose.model('Repayment', repaymentSchema);

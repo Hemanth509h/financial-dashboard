@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, Edit2, Plus, RefreshCw, Search, Trash2, X, ReceiptText, Tags, Wallet, ChevronDown } from 'lucide-react';
+import { Edit2, Plus, RefreshCw, Trash2, ReceiptText, Tags, Wallet, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -8,8 +8,6 @@ import { Modal } from '../components/ui/Modal';
 import { ExpenseForm } from '../components/forms/ExpenseForm';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
-
-const categoryOptions = ['All', 'Food', 'Travel', 'Rent', 'Utilities', 'Supplies', 'Loan', 'Personal', 'Other'];
 
 export const Expenses = () => {
   const { user } = useAuth();
@@ -20,8 +18,6 @@ export const Expenses = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().split('T')[0].substring(0, 7));
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All');
   const [expandedExpenses, setExpandedExpenses] = useState({});
 
   const toggleExpand = (id) => {
@@ -57,14 +53,7 @@ export const Expenses = () => {
 
   const filteredExpenses = expenses.filter((expense) => {
     const expenseMonth = new Date(expense.date).toISOString().split('T')[0].substring(0, 7);
-    const query = searchQuery.toLowerCase();
-    const matchesMonth = expenseMonth === selectedMonth;
-    const matchesSearch = !query
-      || expense.category.toLowerCase().includes(query)
-      || (expense.merchant || '').toLowerCase().includes(query)
-      || (expense.description || '').toLowerCase().includes(query);
-    const matchesCategory = categoryFilter === 'All' || expense.category === categoryFilter;
-    return matchesMonth && matchesSearch && matchesCategory;
+    return expenseMonth === selectedMonth;
   });
 
   const monthlyStats = {
@@ -105,31 +94,6 @@ export const Expenses = () => {
     fetchExpenses();
   };
 
-  const handleExport = () => {
-    if (filteredExpenses.length === 0) {
-      toast.error('No expenses to export for this month.');
-      return;
-    }
-    const headers = ['Date', 'Category', 'Merchant', 'Payment Method', 'Amount', 'Description'];
-    const rows = filteredExpenses.map((expense) => [
-      `"${new Date(expense.date).toLocaleDateString()}"`,
-      `"${expense.category.replace(/"/g, '""')}"`,
-      `"${(expense.merchant || '').replace(/"/g, '""')}"`,
-      `"${expense.paymentMethod}"`,
-      expense.amount,
-      `"${(expense.description || '').replace(/"/g, '""')}"`,
-    ]);
-    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `expenses_${selectedMonth}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('CSV exported successfully!');
-  };
 
   const handleAddOrUpdate = async (formData) => {
     try {
@@ -182,17 +146,11 @@ export const Expenses = () => {
           <button onClick={handleRefresh} disabled={refreshing} title="Refresh" className="page-header-action-btn">
             <RefreshCw size={18} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
           </button>
-          <button className="page-header-action-btn" onClick={handleExport} title="Export CSV">
-            <Download size={18} />
-          </button>
         </div>
         <div className="flex gap-sm" style={{ alignItems: 'center' }}>
           <button onClick={handleRefresh} disabled={refreshing} title="Refresh data" style={{ background: 'none', border: '1.5px solid var(--outline-variant)', borderRadius: '8px', padding: '7px 10px', cursor: refreshing ? 'not-allowed' : 'pointer', color: refreshing ? 'var(--primary)' : 'var(--on-surface-variant)', display: 'flex', alignItems: 'center' }}>
             <RefreshCw size={16} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
           </button>
-          <Button variant="secondary" onClick={handleExport} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Download size={18} /> Export CSV
-          </Button>
           <Button onClick={() => setShowModal(true)}>+ Add Expense</Button>
         </div>
       </header>

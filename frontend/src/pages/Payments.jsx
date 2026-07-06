@@ -5,7 +5,7 @@ import { Modal } from '../components/ui/Modal';
 import { PaymentForm } from '../components/forms/PaymentForm';
 import { WorkEntryForm } from '../components/forms/WorkEntryForm';
 import { api } from '../api';
-import { CreditCard, Edit2, Trash2, Download, Search, X, RefreshCw, ChevronDown } from 'lucide-react';
+import { CreditCard, Edit2, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,7 +20,6 @@ export const Payments = () => {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [showWorkEntryModal, setShowWorkEntryModal] = useState(false);
   const [editingWorkEntry, setEditingWorkEntry] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [expandedLogs, setExpandedLogs] = useState({});
 
   const toggleExpand = (id) => {
@@ -53,10 +52,7 @@ export const Payments = () => {
     fetchLogs();
   }, []);
 
-  const filteredLogs = logs.filter(log => {
-    if (!log) return false;
-    return log.client.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  const filteredLogs = logs;
 
   const pendingLogs = filteredLogs.filter(log => log && (log.status === 'Unpaid' || log.status === 'Partially Paid'));
   const paidLogs = filteredLogs.filter(log => log && log.status === 'Paid');
@@ -317,25 +313,6 @@ export const Payments = () => {
       </div>
 
       {/* Search Bar */}
-      <div className="search-container" style={{ marginBottom: 'var(--space-lg)', maxWidth: 'none' }}>
-        <Search className="search-icon" size={18} />
-        <input
-          type="text"
-          placeholder="Search client names..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="search-input"
-          style={{ maxWidth: '400px', width: '100%' }}
-        />
-        {searchQuery && (
-          <button 
-            onClick={() => setSearchQuery('')}
-            style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)' }}
-          >
-            <X size={14} />
-          </button>
-        )}
-      </div>
 
       <div className="content">
         {loading ? (

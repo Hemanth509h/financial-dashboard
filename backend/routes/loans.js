@@ -1,6 +1,7 @@
 import express from 'express';
 import Loan from '../models/Loan.js';
 import Repayment from '../models/Repayment.js';
+import WorkEntry from '../models/WorkEntry.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -45,7 +46,7 @@ router.get('/:id/repayments', async (req, res) => {
       return res.status(404).json({ message: 'Loan not found' });
     }
 
-    const repayments = await Repayment.find({ loanId: req.params.id }).sort({ date: -1 });
+    const repayments = await Repayment.find({ loanId: req.params.id }).sort({ date: -1 }).populate('workEntryId', 'client date amount description');
     res.json(repayments);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -54,13 +55,18 @@ router.get('/:id/repayments', async (req, res) => {
 
 // Add a repayment or interest charge to a loan
 router.post('/:id/repayments', async (req, res) => {
-  const { amount, date, method, status, type, note } = req.body;
+  const { amount, date, method, status, type, note, workEntryId } = req.body;
   const entryType = type || 'Repayment';
   try {
     const loan = await Loan.findOne({ _id: req.params.id, userId: req.user._id });
     if (!loan) return res.status(404).json({ message: 'Loan not found' });
 
-    const newRepayment = new Repayment({ loanId: req.params.id, amount, date, method, status, type: entryType, note });
+    if (workEntryId) {
+      const workEntry = await WorkEntry.findOne({ _id: workEntryId, userId: req.user._id });
+      if (!workEntry) return res.status(404).json({ message: 'Work log not found' });
+    }
+
+    const newRepayment = new Repayment({ loanId: req.params.id, amount, date, method, status, type: entryType, note, workEntryId });
     await newRepayment.save();
 
     if (entryType === 'Interest') {
@@ -99,12 +105,19 @@ router.patch('/:id/repayments/:repaymentId', async (req, res) => {
       loan.amountPaid -= oldAmount;
     }
 
-    const { amount, date, method, status, note } = req.body;
+    const { amount, date, method, status, note, workEntryId } = req.body;
     if (amount !== undefined) repayment.amount = amount;
     if (date !== undefined) repayment.date = date;
     if (method !== undefined) repayment.method = method;
     if (status !== undefined) repayment.status = status;
     if (note !== undefined) repayment.note = note;
+    if (workEntryId !== undefined) {
+      if (workEntryId) {
+        const workEntry = await WorkEntry.findOne({ _id: workEntryId, userId: req.user._id });
+        if (!workEntry) return res.status(404).json({ message: 'Work log not found' });
+      }
+      repayment.workEntryId = workEntryId || null;
+    }
 
     await repayment.save();
 

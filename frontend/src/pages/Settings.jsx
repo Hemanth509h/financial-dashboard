@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Target, User, Moon, Save, Download, Upload, Lock, RefreshCw } from 'lucide-react';
+import { Target, User, Moon, Save, Lock, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../api/index.js';
 import { useAuth } from '../context/AuthContext';
@@ -27,10 +27,7 @@ export const Settings = () => {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', password: '', confirm: '' });
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [importing, setImporting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const fileInputRef = useRef(null);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -89,101 +86,6 @@ export const Settings = () => {
       toast.error(err.response?.data?.message || 'Failed to update password.');
     } finally {
       setSavingPassword(false);
-    }
-  };
-
-  const handleExport = async () => {
-    setExporting(true);
-    try {
-      const [workLogsRes, loansRes] = await Promise.all([
-        api.getWorkLogs(),
-        api.getLoans(),
-      ]);
-      const exportData = {
-        exportedAt: new Date().toISOString(),
-        settings: { name: settings.name, currency: settings.currency, monthlyGoal: settings.monthlyGoal },
-        workLogs: workLogsRes.data,
-        loans: loansRes.data,
-      };
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `gigfinance-export-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success('Data exported successfully!');
-    } catch {
-      toast.error('Failed to export data. Please try again.');
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const handleImport = async (e) => {
-    const file = e.target.files[0];
-    if (!fileInputRef.current) return;
-    fileInputRef.current.value = '';
-    if (!file) return;
-    setImporting(true);
-    try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-      if (!data.workLogs && !data.loans) { toast.error('Invalid export file.'); return; }
-
-      const [existingWorkLogsRes, existingLoansRes] = await Promise.all([
-        api.getWorkLogs(),
-        api.getLoans(),
-      ]);
-      const existingWorkLogs = existingWorkLogsRes.data;
-      const existingLoans = existingLoansRes.data;
-
-      const isSameWorkLog = (a, b) =>
-        new Date(a.date).toDateString() === new Date(b.date).toDateString() &&
-        a.client?.trim().toLowerCase() === b.client?.trim().toLowerCase() &&
-        Number(a.amount) === Number(b.amount) &&
-        (a.description || '').trim() === (b.description || '').trim();
-
-      const isSameLoan = (a, b) =>
-        new Date(a.startDate).toDateString() === new Date(b.startDate).toDateString() &&
-        a.lenderName?.trim().toLowerCase() === b.lenderName?.trim().toLowerCase() &&
-        Number(a.totalAmount) === Number(b.totalAmount);
-
-      let workLogsImported = 0, workLogsSkipped = 0, loansImported = 0, loansSkipped = 0;
-
-      if (Array.isArray(data.workLogs)) {
-        for (const entry of data.workLogs) {
-          const fields = stripFields(entry, serverFields);
-          if (existingWorkLogs.some((e) => isSameWorkLog(e, fields))) { workLogsSkipped++; continue; }
-          await api.createWorkLog(fields);
-          workLogsImported++;
-        }
-      }
-      if (Array.isArray(data.loans)) {
-        for (const loan of data.loans) {
-          const { repayments } = loan;
-          const loanFields = stripFields(loan, serverFields);
-          delete loanFields.repayments;
-          if (existingLoans.some((l) => isSameLoan(l, loanFields))) { loansSkipped++; continue; }
-          const res = await api.createLoan(loanFields);
-          const newLoanId = res.data._id;
-          loansImported++;
-          if (Array.isArray(repayments)) {
-            for (const repayment of repayments) {
-              const rFields = stripFields(repayment, repaymentServerFields);
-              await api.addLoanRepayment(newLoanId, rFields);
-            }
-          }
-        }
-      }
-      const skippedMsg = (workLogsSkipped + loansSkipped) > 0
-        ? ` (${workLogsSkipped + loansSkipped} duplicate${workLogsSkipped + loansSkipped > 1 ? 's' : ''} skipped)`
-        : '';
-      toast.success(`Imported ${workLogsImported} work logs and ${loansImported} loans.${skippedMsg}`);
-    } catch {
-      toast.error('Failed to import. Make sure the file is a valid GigFinance export.');
-    } finally {
-      setImporting(false);
     }
   };
 
@@ -355,29 +257,7 @@ export const Settings = () => {
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-              <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
-                <div style={{ minWidth: 0 }}>
-                  <div className="font-semibold">Download All Data</div>
-                  <div className="body-sm text-muted">Export all your work logs and loans as a JSON file.</div>
-                </div>
-                <Button onClick={handleExport} loading={exporting} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                  <Download size={16} /> {exporting ? 'Exporting...' : 'Export'}
-                </Button>
-              </div>
-              <div style={{ borderTop: '1px solid var(--outline-variant)' }} />
-              <div className="mobile-stack" style={{ gap: 'var(--space-md)' }}>
-                <div style={{ minWidth: 0 }}>
-                  <div className="font-semibold">Restore from File</div>
-                  <div className="body-sm text-muted">Import a previously exported JSON file to restore your data.</div>
-                </div>
-                <input ref={fileInputRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
-                <Button onClick={() => fileInputRef.current?.click()} loading={importing} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                  <Upload size={16} /> {importing ? 'Importing...' : 'Import'}
-                </Button>
-              </div>
-            </div>
-          </Card>
-
+    
         </div>
       </div>
     </div>

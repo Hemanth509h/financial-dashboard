@@ -7,7 +7,7 @@ import { protect } from '../middleware/auth.js';
 const router = express.Router();
 router.use(protect);
 
-const applyLoanRepayment = async ({ userId, loanId, amount, date, note, method = 'Work Log' }) => {
+const applyLoanRepayment = async ({ userId, loanId, amount, date, note, method = 'Work Log', workEntryId }) => {
   try {
     const loan = await Loan.findOne({ _id: loanId, userId });
     if (!loan) return null;
@@ -25,6 +25,7 @@ const applyLoanRepayment = async ({ userId, loanId, amount, date, note, method =
       status: 'Success',
       type: 'Repayment',
       note: note || 'Repayment created from work log',
+      workEntryId,
     });
 
     await repayment.save();
@@ -75,6 +76,7 @@ router.post('/', async (req, res) => {
         date: date || new Date(),
         note: loanRepaymentNote || `Repayment created from work log for ${client}`,
         method: loanRepaymentMethod || 'Work Log',
+        workEntryId: newEntry._id,
       });
     }
 
@@ -111,6 +113,7 @@ router.patch('/:id', async (req, res) => {
         date: updatedEntry.date || new Date(),
         note: loanRepaymentNote || `Repayment created from work log for ${updatedEntry.client}`,
         method: loanRepaymentMethod || 'Work Log',
+        workEntryId: updatedEntry._id,
       });
     }
 
