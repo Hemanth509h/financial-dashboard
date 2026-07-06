@@ -163,24 +163,6 @@ export const Expenses = () => {
         </div>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)', alignItems: 'center' }}>
-          <div className="search-container">
-            <Search className="search-icon" size={18} />
-            <input type="text" placeholder="Search expenses..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="search-input" />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)' }}>
-                <X size={14} />
-              </button>
-            )}
-          </div>
-
-          <div className="filter-group">
-            {categoryOptions.map((category) => (
-              <button key={category} className={`filter-chip ${categoryFilter === category ? 'active' : ''}`} onClick={() => setCategoryFilter(category)}>
-                {category}
-              </button>
-            ))}
-          </div>
-
           <div className="month-filter" style={{ marginLeft: 'auto' }}>
             <input
               type="month"

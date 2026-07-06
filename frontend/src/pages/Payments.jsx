@@ -312,8 +312,6 @@ export const Payments = () => {
         </button>
       </div>
 
-      {/* Search Bar */}
-
       <div className="content">
         {loading ? (
           <div style={{ padding: 'var(--space-xl)', textAlign: 'center' }}>

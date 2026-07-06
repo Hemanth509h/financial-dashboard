@@ -244,20 +244,6 @@ export const Settings = () => {
               </div>
             </div>
           </Card>
-
-          {/* Export / Import Section */}
-          <Card className="stat-card-top" style={{ '--card-accent-from': '#f59e0b', '--card-accent-to': '#fb923c' }}>
-            <div className="flex items-center gap-md" style={{ marginBottom: 'var(--space-lg)' }}>
-              <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white', padding: '10px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(245,158,11,0.3)' }}>
-                <Download size={22} />
-              </div>
-              <div>
-                <h3>Export &amp; Import Data</h3>
-                <div className="body-sm text-muted">Back up or restore your data</div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-    
         </div>
       </div>
     </div>
