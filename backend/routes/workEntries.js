@@ -1,9 +1,44 @@
 import express from 'express';
 import WorkEntry from '../models/WorkEntry.js';
+import Loan from '../models/Loan.js';
+import Repayment from '../models/Repayment.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 router.use(protect);
+
+const applyLoanRepayment = async ({ userId, loanId, amount, date, note, method = 'Work Log' }) => {
+  try {
+    const loan = await Loan.findOne({ _id: loanId, userId });
+    if (!loan) return null;
+
+    const remainingBalance = Math.max(0, loan.totalAmount - (loan.amountPaid || 0));
+    const repaymentAmount = Math.min(Number(amount || 0), remainingBalance || Number(amount || 0));
+
+    if (!repaymentAmount || repaymentAmount <= 0) return null;
+
+    const repayment = new Repayment({
+      loanId,
+      amount: repaymentAmount,
+      date: date || new Date(),
+      method,
+      status: 'Success',
+      type: 'Repayment',
+      note: note || 'Repayment created from work log',
+    });
+
+    await repayment.save();
+
+    loan.amountPaid += repaymentAmount;
+    if (loan.amountPaid >= loan.totalAmount) loan.status = 'Repaid';
+    await loan.save();
+
+    return repayment;
+  } catch (error) {
+    console.error('Failed to apply loan repayment from work log', error);
+    return null;
+  }
+};
 
 router.get('/', async (req, res) => {
   try {
@@ -15,7 +50,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { date, client, amount, status, description } = req.body;
+  const { date, client, amount, status, description, loanId, loanRepaymentAmount, loanRepaymentMethod, loanRepaymentNote } = req.body;
   try {
     let amountPaid = req.body.amountPaid || 0;
     if (status === 'Paid') amountPaid = amount;
@@ -31,6 +66,18 @@ router.post('/', async (req, res) => {
       description,
     });
     await newEntry.save();
+
+    if (loanId && loanRepaymentAmount) {
+      await applyLoanRepayment({
+        userId: req.user._id,
+        loanId,
+        amount: loanRepaymentAmount,
+        date: date || new Date(),
+        note: loanRepaymentNote || `Repayment created from work log for ${client}`,
+        method: loanRepaymentMethod || 'Work Log',
+      });
+    }
+
     res.status(201).json(newEntry);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -42,7 +89,7 @@ router.patch('/:id', async (req, res) => {
     const entry = await WorkEntry.findOne({ _id: req.params.id, userId: req.user._id });
     if (!entry) return res.status(404).json({ message: 'Entry not found' });
 
-    const updateData = { ...req.body };
+    const { loanId, loanRepaymentAmount, loanRepaymentMethod, loanRepaymentNote, ...updateData } = req.body;
     if (updateData.status === 'Paid' && (!updateData.amountPaid || updateData.amountPaid === 0)) {
       updateData.amountPaid = entry.amount;
     }
@@ -55,6 +102,18 @@ router.patch('/:id', async (req, res) => {
       updateData,
       { new: true, runValidators: true }
     );
+
+    if (loanId && loanRepaymentAmount) {
+      await applyLoanRepayment({
+        userId: req.user._id,
+        loanId,
+        amount: loanRepaymentAmount,
+        date: updatedEntry.date || new Date(),
+        note: loanRepaymentNote || `Repayment created from work log for ${updatedEntry.client}`,
+        method: loanRepaymentMethod || 'Work Log',
+      });
+    }
+
     res.json(updatedEntry);
   } catch (error) {
     res.status(400).json({ message: error.message });
