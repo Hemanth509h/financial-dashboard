@@ -245,62 +245,67 @@ export const WorkEntryForm = ({ initialData, onSubmit, onCancel }) => {
           Use this payment to repay a loan
         </label>
         <div style={{ fontSize: '12px', color: 'var(--on-surface-variant)', marginBottom: '8px' }}>
-          Any amount you collect from this work entry can be sent straight to one of your existing loans.
+          Choose a loan and repayment amount below whenever you want this work payment to reduce an existing balance.
         </div>
 
-        {formData.applyToLoan && (
-          <div style={{ display: 'grid', gap: '10px' }}>
-            <div>
-              <label htmlFor="loanId" className="body-sm" style={{ display: 'block', marginBottom: '4px' }}>Select loan</label>
-              <select
-                id="loanId"
-                name="loanId"
-                value={formData.loanId}
-                onChange={handleChange}
-                disabled={loadingLoans}
-              >
-                <option value="">{loadingLoans ? 'Loading loans...' : 'Choose a loan'}</option>
-                {loans.map((loan) => (
-                  <option key={loan._id} value={loan._id}>
-                    {loan.lenderName} — Remaining {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Math.max(0, loan.totalAmount - (loan.amountPaid || 0)))}
-                  </option>
-                ))}
-              </select>
-              {errors.loanId && (
-                <div style={{ marginTop: '4px', color: 'var(--error)', fontSize: '12px' }}>{errors.loanId}</div>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="loanRepaymentAmount" className="body-sm" style={{ display: 'block', marginBottom: '4px' }}>Repayment amount</label>
-              <input
-                type="number"
-                id="loanRepaymentAmount"
-                name="loanRepaymentAmount"
-                placeholder="0"
-                min="0"
-                step="0.01"
-                value={formData.loanRepaymentAmount}
-                onChange={handleChange}
-              />
-              {errors.loanRepaymentAmount && (
-                <div style={{ marginTop: '4px', color: 'var(--error)', fontSize: '12px' }}>{errors.loanRepaymentAmount}</div>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="loanRepaymentNote" className="body-sm" style={{ display: 'block', marginBottom: '4px' }}>Note (optional)</label>
-              <input
-                type="text"
-                id="loanRepaymentNote"
-                name="loanRepaymentNote"
-                placeholder="e.g. Repayment from client payment"
-                value={formData.loanRepaymentNote}
-                onChange={handleChange}
-              />
-            </div>
+        <div style={{ display: 'grid', gap: '10px', opacity: formData.applyToLoan ? 1 : 0.75 }}>
+          <div>
+            <label htmlFor="loanId" className="body-sm" style={{ display: 'block', marginBottom: '4px' }}>Select loan</label>
+            <select
+              id="loanId"
+              name="loanId"
+              value={formData.loanId}
+              onChange={handleChange}
+              disabled={loadingLoans || !formData.applyToLoan}
+            >
+              <option value="">{loadingLoans ? 'Loading loans...' : 'Choose a loan'}</option>
+              {loans.map((loan) => (
+                <option key={loan._id} value={loan._id}>
+                  {loan.lenderName} — Remaining {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Math.max(0, loan.totalAmount - (loan.amountPaid || 0)))}
+                </option>
+              ))}
+            </select>
+            {!loadingLoans && loans.length === 0 && (
+              <div style={{ marginTop: '4px', color: 'var(--on-surface-variant)', fontSize: '12px' }}>
+                No active loans found yet. Create one on the Loans page first.
+              </div>
+            )}
+            {errors.loanId && (
+              <div style={{ marginTop: '4px', color: 'var(--error)', fontSize: '12px' }}>{errors.loanId}</div>
+            )}
           </div>
-        )}
+
+          <div>
+            <label htmlFor="loanRepaymentAmount" className="body-sm" style={{ display: 'block', marginBottom: '4px' }}>Repayment amount</label>
+            <input
+              type="number"
+              id="loanRepaymentAmount"
+              name="loanRepaymentAmount"
+              placeholder="0"
+              min="0"
+              step="0.01"
+              value={formData.loanRepaymentAmount}
+              onChange={handleChange}
+              disabled={!formData.applyToLoan}
+            />
+            {errors.loanRepaymentAmount && (
+              <div style={{ marginTop: '4px', color: 'var(--error)', fontSize: '12px' }}>{errors.loanRepaymentAmount}</div>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="loanRepaymentNote" className="body-sm" style={{ display: 'block', marginBottom: '4px' }}>Note (optional)</label>
+            <input
+              type="text"
+              id="loanRepaymentNote"
+              name="loanRepaymentNote"
+              placeholder="e.g. Repayment from client payment"
+              value={formData.loanRepaymentNote}
+              onChange={handleChange}
+              disabled={!formData.applyToLoan}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="form-actions">
