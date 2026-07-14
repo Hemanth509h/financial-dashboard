@@ -20,24 +20,21 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-
-app.use(cookieParser());
-app.use(express.json());
-
-// Request logging middleware
+// CORS middleware for cross-origin requests
 app.use((req, res, next) => {
-  const startTime = Date.now();
-  const { method, path, ip } = req;
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
-  res.on('finish', () => {
-    const duration = Date.now() - startTime;
-    const statusColor = res.statusCode >= 400 ? '\x1b[31m' : '\x1b[32m'; // red for errors, green for success
-    const reset = '\x1b[0m';
-    console.log(`${statusColor}[${res.statusCode}]${reset} ${method.padEnd(6)} ${path.padEnd(30)} ${duration}ms - ${ip}`);
-  });
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
   
   next();
 });
+
+app.use(cookieParser());
+app.use(express.json());
 
 async function connectDatabase() {
   let uri = process.env.MONGODB_URI;
