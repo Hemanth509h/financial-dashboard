@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
+const API_URL = 'http://10.0.2.15:3000';
 
 const client = axios.create({
   baseURL: `${API_URL}/api`,
