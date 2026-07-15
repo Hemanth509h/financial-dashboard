@@ -1,5 +1,4 @@
-# ---- Build stage ----
-FROM node:20.19-alpine AS build
+FROM node:20.19-alpine
 
 WORKDIR /app
 
@@ -13,12 +12,8 @@ ENV VITE_API_URL=$VITE_API_URL
 
 RUN npm run build
 
-# ---- Runtime stage ----
-FROM nginx:1.27-alpine
+RUN npm install -g serve
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 3000
 
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["serve", "-s", "dist", "-l", "3000"]
