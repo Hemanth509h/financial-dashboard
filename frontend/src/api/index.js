@@ -43,6 +43,8 @@ const patch = (path, data) => client.patch(path, data);
 const del = (path) => client.delete(path);
 
 const api = {
+  healthCheck: () => client.get('/health'),
+
   // Auth
   register: (email, password, name) => post('/auth/register', { email, password, name }),
   login: (email, password) => post('/auth/login', { email, password }),

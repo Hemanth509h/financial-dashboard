@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
+import { api } from './api';
 import { SidebarLayout } from './layouts/SidebarLayout';
 import { Dashboard } from './pages/Dashboard';
 import { WorkLog } from './pages/WorkLog';
@@ -56,8 +58,38 @@ function AppContent() {
 }
 
 function AppWithSplash() {
-  const { loading } = useAuth();
-  if (loading) return <SplashScreen />;
+  const { loading: authLoading } = useAuth();
+  const [backendReady, setBackendReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId;
+
+    const checkHealth = async () => {
+      try {
+        const response = await api.healthCheck();
+        if (!cancelled && response?.data?.status === 'ok') {
+          setBackendReady(true);
+          return;
+        }
+      } catch (error) {
+        console.info('Waiting for backend health check...', error.message);
+      }
+
+      if (!cancelled) {
+        timeoutId = setTimeout(checkHealth, 1500);
+      }
+    };
+
+    checkHealth();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
+
+  if (!backendReady || authLoading) return <SplashScreen />;
   return <AppContent />;
 }
 
