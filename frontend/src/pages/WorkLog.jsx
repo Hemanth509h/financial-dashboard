@@ -223,9 +223,26 @@ export const WorkLog = () => {
             </div>
             <div style={{ height: 12 }} />
           </div>
-
         </div>
 
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)', alignItems: 'center' }}>
+          <div className="month-filter" style={{ marginLeft: 'auto' }}>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              style={{
+                padding: '0.6rem 1rem',
+                border: '1px solid var(--outline-variant)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '14px',
+                background: 'var(--surface-container-low)',
+                color: 'var(--on-surface)',
+                fontFamily: 'inherit',
+              }}
+            />
+          </div>
+        </div>
 
         {/* Activity Log */}
         <div style={{ padding: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.09)', border: '1px solid var(--outline-variant)', background: 'var(--surface-bright)' }} className="activity-log-card">
