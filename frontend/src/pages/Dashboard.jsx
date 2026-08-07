@@ -3,7 +3,7 @@ import { MetricTile } from '../components/ui/MetricTile';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { AnalyticsChart } from '../components/ui/AnalyticsChart';
-import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown, RefreshCw, ReceiptText, Banknote, CircleCheckBig } from 'lucide-react';
+import { TrendingUp, ClipboardList, WalletCards, CheckCircle2, History, Target, ArrowRight, TrendingDown, RefreshCw, ReceiptText } from 'lucide-react';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
@@ -112,51 +112,6 @@ export const Dashboard = () => {
         </div>
       ) : (
         <>
-      <section className="loan-overview" aria-labelledby="loan-overview-title">
-        <div className="loan-overview-heading">
-          <div>
-            <p className="loan-overview-eyebrow">Your borrowing snapshot</p>
-            <h2 id="loan-overview-title">Loan Overview</h2>
-          </div>
-          <a href="/loans" className="loan-overview-link">Manage loans <ArrowRight size={15} /></a>
-        </div>
-        <div className="loan-overview-grid">
-          <div className="loan-summary-card loan-summary-card--borrowed">
-            <div className="loan-summary-banner">
-              <div className="loan-summary-icon"><Banknote size={24} /></div>
-              <span>Total borrowed</span>
-            </div>
-            <div className="loan-summary-value">
-              <strong>{formatCurrency(summary.totalLoanGoal)}</strong>
-              <span>Principal sum</span>
-            </div>
-          </div>
-          <div className="loan-summary-card loan-summary-card--balance">
-            <div className="loan-summary-banner">
-              <div className="loan-summary-icon"><WalletCards size={24} /></div>
-              <span>Outstanding balance</span>
-            </div>
-            <div className="loan-summary-value">
-              <strong>{formatCurrency(summary.totalLoanBalance)}</strong>
-              <span>Including interest additions</span>
-            </div>
-          </div>
-          <div className="loan-summary-card loan-summary-card--progress">
-            <div className="loan-summary-banner">
-              <div className="loan-summary-icon"><CircleCheckBig size={24} /></div>
-              <span>Total progress</span>
-            </div>
-            <div className="loan-summary-value">
-              <strong>{Math.round(loanProgress)}%</strong>
-              <span>Repaid {formatCurrency(summary.totalLoanPaid)} in total</span>
-              <div className="loan-summary-progress" aria-label={`${Math.round(loanProgress)} percent repaid`}>
-                <div style={{ width: `${Math.min(loanProgress, 100)}%` }} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <div className="dashboard-metrics">
         <MetricTile
           title={`Earned in ${getMonthName()}`}

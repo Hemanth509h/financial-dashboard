@@ -7,9 +7,10 @@ import { LoanForm } from '../components/forms/LoanForm';
 import { RepaymentForm } from '../components/forms/RepaymentForm';
 import { InterestForm } from '../components/forms/InterestForm';
 import { api } from '../api';
-import { Edit2, Trash2, Plus, TrendingUp, RefreshCw, ChevronDown } from 'lucide-react';
+import { Edit2, Trash2, Plus, TrendingUp, RefreshCw, ChevronDown, Banknote, WalletCards, CircleCheckBig } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import './Loans.css';
 
 export const Loans = () => {
   const { user } = useAuth();
@@ -222,6 +223,16 @@ export const Loans = () => {
     }, {});
   };
 
+  const activeLoans = loans.filter((loan) => loan.status === 'Active');
+  const loanSummary = activeLoans.reduce((totals, loan) => ({
+    totalLoanGoal: totals.totalLoanGoal + Number(loan.totalAmount || 0),
+    totalLoanBalance: totals.totalLoanBalance + Math.max(0, Number(loan.totalAmount || 0) - Number(loan.amountPaid || 0)),
+    totalLoanPaid: totals.totalLoanPaid + Number(loan.amountPaid || 0),
+  }), { totalLoanGoal: 0, totalLoanBalance: 0, totalLoanPaid: 0 });
+  const loanProgress = loanSummary.totalLoanGoal > 0
+    ? (loanSummary.totalLoanPaid / loanSummary.totalLoanGoal) * 100
+    : 0;
+
   return (
     <div className="page">
       <header className="page-header mobile-stack" style={{marginBottom: 'var(--space-xl)', gap: 'var(--space-md)'}}>
@@ -241,6 +252,50 @@ export const Loans = () => {
           <Button onClick={() => setShowLoanModal(true)}>+ Add New Loan</Button>
         </div>
       </header>
+
+      {!loading && (
+        <section className="loan-overview" aria-labelledby="loan-overview-title">
+          <div className="loan-overview-heading">
+            <p className="loan-overview-eyebrow">Your borrowing snapshot</p>
+            <h2 id="loan-overview-title">Loan Overview</h2>
+          </div>
+          <div className="loan-overview-grid">
+            <div className="loan-summary-card loan-summary-card--borrowed">
+              <div className="loan-summary-banner">
+                <div className="loan-summary-icon"><Banknote size={24} /></div>
+                <span>Total borrowed</span>
+              </div>
+              <div className="loan-summary-value">
+                <strong>{formatCurrency(loanSummary.totalLoanGoal)}</strong>
+                <span>Principal sum</span>
+              </div>
+            </div>
+            <div className="loan-summary-card loan-summary-card--balance">
+              <div className="loan-summary-banner">
+                <div className="loan-summary-icon"><WalletCards size={24} /></div>
+                <span>Outstanding balance</span>
+              </div>
+              <div className="loan-summary-value">
+                <strong>{formatCurrency(loanSummary.totalLoanBalance)}</strong>
+                <span>Including interest additions</span>
+              </div>
+            </div>
+            <div className="loan-summary-card loan-summary-card--progress">
+              <div className="loan-summary-banner">
+                <div className="loan-summary-icon"><CircleCheckBig size={24} /></div>
+                <span>Total progress</span>
+              </div>
+              <div className="loan-summary-value">
+                <strong>{Math.round(loanProgress)}%</strong>
+                <span>Repaid {formatCurrency(loanSummary.totalLoanPaid)} in total</span>
+                <div className="loan-summary-progress" aria-label={`${Math.round(loanProgress)} percent repaid`}>
+                  <div style={{ width: `${Math.min(loanProgress, 100)}%` }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
       
       <div className="content">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 'var(--space-lg)', marginBottom: 'var(--space-xl)' }}>
