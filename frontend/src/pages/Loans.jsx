@@ -262,7 +262,7 @@ export const Loans = () => {
           <div className="loan-overview-grid">
             <div className="loan-summary-card loan-summary-card--borrowed">
               <div className="loan-summary-banner">
-                <div className="loan-summary-icon"><Banknote size={24} /></div>
+                <div className="loan-summary-icon"><Banknote size={18} /></div>
                 <span>Total borrowed</span>
               </div>
               <div className="loan-summary-value">
@@ -272,7 +272,7 @@ export const Loans = () => {
             </div>
             <div className="loan-summary-card loan-summary-card--balance">
               <div className="loan-summary-banner">
-                <div className="loan-summary-icon"><WalletCards size={24} /></div>
+                <div className="loan-summary-icon"><WalletCards size={18} /></div>
                 <span>Outstanding balance</span>
               </div>
               <div className="loan-summary-value">
@@ -282,7 +282,7 @@ export const Loans = () => {
             </div>
             <div className="loan-summary-card loan-summary-card--progress">
               <div className="loan-summary-banner">
-                <div className="loan-summary-icon"><CircleCheckBig size={24} /></div>
+                <div className="loan-summary-icon"><CircleCheckBig size={18} /></div>
                 <span>Total progress</span>
               </div>
               <div className="loan-summary-value">

@@ -20,30 +20,29 @@
 
 .loan-overview-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: var(--space-lg);
 }
 
 .loan-summary-card {
   background: var(--surface-bright);
   border: 1px solid var(--outline-variant);
-  border-radius: 24px;
-  box-shadow: 0 5px 25px rgba(15, 23, 42, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.09);
   overflow: hidden;
 }
 
 .loan-summary-card--progress {
-  grid-column: span 2;
+  grid-column: auto;
 }
 
 .loan-summary-banner {
   align-items: center;
   color: #fff;
   display: flex;
-  gap: 14px;
-  min-height: 132px;
+  gap: 10px;
   overflow: hidden;
-  padding: 22px 26px 54px;
+  padding: 14px 16px 38px;
   position: relative;
 }
 
@@ -52,18 +51,18 @@
   background: rgba(255, 255, 255, 0.08);
   border-radius: 50%;
   content: '';
-  height: 180px;
+  height: 100px;
   position: absolute;
-  right: -44px;
-  top: -74px;
-  width: 180px;
+  right: -22px;
+  top: -22px;
+  width: 100px;
 }
 
 .loan-summary-banner::before {
-  height: 84px;
-  right: 78px;
-  top: 52px;
-  width: 84px;
+  height: 55px;
+  right: 28px;
+  top: 45px;
+  width: 55px;
 }
 
 .loan-summary-card--borrowed .loan-summary-banner { background: linear-gradient(135deg, #312e81, #5b45df); }
@@ -73,20 +72,21 @@
 .loan-summary-icon {
   align-items: center;
   background: rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
+  border-radius: 10px;
   display: flex;
-  height: 58px;
+  height: 36px;
   justify-content: center;
   position: relative;
-  width: 58px;
+  width: 36px;
   z-index: 1;
 }
 
 .loan-summary-banner > span {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: .1em;
-  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  line-height: 1.3;
   position: relative;
   text-transform: uppercase;
   z-index: 1;
@@ -95,21 +95,21 @@
 .loan-summary-value {
   background: var(--surface-bright);
   border: 1px solid var(--outline-variant);
-  border-radius: 20px;
-  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.11);
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  margin: -42px 20px 20px;
-  min-height: 132px;
-  padding: 25px 24px 20px;
+  gap: 0;
+  margin: -26px 12px 12px;
+  min-height: 0;
+  padding: 12px 16px;
   position: relative;
   z-index: 2;
 }
 
 .loan-summary-value strong {
   color: var(--on-surface);
-  font-size: clamp(25px, 3vw, 36px);
+  font-size: 26px;
   font-variant-numeric: tabular-nums;
   letter-spacing: -.045em;
   line-height: 1.1;
@@ -118,8 +118,9 @@
 
 .loan-summary-value span {
   color: var(--primary);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 5px;
 }
 
 .loan-summary-card--balance .loan-summary-value span { color: var(--error); }
@@ -127,8 +128,8 @@
 .loan-summary-progress {
   background: var(--surface-container-high);
   border-radius: 999px;
-  height: 7px;
-  margin-top: 3px;
+  height: 6px;
+  margin-top: 9px;
   overflow: hidden;
   width: 100%;
 }
@@ -143,48 +144,5 @@
 @media (max-width: 768px) {
   .loan-overview-grid {
     gap: var(--space-md);
-  }
-}
-
-@media (max-width: 500px) {
-  .loan-overview {
-    margin-bottom: var(--space-lg);
-  }
-
-  .loan-summary-card {
-    border-radius: 20px;
-  }
-
-  .loan-summary-banner {
-    min-height: 116px;
-    padding: 18px 18px 48px;
-  }
-
-  .loan-summary-icon {
-    border-radius: 14px;
-    height: 48px;
-    width: 48px;
-  }
-
-  .loan-summary-icon svg { height: 21px; width: 21px; }
-
-  .loan-summary-banner > span {
-    font-size: 11px;
-    letter-spacing: .08em;
-  }
-
-  .loan-summary-value {
-    border-radius: 16px;
-    margin: -34px 12px 12px;
-    min-height: 115px;
-    padding: 19px 16px 15px;
-  }
-
-  .loan-summary-value strong {
-    font-size: 25px;
-  }
-
-  .loan-summary-value span {
-    font-size: 11px;
   }
 }
