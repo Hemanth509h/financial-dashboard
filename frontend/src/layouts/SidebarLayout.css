@@ -117,15 +117,15 @@
 .bottom-nav {
   display: none;
   position: fixed;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
-  min-height: 64px;
-  background-color: rgba(255, 255, 255, 0.75);
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 20px;
+  right: 20px;
+  min-height: 76px;
+  background-color: rgba(255, 255, 255, 0.86);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 28px;
   z-index: 80;
   padding: 4px 8px;
   justify-content: space-between;
@@ -134,9 +134,9 @@
 }
 
 [data-theme='dark'] .bottom-nav {
-  background-color: rgba(15, 23, 49, 0.75);
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background-color: rgba(15, 26, 44, 0.92);
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.36), inset 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .bottom-nav-link {
@@ -149,7 +149,7 @@
   text-decoration: none;
   font-size: 9px;
   font-weight: 600;
-  padding: 6px 2px 8px 2px;
+  padding: 9px 1px 10px;
   border: none;
   background: none;
   min-width: 0;
@@ -179,7 +179,7 @@
 
 .bottom-nav-link.active {
   color: var(--primary);
-  background: none;
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .bottom-nav-link.active svg {
@@ -190,6 +190,17 @@
 .bottom-nav-link.active::after {
   opacity: 1;
   transform: scale(1);
+}
+
+@media (max-width: 380px) {
+  .bottom-nav {
+    left: 10px;
+    right: 10px;
+  }
+
+  .bottom-nav-link {
+    font-size: 8px;
+  }
 }
 
 /* Mobile Bottom Sheet Popup */

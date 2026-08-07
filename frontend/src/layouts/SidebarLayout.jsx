@@ -22,7 +22,12 @@ export const SidebarLayout = () => {
     { name: 'Loans', path: '/loans', icon: Building2 },
     { name: 'History', path: '/monthly-history', icon: Archive },
   ];
-  const bottomNavItems = navItems.slice(0, 4);
+  // Keep the most frequently used actions one tap away on phones. Settings is
+  // presented as Profile here, while History remains available from the menu.
+  const bottomNavItems = [
+    ...navItems.slice(0, 5),
+    { name: 'Profile', path: '/settings', icon: User },
+  ];
 
   const footerItems = [
     { name: 'Settings', path: '/settings', icon: Settings },
@@ -120,14 +125,6 @@ export const SidebarLayout = () => {
             <span>{item.name}</span>
           </NavLink>
         ))}
-        <button
-          type="button"
-          className={`bottom-nav-link ${isMobileOpen ? 'active' : ''}`}
-          onClick={() => setIsMobileOpen(true)}
-        >
-          <Menu size={24} />
-          <span>Menu</span>
-        </button>
       </nav>
 
       {/* Mobile Menu Popup */}
